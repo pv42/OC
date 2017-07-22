@@ -31,8 +31,8 @@ function mine()
   hole()
   while robot.durability() > DURABILITY_LOW do
     while computer.energy() > BATTERY_LOW and robot.durability() > DURABILITY_LOW do
-      while x < MAX_X - 1
-        robot.turnLeft() do
+      while x < MAX_X - 1 do
+        robot.turnLeft() 
         mv_fw()
         if (y%3)>1 then 
           mv_dwn()
