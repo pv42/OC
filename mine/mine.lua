@@ -1,5 +1,7 @@
 local MAX_DEATH = 55
+local MAX_X = 50
 local BATTERY_LOW = 6000
+local DURABILITY_LOW = 0.1
 local x,y,death -- relative to start
 death = 0
 x = 0
@@ -9,6 +11,7 @@ robot = require("robot")
 sides = require("sides")
 shell = require("shell")
 computer = require("computer")
+math = require("math")
 local geo = component.geolyzer
 args = shell.parse(...)
 
@@ -26,21 +29,24 @@ end
 function mine()
   print("Starting mining")
   hole()
-  while robot.durability() > 0.1 do
-    while computer.energy() > BATTERY_LOW and robot.durability()>0.1 do
-      robot.turnLeft()
-      mv_fw()
-      if (y%3)>1 then 
-        mv_dwn()
-        mv_dwn()
-        x = x+1
-      else 
+  while robot.durability() > DURABILITY_LOW do
+    while computer.energy() > BATTERY_LOW and robot.durability() > DURABILITY_LOW do
+      while x < MAX_X - 1
+        robot.turnLeft()
         mv_fw()
-        mv_up()
-        x = x+2
+        if (y%3)>1 then 
+          mv_dwn()
+          mv_dwn()
+          x = x+1
+        else 
+          mv_fw()
+          mv_up()
+          x = x+2
+        end
+        robot.turnRight()
+        hole()
       end
-      robot.turnRight()
-      hole()
+      goTo(0,3*math.floor(y/3) + 3)
     end
     chargeAndEmpty()
   end
@@ -116,29 +122,28 @@ function chargeAndEmpty()
 end
 
 function goToStart()
-  while y>0 do
-    mv_dwn()
+  goTo(0,-1)
+end
+
+function goTo(tx, ty)
+  while y < ty do
+    mv_up()
   end
   robot.turnRight()
-  while x>0 do
+  while x>tx do
     x = x-1
     mv_fw()
   end
   robot.turnLeft()
-  mv_dwn()
-end
-
-function goTo(tx, ty)
-  mv_up()
-  while y < ty do
-    mv_up()
-  end
   robot.turnLeft()
   while x < tx do
     mv_fw()
     x = x+1
   end
   robot.turnRight()
+  while y>ty do
+    mv_dwn()
+  end
 end
 
 function mv_fw()
