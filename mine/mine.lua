@@ -1,9 +1,9 @@
-local MAX_DEATH = 55
+local MAX_depth = 55
 local MAX_X = 50
 local BATTERY_LOW = 6000
 local DURABILITY_LOW = 0.1
-local x,y,death -- relative to start
-death = 0
+local x,y,depth -- relative to start
+depth = 0
 x = 0
 y = -1
 component = require("component")
@@ -67,16 +67,16 @@ end
 
 function hole()
   print("Hole @ x=" .. x .. " y="  .. y)
-  while death < MAX_DEATH do
-    death = death + 1
+  while depth < MAX_depth do
+    depth = depth + 1
     mv_fw()
     checkSurroundings()
   end
   print("Hole:returning")
   robot.turnAround()
-  while death>0 do
+  while depth>0 do
     mv_fw()
-    death = death - 1
+    depth = depth - 1
   end
   robot.turnAround()
 end
