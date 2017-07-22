@@ -167,4 +167,3 @@ function mv_dwn()
   y = y-1
 end
 main()
---chargeAndEmpty()
