@@ -76,6 +76,7 @@ function hole()
   robot.turnAround()
   while death>0 do
     mv_fw()
+    death = death - 1
   end
   robot.turnAround()
 end
