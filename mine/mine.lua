@@ -1,5 +1,5 @@
 -- Mine by pv42 
--- version 1.2.08
+-- version 1.2.10
 local MAX_depth = 58
 local MAX_X = 50
 local BATTERY_LOW = 6000
@@ -30,7 +30,6 @@ end
 
 function mine()
   print("Starting mining")
-  hole()
   while robot.durability() > DURABILITY_LOW do
     hole()
     if computer.energy() <= BATTERY_LOW then chargeAndEmpty() end
@@ -60,10 +59,13 @@ function goToNextHole()
 end
 
 function shouldMine(blockName)
-  --print(blockName)
   if blockName == "minecraft:stone" then 
     return false end
+  if blockName == "minecraft:cobbelstone" then 
+    return false end
   if blockName == "minecraft:obsidian" then
+    return false end
+  if blockName == "minecraft:torch" then
     return false end
   if blockName == "minecraft:air" then
     return false end
