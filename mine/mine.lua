@@ -61,7 +61,7 @@ end
 function shouldMine(blockName)
   if blockName == "minecraft:stone" then 
     return false end
-  if blockName == "minecraft:cobbelstone" then 
+  if blockName == "minecraft:cobblestone" then 
     return false end
   if blockName == "minecraft:obsidian" then
     return false end
