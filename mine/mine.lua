@@ -1,4 +1,4 @@
-local MAX_depth = 55
+local MAX_depth = 58
 local MAX_X = 50
 local BATTERY_LOW = 6000
 local DURABILITY_LOW = 0.1
@@ -30,28 +30,31 @@ function mine()
   print("Starting mining")
   hole()
   while robot.durability() > DURABILITY_LOW do
-    while computer.energy() > BATTERY_LOW and robot.durability() > DURABILITY_LOW do
-      while x < MAX_X - 1 do
-        robot.turnLeft() 
-        mv_fw()
-        if (y%3)>1 then 
-          mv_dwn()
-          mv_dwn()
-          x = x+1
-        else 
-          mv_fw()
-          mv_up()
-          x = x+2
-        end
-        robot.turnRight()
-        hole()
-      end
-      goTo(0,3*math.floor(y/3) + 3)
-    end
-    chargeAndEmpty()
+    hole()
+    if computer.energy() <= BATTERY_LOW then chargeAndEmpty() end
+    goToNextHole()
   end
   goToStart()
   empty()
+end
+
+function goToNextHole()
+  if x >= MAX_X - 1 then 
+    goTo(0,3*math.floor(y/3) + 3) 
+  else 
+    robot.turnLeft() 
+    mv_fw()
+    if (y%3)>1 then 
+      mv_dwn()
+      mv_dwn()
+      x = x+1
+    else 
+      mv_fw()
+      mv_up()
+      x = x+2
+    end
+    robot.turnRight()
+  end
 end
 
 function shouldMine(blockName)
