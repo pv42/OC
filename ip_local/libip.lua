@@ -1,10 +1,10 @@
---libaries 
+--libaries
 local modem = require("modem")
 local event = require("event")
 --consts public
 IP_PORT = 2048 -- the oc port used to send/recive ip packages NOT the t-/ucp port which is more the ethernetframe type
 IP_VERSION = 4
-ARP_PORT = 2054
+ARP_PORT = 205#4
 ARP_OP_REQ
 ARP_OP_ANSW
 --consts private
