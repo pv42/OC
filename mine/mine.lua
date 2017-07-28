@@ -1,5 +1,5 @@
 -- Mine by pv42 
--- version 1.2.10
+-- version 1.2.25
 -- config
 local MAX_depth = 58
 local MAX_X = 50
@@ -20,10 +20,11 @@ computer = require("computer")
 math = require("math")
 local inv = component.inventory_controller
 local geo = component.geolyzer
-local angel = hasAngel()
+local angel = false
 local args = ...
 
 function main()
+  angel = hasAngel()
   local tx = 0
   local ty = 0  
   if #args > 1 then
