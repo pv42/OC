@@ -1,10 +1,14 @@
 -- Mine by pv42 
 -- version 1.2.10
+-- config
 local MAX_depth = 58
 local MAX_X = 50
 local BATTERY_LOW = 6000
 local DURABILITY_LOW = 0.1
+local MINE_BLACKLIST = {"minecraft:stone", "minecraft:cobblestone", "minecraft:torch", "minecraft:air", "minecraft:water", "minecraft:flowing_water", "minecraft:lava", "minecraft:flowing_lava"}
+-- dont change 
 local x,y,depth -- relative to start
+
 depth = 0
 x = 0
 y = -1
@@ -14,8 +18,10 @@ sides = require("sides")
 shell = require("shell")
 computer = require("computer")
 math = require("math")
+local inv = component.inventory_controller
 local geo = component.geolyzer
-args = shell.parse(...)
+local angel = hasAngel()
+local args = shell.parse()
 
 function main()
   local tx = 0
@@ -26,6 +32,16 @@ function main()
   end
   goTo(tx,ty)
   mine()
+end
+
+function hasAngel( ... )
+  local solarGenDetected = false
+for addr, info in pairs(computer.getDeviceInfo()) do
+  if info.class == "generic" and info.description == "Angel upgrade" then
+    solarGenDetected = true
+    break
+  end
+end
 end
 
 function mine()
@@ -41,7 +57,8 @@ end
 
 function goToNextHole()
   if x >= MAX_X - 1 then 
-    goTo(0,3*math.floor(y/3) + 3) 
+    floor = math.floor(y/3) + 1
+    goTo(floor % 3, 3 * floor) 
   else 
     robot.turnLeft() 
     mv_fw()
@@ -59,16 +76,9 @@ function goToNextHole()
 end
 
 function shouldMine(blockName)
-  if blockName == "minecraft:stone" then 
-    return false end
-  if blockName == "minecraft:cobblestone" then 
-    return false end
-  if blockName == "minecraft:obsidian" then
-    return false end
-  if blockName == "minecraft:torch" then
-    return false end
-  if blockName == "minecraft:air" then
-    return false end
+  for i,name in ipairs(MINE_BLACKLIST) do 
+    if blockName == name then return false end
+  end 
   return true
 end
 
@@ -77,6 +87,7 @@ function hole()
   while depth < MAX_depth do
     depth = depth + 1
     mv_fw()
+    placeDown()
     checkSurroundings()
   end
   print("Hole:returning")
@@ -131,6 +142,7 @@ end
 
 function goToStart()
   goTo(0,-1)
+  print("went to start")
 end
 
 function goTo(tx, ty)
@@ -155,22 +167,43 @@ function goTo(tx, ty)
 end
 
 function mv_fw()
-  while not robot.forward() do
+  local sucses, reason = robot.forward()
+  while not sucses do
     robot.swing()
+    sucses, reason = robot.forward()
+    if reason == "impossible move" then
+      placeDown()
+    end
   end
 end
 
 function mv_up()
-  while not robot.up() do 
+  local sucses, reason = robot.up()
+  while not sucses do 
     robot.swingUp()
+    sucses, reason = robot.up()
   end
   y = y+1
 end
 
 function mv_dwn()
-  while not robot.down() do
+  local sucses, reason = robot.down()
+  while not sucses do
+    sucses, reason = robot.down()
     robot.swingDown()
   end
   y = y-1
 end
+
+function placeDown()
+  for slot = 1,robot.inventorySize() do
+    name = inv.getStackInInternalSlot(slot).name
+    if name == "minecraft:stone" or name == "minecraft:cobblestone" then 
+      robot.select(slot)
+      break
+    end
+    robot.placeDown()
+  end
+end
 main()
+
