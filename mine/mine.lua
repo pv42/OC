@@ -21,7 +21,7 @@ math = require("math")
 local inv = component.inventory_controller
 local geo = component.geolyzer
 local angel = hasAngel()
-local args = shell.parse()
+local args = ...
 
 function main()
   local tx = 0
@@ -161,7 +161,7 @@ function goTo(tx, ty)
     x = x+1
   end
   robot.turnRight()
-  while y>ty do
+  while y > ty do
     mv_dwn()
   end
 end
