@@ -1,5 +1,5 @@
 -- Mine by pv42 
--- version 1.2.25
+-- version 1.2.26
 -- config
 local MAX_depth = 58
 local MAX_X = 50
@@ -21,9 +21,10 @@ math = require("math")
 local inv = component.inventory_controller
 local geo = component.geolyzer
 local angel = false
-local args = ...
+local args = shell.parse(...)
 
 function main()
+  print("Mine v1.2.26")
   angel = hasAngel()
   local tx = 0
   local ty = 0  
@@ -200,13 +201,15 @@ end
 
 function placeDown()
   for slot = 1,robot.inventorySize() do
-    name = inv.getStackInInternalSlot(slot).name
-    if name == "minecraft:stone" or name == "minecraft:cobblestone" then 
-      robot.select(slot)
-      break
-    end
-    robot.placeDown()
+    if inv.getStackInInternalSlot(slot) ~= nil then
+      name = inv.getStackInInternalSlot(slot).name
+      if name == "minecraft:stone" or name == "minecraft:cobblestone" then 
+        robot.select(slot)
+        break
+      end
+    end  
   end
+  robot.placeDown()
 end
 main()
 
