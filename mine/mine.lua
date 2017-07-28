@@ -30,6 +30,8 @@ function main()
     tx = tonumber(args[1])
     ty = tonumber(args[2])
   end
+  print("Starting @ " .. tx .. ", " .. ty)
+  os.sleep(2)
   goTo(tx,ty)
   mine()
 end
