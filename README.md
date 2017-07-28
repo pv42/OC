@@ -1,2 +1,2 @@
 # OC
-Open Computers Repository
+Open Computers OPPM (Open Package Manager) Repository
