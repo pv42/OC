@@ -17,6 +17,8 @@ local IPP_IDENTIFICATION = 0
 local IPP_FLAGS = 0
 local IPP_FRAGMENT_OFFSET = 1
 local IPP_TTL = 1
+--
+
 --IP
 function sendIpPackage(target_ip, transport_protocol, data)
 	local target_mac = resolveIP(target_ip)
@@ -35,6 +37,7 @@ end
 -- ARP
 local ARP_TIMEOUT = 100 
 local arp_cache = {}
+
 function sendArpPackage(op, targetmac, targetip) 
 	if targetmac == nil then targetmac = MAC_BROADCAST end
 	package = { hardware_adress_type = 1, protocol_adress_type = IP_PORT, operation = op, source_mac = modem.adress,
@@ -45,6 +48,7 @@ function sendArpPackage(op, targetmac, targetip)
 		modem.send(targetmac, ARP_PORT, package)
 	end
 end
+
 function resolveIP(iptr)
 	if arp_cache[iptr] ~= nil then
 		if getTime() - arp_cache[iptr].time > ARP_TIMEOUT then
