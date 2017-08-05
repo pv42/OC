@@ -15,9 +15,12 @@ local IPP_IHL = 20
 local IPP_TOS = 0
 local IPP_IDENTIFICATION = 0
 local IPP_FLAGS = 0
-local IPP_FRAGMENT_OFFSET = 1
+local IPP_FRAGMENT_OFFSET = 0
 local IPP_TTL = 1
---
+-- network config
+config = {}
+config.local_ip = "127.0.0.1"
+
 
 --IP
 function sendIpPackage(target_ip, transport_protocol, data)
@@ -25,13 +28,33 @@ function sendIpPackage(target_ip, transport_protocol, data)
 	if target_mac == nil return false
 	local package = {version = 4, ihl = 0, tos = IPP_TOS, totalLenght = 0, identification = IPP_IDENTIFICATION, 
 		flags = IPP_FLAGS, fragmentOffet = IPP_FRAGMENT_OFFSET, ttl = IPP_TTL, protocol = transport_protocol, 
-		header_checksum = 0, source_address = getOwnIP(), target_address = target_ip}
+		header_checksum = 0, source_address = getOwnIp(), target_address = target_ip}
 	modem.send(target, IP_PORT, package)
 	return true
 end
+function handleIpPackage(sender, data)
+	if data.version == 4 then
+		if(data.tos ~= IPP_TOS) then
+			if(data.target_ip == getOwnIp())
+				if(data. )
+			else 
+				error("recived ipp for wrong adress, routing not active")
+			end
+		else
+			error("invalid TOS, ip expected")
+	else
+		error("invalid ip version")
+	end
+	-- body
+end
+
 -- package management
 function sendBroadcast(data)
 	modem.broadcast(IP_PORT, data)
+end
+
+function getOwnIp()
+	return config.local_ip
 end
 
 -- ARP
@@ -71,3 +94,5 @@ end
 local function getTime()
 	return 0
 end
+--adding localhost to arptable
+addToArpTable("127.0.0.1", modem.adress)

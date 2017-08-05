@@ -10,10 +10,7 @@ end
 function ipdeamon()
 	_, _, from, port, _, msg = event.pull("modem_message")
 	if port == libip.IP_PORT then
-		if msg.version == 4 then
-			
-
-		end
+		libip.handleIpPackage(from, msg)
 	elseif port == libip.ARP_PORT then
 		if message.hardware_adress_type == 1 and msg.protocol_adress_type == libip.IP_PORT then
 			libip.addToArpTable(msg.sorce_ip, msg.source_mac)

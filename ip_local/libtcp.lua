@@ -1,5 +1,5 @@
 --libs
-libip = require("libip")
+if libip== nil then error("no valid internet protocol active") end
 -- const
 local TCP_DATA_OFFSET = 0
 local TCP_RESERVED = 0
