@@ -24,6 +24,7 @@ config.local_ip = "127.0.0.1"
 
 
 --IP
+print("STEP 1 loading IPv4")
 function sendIpPackage(target_ip, transport_protocol, _data)
 	local target_mac = resolveIP(target_ip)
 	if target_mac == nil then return false end
@@ -33,6 +34,7 @@ function sendIpPackage(target_ip, transport_protocol, _data)
 	modem.send(target, IP_PORT, package)
 	return true
 end
+
 function handleIpPackage(sender, data)
 	if data.version == 4 then
 		if(data.tos ~= IPP_TOS) then
@@ -60,7 +62,7 @@ function getOwnIp()
 end
 
 
-
+print("STEP 2 loading ARP")
 -- ARP
 local ARP_TIMEOUT = 100 
 local arp_cache = {}
@@ -69,7 +71,7 @@ function sendArpPackage(op, targetmac, targetip)
 	if targetmac == nil then targetmac = MAC_BROADCAST end
 	package = { hardware_adress_type = 1, protocol_adress_type = IP_PORT, operation = op, source_mac = modem.adress,
 	source_ip = getOwnIp(), target_mac = targetmac, target_ip = targetip}
-	if targetmac == "ffff-ffffffff-ffff" then 
+	if targetmac == MAC_BROADCAST then 
 		modem.broadcast(ARP_PORT, package)
 	else
 		modem.send(targetmac, ARP_PORT, package)
@@ -84,7 +86,7 @@ function resolveIP(iptr)
 			return arp_cache[iptr].mac 
 		end
 	else
-		sendBroadcast("R:" + iptr)
+		sendArpPackage(ARP_OP_REQ ,MAC_BROADCAST, iptr)
 		-- TODO wait for the answer
 		os.sleep(5)
 		return arp_cache[iptr].mac
