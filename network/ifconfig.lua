@@ -1,6 +1,6 @@
 -- ifconfig.lua 
 
-local modem = require("modem")
+local modem = require("component").modem
 
 print("ip-configuration")
 if(modem == nil) then

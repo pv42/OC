@@ -1,6 +1,6 @@
 _G.libip = require("libip")
 _G.libtcp = require("libtcp")
-local modem = require("modem")
+local modem = require("component").modem
 modem.open(libip.IP_PORT)
 modem.open(libip.ARP_PORT)
 function start() 
