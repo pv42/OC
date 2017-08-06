@@ -1,3 +1,4 @@
+lib = {}
 --libs
 if libip== nil then error("no valid internet protocol active") end
 -- const
@@ -10,7 +11,7 @@ local TCP_ACK_TIMEOUT = 10
 --locals
 local ports = {}
 
-function handleTCPPackeage(tcpp, senderIP)
+function lib.handleTCPPackeage(tcpp, senderIP)
 	if ports[tcpp.destination_port] == nil then error("recived tcpp on closed port " .. tcpp.destination_port) 
 	else
 		conn = ports[tcpp.destination_port]
@@ -18,12 +19,12 @@ function handleTCPPackeage(tcpp, senderIP)
 			conn.packageBuffer_s[tcpp.ack] = nil
 		else	
 			conn.packageBuffer_r[tcpp.seq] = tcpp
-			sendTCPPackage(conn, nil, ack_flags(), tcpp.seq)
+			lib.sendTCPPackage(conn, nil, ack_flags(), tcpp.seq)
 		end
 	end
 end
 
-function openConnection(target_adress_, target_port_, local_port_)
+function lib.openConnection(target_adress_, target_port_, local_port_)
 	if local_port_ == nil then local_port_ = get_free_port() end
 	conn = {packageBuffer_r={}, packageBuffer_s={}, packageSendTimeStep = {}, local_port = local_port_, remote_port = target_port_,
 	 remote_adress = target_adress_ ,seq = random(), ack = 0}
@@ -109,7 +110,7 @@ local function ack_flags()
 end
 
 --called by the network deamon
-function sendStep() 
+function lib.sendStep() 
 	for port, conn in pairs(ports) do 
 		for seq, package in pairs(conn.packageBuffer_s) do
 			if conn.packageSendTimeStep[seq] == nil or os.time() - conn.packageSendTimeStep[seq] > TCP_ACK_TIMEOUT then 	
@@ -119,3 +120,5 @@ function sendStep()
 		end
 	end
 end 
+
+return lib

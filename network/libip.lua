@@ -1,6 +1,7 @@
 print("loding ip libary")
+lib = {}
 --libaries
-local modem = require("componet").modem
+local modem = require("component").modem
 local event = require("event")
 --consts public
 IP_PORT = 2048 -- the oc port used to send/recive ip packages NOT the t-/ucp port which is more the ethernetframe type
@@ -25,7 +26,7 @@ config.local_ip = "127.0.0.1"
 
 --IP
 print("STEP 1 loading IPv4")
-function sendIpPackage(target_ip, transport_protocol, _data)
+function lib.sendIpPackage(target_ip, transport_protocol, _data)
 	local target_mac = resolveIP(target_ip)
 	if target_mac == nil then return false end
 	local package = {version = 4, ihl = 0, tos = IPP_TOS, totalLenght = 0, identification = IPP_IDENTIFICATION, 
@@ -35,11 +36,14 @@ function sendIpPackage(target_ip, transport_protocol, _data)
 	return true
 end
 
-function handleIpPackage(sender, data)
+function lib.handleIpPackage(sender, data)
 	if data.version == 4 then
 		if(data.tos ~= IPP_TOS) then
-			if data.target_ip == getOwnIp() then
-				if data.protocol ==  TRP_TCP  then libtcp.handleTCPPacke(data.data, sender) end 
+			if data.target_ip == lib.getOwnIp() then
+				if data.protocol ==  TRP_TCP  then 
+					--todo ??
+					if libtcp ~= nil then libtcp.handleTCPPacke(data.data, sender) end 
+				end 
 			else 
 				error("recived ipp for wrong adress, routing not active")
 			end
@@ -53,11 +57,11 @@ function handleIpPackage(sender, data)
 end
 
 -- package management
-function sendBroadcast(data)
+function lib.sendBroadcast(data)
 	modem.broadcast(IP_PORT, data)
 end
 
-function getOwnIp()
+function lib.getOwnIp()
 	return config.local_ip
 end
 
@@ -67,7 +71,7 @@ print("STEP 2 loading ARP")
 local ARP_TIMEOUT = 100 
 local arp_cache = {}
 
-function sendArpPackage(op, targetmac, targetip) 
+function lib.sendArpPackage(op, targetmac, targetip) 
 	if targetmac == nil then targetmac = MAC_BROADCAST end
 	package = { hardware_adress_type = 1, protocol_adress_type = IP_PORT, operation = op, source_mac = modem.adress,
 	source_ip = getOwnIp(), target_mac = targetmac, target_ip = targetip}
@@ -78,7 +82,7 @@ function sendArpPackage(op, targetmac, targetip)
 	end
 end
 
-function resolveIP(iptr)
+function lib.resolveIP(iptr)
 	if arp_cache[iptr] ~= nil then
 		if os.time() - arp_cache[iptr].time > ARP_TIMEOUT then
 			arp_cache[iptr] = nil
@@ -86,18 +90,18 @@ function resolveIP(iptr)
 			return arp_cache[iptr].mac 
 		end
 	else
-		sendArpPackage(ARP_OP_REQ ,MAC_BROADCAST, iptr)
+		lib.sendArpPackage(ARP_OP_REQ ,MAC_BROADCAST, iptr)
 		-- TODO wait for the answer
 		os.sleep(5)
 		return arp_cache[iptr].mac
 	end
 end
 
-function addToArpTable(iptr, mac)
+function lib.addToArpTable(iptr, mac)
 	arp_cache[iptr] = { ["mac"] = mac, ["time"] = os.time() }
 end
 
-function getArpTable()
+function lib.getArpTable()
 	return arp_cache
 end
 
@@ -110,3 +114,5 @@ modem.open(ARP_PORT) -- open modem for arp
 addToArpTable("127.0.0.1", modem.adress) --adding localhost to arptable
 
 print("ip libary loaded")
+
+return lib
