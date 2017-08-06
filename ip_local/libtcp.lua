@@ -23,9 +23,10 @@ end
 function reciveTCPPackage(conn)
 	-- body
 end
-function sendTCPPackage( conn , data)
+function sendTCPPackage( conn , data, flags)
+	if flags == nil then flags = send_flags() end
  	local package = { source_port = conn.sender_port, destination_port = conn.target_port, seq = conn.getNextSeq(),
- 	 ack = 0, data_offset = TCP_DATA_OFFSET, reserved = TCP_RESERVED, flags = send_flags(), window = TCP_WINDOW,
+ 	 ack = 0, data_offset = TCP_DATA_OFFSET, reserved = TCP_RESERVED, flags = flags, window = TCP_WINDOW,
  	 checksum = TCP_CHECKSUM, urget_pointer = TCP_URGENT_POINTER
 
 	}
