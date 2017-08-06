@@ -91,6 +91,10 @@ function addToArpTable(iptr, mac)
 	arp_cache[iptr] = { ["mac"] = mac, ["time"] = getTime() }
 end
 
+function getArpTable()
+	return arp_cache
+end
+
 local function getTime()
 	return os.time()
 end

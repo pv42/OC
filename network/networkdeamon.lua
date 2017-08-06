@@ -10,10 +10,11 @@ function start()
 	end
 end
 function iprecivedeamon()
-	_, _, from, port, _, msg = event.pull("modem_message")
+	suc, _, from, port, _, msg = event.pull(0.1,"modem_message")
+	if suc == nil then return end
 	if port == libip.IP_PORT then
 		libip.handleIpPackage(from, msg)
-	elseif port == libip.ARP_PORT then
+	elseif port == libip.ARP_PORT then --ARP
 		if message.hardware_adress_type == 1 and msg.protocol_adress_type == libip.IP_PORT then
 			libip.addToArpTable(msg.sorce_ip, msg.source_mac)
 			if msg.operation == libip.ARP_OP_REQ then
