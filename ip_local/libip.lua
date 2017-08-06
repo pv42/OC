@@ -4,8 +4,8 @@ local event = require("event")
 --consts public
 IP_PORT = 2048 -- the oc port used to send/recive ip packages NOT the t-/ucp port which is more the ethernetframe type
 IP_VERSION = 4
-TOS_TCP = 5
-TOS_UDP = 8
+TRP_TCP = 5
+TRP_UDP = 8
 ARP_PORT = 2054
 ARP_OP_REQ = 1
 ARP_OP_ANSW = 2
@@ -23,20 +23,20 @@ config.local_ip = "127.0.0.1"
 
 
 --IP
-function sendIpPackage(target_ip, transport_protocol, data)
+function sendIpPackage(target_ip, transport_protocol, _data)
 	local target_mac = resolveIP(target_ip)
 	if target_mac == nil return false
 	local package = {version = 4, ihl = 0, tos = IPP_TOS, totalLenght = 0, identification = IPP_IDENTIFICATION, 
 		flags = IPP_FLAGS, fragmentOffet = IPP_FRAGMENT_OFFSET, ttl = IPP_TTL, protocol = transport_protocol, 
-		header_checksum = 0, source_address = getOwnIp(), target_address = target_ip}
+		header_checksum = 0, source_address = getOwnIp(), target_address = target_ip, data = _data}
 	modem.send(target, IP_PORT, package)
 	return true
 end
 function handleIpPackage(sender, data)
 	if data.version == 4 then
 		if(data.tos ~= IPP_TOS) then
-			if(data.target_ip == getOwnIp())
-				if(data. )
+			if data.target_ip == getOwnIp() then
+				if data.protocol ==  TRP_TCP  then libtcp.handleTCPPacke(data.data, sender) 
 			else 
 				error("recived ipp for wrong adress, routing not active")
 			end
@@ -92,7 +92,7 @@ function addToArpTable(iptr, mac)
 end
 
 local function getTime()
-	return 0
+	return os.time()
 end
 --adding localhost to arptable
 addToArpTable("127.0.0.1", modem.adress)

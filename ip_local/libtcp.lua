@@ -6,13 +6,27 @@ local TCP_RESERVED = 0
 local TCP_WINDOW = 0
 local TCP_CHECKSUM = 35498
 local TCP_URGENT_POINTER = 0
+local TCP_ACK_TIMEOUT = 10
 --locals
 local ports = {}
 
+function handleTCPPackeage(tcpp, senderIP)
+	if ports[tcpp.destination_port] == nil then error("recived tcpp on closed port " .. tcpp.destination_port) 
+	else
+		conn = ports[tcpp.destination_port]
+		if tcpp.flags.ACK then
+			conn.packageBuffer_s[tcpp.ack] = nil
+		else	
+			conn.packageBuffer_r[tcpp.seq] = tcpp
+			sendTCPPackage(conn, nil, ack_flags(), tcpp.seq)
+		end
+	end
+end
 
 function openConnection(target_adress_, target_port_, local_port_)
 	if local_port_ == nil then local_port_ = get_free_port()
-	conn = {packageBuffer={},local_port = local_port_, remote_port = target_port_, remote_adress = target_adress_ ,seq = random(), ack = 0}
+	conn = {packageBuffer_r={}, packageBuffer_s={}, packageSendTimeStep = {}, local_port = local_port_, remote_port = target_port_,
+	 remote_adress = target_adress_ ,seq = random(), ack = 0}
 	ports[target_port_] = conn -- marks port as used
 	conn.getNextSeq = function()
 		seq = seq + 1
@@ -70,7 +84,8 @@ function sendTCPPackage( conn , data, _flags, _ack)
  	 checksum = TCP_CHECKSUM, urget_pointer = TCP_URGENT_POINTER
 
 	}
- 	lipip.sendIpPackage(conn.remote_adress, lipip.TOS_TCP, package)
+	conn.packageBuffer_s[package.seq] = package
+ 	
 end
 
 local function flags()
@@ -92,3 +107,15 @@ local function ack_flags()
 	fl.ACK = true
 	return fl
 end = 1
+
+--called by the network deamon
+function sendStep() 
+	for port, conn in pairs(ports) do 
+		for seq, package in pairs(conn.packageBuffer_s) do
+			if conn.packageSendTimeStep[seq] == nil or os.time() - conn.packageSendTimeStep[seq] > TCP_ACK_TIMEOUT then 	
+				lipip.sendIpPackage(conn.remote_adress, lipip.TOS_TCP, package)
+				conn.packageSendTimeStep[seq] = os.time()
+			end
+		end
+	end
+end 

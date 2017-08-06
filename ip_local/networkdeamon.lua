@@ -1,13 +1,15 @@
 _G.libip = require("libip")
+_G.libtcp = require("libtcp")
 local modem = require("modem")
 modem.open(libip.IP_PORT)
 modem.open(libip.ARP_PORT)
 function start() 
 	while true do
-		ipdeamon()	
+		ipdeamon()
+		senddeamon()
 	end
 end
-function ipdeamon()
+function iprecivedeamon()
 	_, _, from, port, _, msg = event.pull("modem_message")
 	if port == libip.IP_PORT then
 		libip.handleIpPackage(from, msg)
@@ -26,4 +28,7 @@ function ipdeamon()
 		--unknown "ethernet" frame type
 		error("Invalid network frame type")
 	end
+end
+function senddeamon() 
+	libtcp.sendStep()
 end 
