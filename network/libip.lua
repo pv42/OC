@@ -77,7 +77,7 @@ end
 
 function resolveIP(iptr)
 	if arp_cache[iptr] ~= nil then
-		if getTime() - arp_cache[iptr].time > ARP_TIMEOUT then
+		if os.time() - arp_cache[iptr].time > ARP_TIMEOUT then
 			arp_cache[iptr] = nil
 		else
 			return arp_cache[iptr].mac 
@@ -91,16 +91,14 @@ function resolveIP(iptr)
 end
 
 function addToArpTable(iptr, mac)
-	arp_cache[iptr] = { ["mac"] = mac, ["time"] = getTime() }
+	arp_cache[iptr] = { ["mac"] = mac, ["time"] = os.time() }
 end
 
 function getArpTable()
 	return arp_cache
 end
 
-local function getTime()
-	return os.time()
-end
+
 
 
 modem.open(IP_PORT) -- open modem for ip
