@@ -4,13 +4,13 @@ lib = {}
 local modem = require("component").modem
 local event = require("event")
 --consts public
-IP_PORT = 2048 -- the oc port used to send/recive ip packages NOT the t-/ucp port which is more the ethernetframe type
-IP_VERSION = 4
-TRP_TCP = 5
-TRP_UDP = 8
-ARP_PORT = 2054
-ARP_OP_REQ = 1
-ARP_OP_ANSW = 2
+lib.IP_PORT = 2048 -- the oc port used to send/recive ip packages NOT the t-/ucp port which is more the ethernetframe type
+local IP_VERSION = 4
+local TRP_TCP = 5
+local TRP_UDP = 8
+lib.ARP_PORT = 2054
+local ARP_OP_REQ = 1
+local ARP_OP_ANSW = 2
 MAC_BROADCAST = "ffff-ffffffff-ffff"
 --consts private
 local IPP_IHL = 20
@@ -32,7 +32,7 @@ function lib.sendIpPackage(target_ip, transport_protocol, _data)
 	local package = {version = 4, ihl = 0, tos = IPP_TOS, totalLenght = 0, identification = IPP_IDENTIFICATION, 
 		flags = IPP_FLAGS, fragmentOffet = IPP_FRAGMENT_OFFSET, ttl = IPP_TTL, protocol = transport_protocol, 
 		header_checksum = 0, source_address = getOwnIp(), target_address = target_ip, data = _data}
-	modem.send(target, IP_PORT, package)
+	modem.send(target, lib.IP_PORT, package)
 	return true
 end
 
@@ -58,7 +58,7 @@ end
 
 -- package management
 function lib.sendBroadcast(data)
-	modem.broadcast(IP_PORT, data)
+	modem.broadcast(lib.IP_PORT, data)
 end
 
 function lib.getOwnIp()
@@ -73,12 +73,12 @@ local arp_cache = {}
 
 function lib.sendArpPackage(op, targetmac, targetip) 
 	if targetmac == nil then targetmac = MAC_BROADCAST end
-	package = { hardware_adress_type = 1, protocol_adress_type = IP_PORT, operation = op, source_mac = modem.adress,
+	package = { hardware_adress_type = 1, protocol_adress_type = lib.IP_PORT, operation = op, source_mac = modem.adress,
 	source_ip = getOwnIp(), target_mac = targetmac, target_ip = targetip}
 	if targetmac == MAC_BROADCAST then 
-		modem.broadcast(ARP_PORT, package)
+		modem.broadcast(lib.ARP_PORT, package)
 	else
-		modem.send(targetmac, ARP_PORT, package)
+		modem.send(targetmac, lib.ARP_PORT, package)
 	end
 end
 
@@ -105,13 +105,7 @@ function lib.getArpTable()
 	return arp_cache
 end
 
-
-
-
-modem.open(IP_PORT) -- open modem for ip
-modem.open(ARP_PORT) -- open modem for arp
-
-addToArpTable("127.0.0.1", modem.adress) --adding localhost to arptable
+lib.addToArpTable("127.0.0.1", modem.adress) --adding localhost to arptable
 
 print("ip libary loaded")
 
