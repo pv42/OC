@@ -24,7 +24,7 @@ function handleTCPPackeage(tcpp, senderIP)
 end
 
 function openConnection(target_adress_, target_port_, local_port_)
-	if local_port_ == nil then local_port_ = get_free_port()
+	if local_port_ == nil then local_port_ = get_free_port() end
 	conn = {packageBuffer_r={}, packageBuffer_s={}, packageSendTimeStep = {}, local_port = local_port_, remote_port = target_port_,
 	 remote_adress = target_adress_ ,seq = random(), ack = 0}
 	ports[target_port_] = conn -- marks port as used
@@ -70,7 +70,7 @@ function reciveTCPPackage(conn, isSyn)
 			return v
 		end
 	else
-		while(conn.packageBuffer[conn.ack + 1] == nil)
+		while(conn.packageBuffer[conn.ack + 1] == nil) do
 			os.sleep(0.05)
 		end
 		return conn.packageBuffer[conn.ack + 1]
@@ -78,7 +78,7 @@ function reciveTCPPackage(conn, isSyn)
 end
 function sendTCPPackage( conn , data, _flags, _ack)
 	if _flags == nil then _flags = flags() end
-	if _ack == nil then _ack = 0
+	if _ack == nil then _ack = 0 end
  	local package = { source_port = conn.local_port, destination_port = conn.remote_port, seq = conn.getNextSeq(),
  	 ack = _ack, data_offset = TCP_DATA_OFFSET, reserved = TCP_RESERVED, flags = _flags, window = TCP_WINDOW,
  	 checksum = TCP_CHECKSUM, urget_pointer = TCP_URGENT_POINTER
@@ -90,14 +90,14 @@ end
 
 local function flags()
  	fl = {
- 		ECE = false -- no collision
- 		CWR = false -- no collision reaction
- 		URG = false -- not supported 
- 		ACK = false -- no ack
- 		PSH = false -- ???
- 		RST = false -- no reset
- 		FIN = false -- no teardown
- 		SYN = false -- no handshake
+ 		ECE = false, -- no collision
+ 		CWR = false, -- no collision reaction
+ 		URG = false, -- not supported 
+ 		ACK = false, -- no ack
+ 		PSH = false, -- ???
+ 		RST = false, -- no reset
+ 		FIN = false, -- no teardown
+ 		SYN = false  -- no handshake
  	}
  	return fl
 end
@@ -106,7 +106,7 @@ local function ack_flags()
 	fl = flags()
 	fl.ACK = true
 	return fl
-end = 1
+end
 
 --called by the network deamon
 function sendStep() 

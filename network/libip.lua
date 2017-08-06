@@ -1,3 +1,4 @@
+print("loding ip libary")
 --libaries
 local modem = require("componet").modem
 local event = require("event")
@@ -105,3 +106,5 @@ modem.open(IP_PORT) -- open modem for ip
 modem.open(ARP_PORT) -- open modem for arp
 
 addToArpTable("127.0.0.1", modem.adress) --adding localhost to arptable
+
+print("ip libary loaded")
