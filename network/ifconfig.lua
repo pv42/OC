@@ -3,7 +3,7 @@
 local com = require("component")
 
 print("ip-configuration")
-if(~com.isAvailable("modem")) then
+if not com.isAvailable("modem") then
 	print("No network hardware found")
 	return
 else
@@ -11,7 +11,7 @@ else
 	if libip ~= nil then ipv4adr = libip.getOwnIp() end
 	print("Modem:")
 	print("Status: . . . . . " .. "?")
-	print("physische Adresse:" .. com.modem.adress)
+	print("physische Adresse:" .. com.modem.address)
 	print("IPv4 Adresse: . . " .. ipv4adr)
 end
 if libip ~= nil then 

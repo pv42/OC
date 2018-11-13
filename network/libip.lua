@@ -105,7 +105,7 @@ function lib.getArpTable()
 	return arp_cache
 end
 
-lib.addToArpTable("127.0.0.1", modem.adress) --adding localhost to arptable
+lib.addToArpTable("127.0.0.1", modem.address) --adding localhost to arptable
 
 print("ip libary loaded")
 
