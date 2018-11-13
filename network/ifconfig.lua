@@ -17,12 +17,11 @@ end
 if libip ~= nil then 
 	print("")
 	print("ARP-Table")
-	if #libip.getArpTable() then 
-		print("<the ARP-Table is empty>")
-	else 
-		print("IPv4 adress  | time   | physical adress")
-		for ipv4, entry in pairs(libip.getArpTable()) do 
+
+	 
+	print("IPv4 adress  | time   | physical adress")
+	for ipv4, entry in pairs(libip.getArpTable()) do 
 			print( ipv4 .. "| " .. entry.time .. "| " .. entry.mac)
-		end
 	end
+	if i == 0 then print("<the ARP-table is empty>") end
 end
