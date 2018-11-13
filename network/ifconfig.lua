@@ -1,9 +1,9 @@
 -- ifconfig.lua 
 
-local modem = require("component").modem
+local com = require("component")
 
 print("ip-configuration")
-if(modem == nil) then
+if(~com.isAvailable("modem")) then
 	print("No network hardware found")
 	return
 else
@@ -11,7 +11,7 @@ else
 	if libip ~= nil then ipv4adr = libip.getOwnIp() end
 	print("Modem:")
 	print("Status: . . . . . " .. "?")
-	print("physische Adresse:" .. modem.adress)
+	print("physische Adresse:" .. com.modem.adress)
 	print("IPv4 Adresse: . . " .. ipv4adr)
 end
 if libip ~= nil then 
