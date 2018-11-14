@@ -1,3 +1,4 @@
+print("loading tcp libary")
 lib = {}
 --libs
 if libip== nil then error("no valid internet protocol active") end

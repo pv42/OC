@@ -32,4 +32,5 @@ function iprecivedeamon()
 end
 function senddeamon() 
 	libtcp.sendStep()
-end 
+end
+

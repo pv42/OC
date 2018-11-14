@@ -1,4 +1,4 @@
-print("loding ip libary")
+print("loading ip libary")
 lib = {}
 --libaries
 local modem = require("component").modem
