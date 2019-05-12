@@ -44,6 +44,7 @@ function lib.openConnection(target_adress_, target_port_, local_port_)
 	else 
 		error("connection refused")
 	end
+    return conn
 end
 local function get_free_port()
 	port = 256
@@ -56,7 +57,7 @@ function awaitConnection(port)
 	-- body
 end
 function random()
-	return 19
+	return 19 -- wtf
 end
 function closeConnection(conn)
 	-- body

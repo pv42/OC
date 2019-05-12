@@ -6,12 +6,13 @@ local event = require("event")
 --consts public
 lib.IP_PORT = 2048 -- the oc port used to send/recive ip packages NOT the t-/ucp port which is more the ethernetframe type
 local IP_VERSION = 4
-local TRP_TCP = 5
-local TRP_UDP = 8
-lib.ARP_PORT = 2054
-local ARP_OP_REQ = 1
-local ARP_OP_ANSW = 2
-MAC_BROADCAST = "ffff-ffffffff-ffff"
+local TRP_TCP = 5 -- tcp package type
+local TRP_UDP = 8 -- upd package type
+lib.ARP_PORT = 2054 -- arp oc port
+local ARP_OP_REQ = 1 -- arp request operation code
+local ARP_OP_ANSW = 2 -- arp answer operation code
+local ARP_REQ_TIMEOUT = 5 -- arp request timeout, after this time without an answer an ip is deamed unresolvable
+MAC_BROADCAST = "ffff-ffffffff-ffff" -- mac broadcast address
 --consts private
 local IPP_IHL = 20
 local IPP_TOS = 0
@@ -27,7 +28,7 @@ config.local_ip = "127.0.0.1"
 --IP
 print("STEP 1 loading IPv4")
 function lib.sendIpPackage(target_ip, transport_protocol, _data)
-	local target_mac = resolveIP(target_ip)
+	local target_mac = libip.resolveIP(target_ip)
 	if target_mac == nil then return false end
 	local package = {version = 4, ihl = 0, tos = IPP_TOS, totalLenght = 0, identification = IPP_IDENTIFICATION, 
 		flags = IPP_FLAGS, fragmentOffet = IPP_FRAGMENT_OFFSET, ttl = IPP_TTL, protocol = transport_protocol, 
@@ -39,7 +40,7 @@ end
 function lib.handleIpPackage(sender, data)
 	if data.version == 4 then
 		if(data.tos ~= IPP_TOS) then
-			if data.target_ip == lib.getOwnIp() then
+			if data.target_ip == libip.getOwnIp() then
 				if data.protocol ==  TRP_TCP  then 
 					--todo ??
 					if libtcp ~= nil then libtcp.handleTCPPacke(data.data, sender) end 
@@ -89,12 +90,17 @@ function lib.resolveIP(iptr)
 		else
 			return arp_cache[iptr].mac 
 		end
-	else
-		lib.sendArpPackage(ARP_OP_REQ ,MAC_BROADCAST, iptr)
-		-- TODO wait for the answer
-		os.sleep(5)
-		return arp_cache[iptr].mac
 	end
+	libip.sendArpPackage(ARP_OP_REQ ,MAC_BROADCAST, iptr)
+	wait_time = 0
+    while arp_cache[iptr] == nil do -- wait for answer
+        if wait_time > ARP_REQ_TIMEOUT then
+            error("could not resolve ip")
+        end
+        os.sleep(0.5)
+        wait_time = wait_time + 0.5
+	end
+    return arp_cache[iptr].mac
 end
 
 function lib.addToArpTable(iptr, mac)
