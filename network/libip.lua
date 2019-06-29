@@ -27,7 +27,7 @@ local ARP_OP_ANSW = 2 -- arp answer operation code
 local ARP_REQ_TIMEOUT = 5 -- arp request timeout, after this time without an answer an ip is deamed unresolvable
 -- network config
 local config = {}
-local config.local_ip = "127.0.0.1"
+config.local_ip = "127.0.0.1"
 
 
 --IP
@@ -39,7 +39,7 @@ function libip.sendIpPackage(target_ip, transport_protocol, _data)
 	local package = {version = 4, ihl = 0, tos = IPP_TOS, totalLenght = 0, identification = IPP_IDENTIFICATION, 
 		flags = IPP_FLAGS, fragmentOffet = IPP_FRAGMENT_OFFSET, ttl = IPP_TTL, protocol = transport_protocol, 
 		header_checksum = 0, source_address = getOwnIp(), target_address = target_ip, data = _data}
-	modem.send(target, IP_PORT, package)
+	modem.send(target, libip.IP_PORT, package)
 	return true
 end
 
@@ -66,7 +66,7 @@ end
 -- package management
 --public
 function libip.sendBroadcast(data)
-	modem.broadcast(IP_PORT, data)
+	modem.broadcast(libip.IP_PORT, data)
 end
 
 --public
@@ -82,7 +82,7 @@ local arp_cache = {}
 
 local function sendArpPackage(op, targetmac, targetip) 
 	if targetmac == nil then targetmac = MAC_BROADCAST end
-	package = { hardware_adress_type = 1, protocol_adress_type = IP_PORT, operation = op, source_mac = modem.adress,
+	package = { hardware_adress_type = 1, protocol_adress_type = libip.IP_PORT, operation = op, source_mac = modem.adress,
 	source_ip = getOwnIp(), target_mac = targetmac, target_ip = targetip}
 	if targetmac == MAC_BROADCAST then 
 		modem.broadcast(ARP_PORT, serialization.serializ(package))
@@ -134,10 +134,10 @@ end
 local function iprecivedeamon()
 	suc, _, from, port, _, msg = event.pull(0.1,"modem_message")
 	if suc == nil then return end
-	if port == IP_PORT then
+	if port == libip.IP_PORT then
 		handleIpPackage(from, msg)
 	elseif port == ARP_PORT then --ARP
-		if message.hardware_adress_type == 1 and msg.protocol_adress_type == IP_PORT then
+		if message.hardware_adress_type == 1 and msg.protocol_adress_type == libip.IP_PORT then
 			addToArpTable(msg.sorce_ip, msg.source_mac)
 			if msg.operation == ARP_OP_REQ then
 				--if is request answer it
