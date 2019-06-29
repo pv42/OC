@@ -1,33 +1,39 @@
+if(type(_G.libip) == "table") then 
+	print("ip libary is already loaded")
+	return _G.libip
+end
+
 print("loading ip libary")
 --libaries
 local modem = require("component").modem
 local event = require("event")
 --consts public
-IP_PORT = 2048 -- the oc port used to send/recive ip packages NOT the t-/ucp port which is more the ethernetframe type
+libip = {}
+libip.IP_PORT = 2048 -- the oc port used to send/recive ip packages NOT the t-/ucp port which is more the ethernetframe type
+libip.ARP_PORT = 2054 -- arp oc port
+libip.MAC_BROADCAST = "ffff-ffffffff-ffff" -- mac broadcast address
+--consts private
 local IP_VERSION = 4
 local TRP_TCP = 5 -- tcp package type
 local TRP_UDP = 8 -- upd package type
-ARP_PORT = 2054 -- arp oc port
-local ARP_OP_REQ = 1 -- arp request operation code
-local ARP_OP_ANSW = 2 -- arp answer operation code
-local ARP_REQ_TIMEOUT = 5 -- arp request timeout, after this time without an answer an ip is deamed unresolvable
-MAC_BROADCAST = "ffff-ffffffff-ffff" -- mac broadcast address
---consts private
 local IPP_IHL = 20
 local IPP_TOS = 0
 local IPP_IDENTIFICATION = 0
 local IPP_FLAGS = 0
 local IPP_FRAGMENT_OFFSET = 0
 local IPP_TTL = 1
+local ARP_OP_REQ = 1 -- arp request operation code
+local ARP_OP_ANSW = 2 -- arp answer operation code
+local ARP_REQ_TIMEOUT = 5 -- arp request timeout, after this time without an answer an ip is deamed unresolvable
 -- network config
-config = {}
-config.local_ip = "127.0.0.1"
+local config = {}
+local config.local_ip = "127.0.0.1"
 
 
 --IP
 print("STEP 1 loading IPv4")
 --public
-function sendIpPackage(target_ip, transport_protocol, _data)
+function libip.sendIpPackage(target_ip, transport_protocol, _data)
 	local target_mac = resolveIP(target_ip)
 	if target_mac == nil then return false end
 	local package = {version = 4, ihl = 0, tos = IPP_TOS, totalLenght = 0, identification = IPP_IDENTIFICATION, 
@@ -59,12 +65,12 @@ end
 
 -- package management
 --public
-function sendBroadcast(data)
+function libip.sendBroadcast(data)
 	modem.broadcast(IP_PORT, data)
 end
 
 --public
-function getOwnIp()
+function libip.getOwnIp()
 	return config.local_ip
 end
 
@@ -111,7 +117,7 @@ local function addToArpTable(iptr, mac)
 end
 
 --public
-function getArpTable()
+function libip.getArpTable()
 	return arp_cache
 end
 
@@ -119,7 +125,7 @@ addToArpTable("127.0.0.1", modem.address) --adding localhost to arptable
 
 -- deamons
 -- public 
-function run() 
+function libip.run() 
 	while true do
 		ipdeamon()
 		senddeamon()
@@ -152,3 +158,4 @@ end
 
 
 print("ip libary loaded")
+return libip
