@@ -7,6 +7,7 @@ print("loading ip libary")
 --libaries
 local modem = require("component").modem
 local event = require("event")
+local serialization = require("serialization")
 --consts public
 local libip = {}
 libip.IP_PORT = 2048 -- the oc port used to send/recive ip packages NOT the t-/ucp port which is more the ethernetframe type
@@ -36,7 +37,7 @@ print("STEP 1 loading IPv4")
 local function handleIpPackage(sender, data)
 	if data.version == 4 then
 		if(data.tos ~= IPP_TOS) then
-			if data.target_ip == getOwnIp() then
+			if data.target_ip == libip.getOwnIp() then
 				if data.protocol ==  TRP_TCP  then 
 					--todo ??
 					if libtcp ~= nil then libtcp.handleTCPPacke(data.data, sender) end 
@@ -63,9 +64,9 @@ local arp_cache = {}
 local function sendArpPackage(op, targetmac, targetip) 
 	if targetmac == nil then targetmac = MAC_BROADCAST end
 	package = { hardware_adress_type = 1, protocol_adress_type = libip.IP_PORT, operation = op, source_mac = modem.adress,
-	source_ip = getOwnIp(), target_mac = targetmac, target_ip = targetip}
+	source_ip = libip.getOwnIp(), target_mac = targetmac, target_ip = targetip}
 	if targetmac == MAC_BROADCAST then 
-		modem.broadcast(ARP_PORT, serialization.serializ(package))
+		modem.broadcast(ARP_PORT, serialization.serialize(package))
 	else
 		modem.send(targetmac, ARP_PORT, package)
 	end
@@ -106,8 +107,8 @@ function libip.sendIpPackage(target_ip, transport_protocol, _data)
 	if target_mac == nil then return false end
 	local package = {version = 4, ihl = 0, tos = IPP_TOS, totalLenght = 0, identification = IPP_IDENTIFICATION, 
 		flags = IPP_FLAGS, fragmentOffet = IPP_FRAGMENT_OFFSET, ttl = IPP_TTL, protocol = transport_protocol, 
-		header_checksum = 0, source_address = getOwnIp(), target_address = target_ip, data = _data}
-	modem.send(target, libip.IP_PORT, package)
+		header_checksum = 0, source_address = libip.getOwnIp(), target_address = target_ip, data = _data}
+	modem.send(target, libip.IP_PORT, serialization.serialize(package))
 	return true
 end
 
@@ -162,7 +163,7 @@ local function senddeamon()
 end
 
 function libip.run() 
-	return -- todo remove
+	-- return -- todo remove
 	while true do
 		ipdeamon()
 		senddeamon()
