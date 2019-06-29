@@ -1,14 +1,13 @@
 print("loading ip libary")
-lib = {}
 --libaries
 local modem = require("component").modem
 local event = require("event")
 --consts public
-lib.IP_PORT = 2048 -- the oc port used to send/recive ip packages NOT the t-/ucp port which is more the ethernetframe type
+IP_PORT = 2048 -- the oc port used to send/recive ip packages NOT the t-/ucp port which is more the ethernetframe type
 local IP_VERSION = 4
 local TRP_TCP = 5 -- tcp package type
 local TRP_UDP = 8 -- upd package type
-lib.ARP_PORT = 2054 -- arp oc port
+ARP_PORT = 2054 -- arp oc port
 local ARP_OP_REQ = 1 -- arp request operation code
 local ARP_OP_ANSW = 2 -- arp answer operation code
 local ARP_REQ_TIMEOUT = 5 -- arp request timeout, after this time without an answer an ip is deamed unresolvable
@@ -27,20 +26,21 @@ config.local_ip = "127.0.0.1"
 
 --IP
 print("STEP 1 loading IPv4")
-function lib.sendIpPackage(target_ip, transport_protocol, _data)
-	local target_mac = libip.resolveIP(target_ip)
+--public
+function sendIpPackage(target_ip, transport_protocol, _data)
+	local target_mac = resolveIP(target_ip)
 	if target_mac == nil then return false end
 	local package = {version = 4, ihl = 0, tos = IPP_TOS, totalLenght = 0, identification = IPP_IDENTIFICATION, 
 		flags = IPP_FLAGS, fragmentOffet = IPP_FRAGMENT_OFFSET, ttl = IPP_TTL, protocol = transport_protocol, 
-		header_checksum = 0, source_address = lib.getOwnIp(), target_address = target_ip, data = _data}
-	modem.send(target, lib.IP_PORT, package)
+		header_checksum = 0, source_address = getOwnIp(), target_address = target_ip, data = _data}
+	modem.send(target, IP_PORT, package)
 	return true
 end
 
-function lib.handleIpPackage(sender, data)
+local function handleIpPackage(sender, data)
 	if data.version == 4 then
 		if(data.tos ~= IPP_TOS) then
-			if data.target_ip == lib.getOwnIp() then
+			if data.target_ip == getOwnIp() then
 				if data.protocol ==  TRP_TCP  then 
 					--todo ??
 					if libtcp ~= nil then libtcp.handleTCPPacke(data.data, sender) end 
@@ -58,11 +58,13 @@ function lib.handleIpPackage(sender, data)
 end
 
 -- package management
-function lib.sendBroadcast(data)
-	modem.broadcast(lib.IP_PORT, data)
+--public
+function sendBroadcast(data)
+	modem.broadcast(IP_PORT, data)
 end
 
-function lib.getOwnIp()
+--public
+function getOwnIp()
 	return config.local_ip
 end
 
@@ -72,19 +74,19 @@ print("STEP 2 loading ARP")
 local ARP_TIMEOUT = 100 
 local arp_cache = {}
 
-function lib.sendArpPackage(op, targetmac, targetip) 
+local function sendArpPackage(op, targetmac, targetip) 
 	if targetmac == nil then targetmac = MAC_BROADCAST end
-	package = { hardware_adress_type = 1, protocol_adress_type = lib.IP_PORT, operation = op, source_mac = modem.adress,
-	source_ip = lib.getOwnIp(), target_mac = targetmac, target_ip = targetip}
+	package = { hardware_adress_type = 1, protocol_adress_type = IP_PORT, operation = op, source_mac = modem.adress,
+	source_ip = getOwnIp(), target_mac = targetmac, target_ip = targetip}
 	if targetmac == MAC_BROADCAST then 
-		modem.broadcast(lib.ARP_PORT, serialization.serializ(package))
+		modem.broadcast(ARP_PORT, serialization.serializ(package))
 	else
-		modem.send(targetmac, lib.ARP_PORT, package)
+		modem.send(targetmac, ARP_PORT, package)
 	end
 end
 
 -- returns the physical address of a given ip
-function lib.resolveIP(iptr)
+local function resolveIP(iptr)
 	if arp_cache[iptr] ~= nil then
 		if os.time() - arp_cache[iptr].time > ARP_TIMEOUT then
 			arp_cache[iptr] = nil
@@ -92,7 +94,7 @@ function lib.resolveIP(iptr)
 			return arp_cache[iptr].mac 
 		end
 	end
-	lib.sendArpPackage(ARP_OP_REQ ,MAC_BROADCAST, iptr)
+	sendArpPackage(ARP_OP_REQ ,MAC_BROADCAST, iptr)
 	wait_time = 0
     while arp_cache[iptr] == nil do -- wait for answer
         if wait_time > ARP_REQ_TIMEOUT then
@@ -104,17 +106,49 @@ function lib.resolveIP(iptr)
     return arp_cache[iptr].mac
 end
 
-function lib.addToArpTable(iptr, mac)
+local function addToArpTable(iptr, mac)
 	arp_cache[iptr] = { ["mac"] = mac, ["time"] = os.time() }
 end
 
-function lib.getArpTable()
+--public
+function getArpTable()
 	return arp_cache
 end
 
-lib.addToArpTable("127.0.0.1", modem.address) --adding localhost to arptable
+addToArpTable("127.0.0.1", modem.address) --adding localhost to arptable
+
+-- deamons
+-- public 
+function run() 
+	while true do
+		ipdeamon()
+		senddeamon()
+	end
+end
+local function iprecivedeamon()
+	suc, _, from, port, _, msg = event.pull(0.1,"modem_message")
+	if suc == nil then return end
+	if port == IP_PORT then
+		handleIpPackage(from, msg)
+	elseif port == ARP_PORT then --ARP
+		if message.hardware_adress_type == 1 and msg.protocol_adress_type == IP_PORT then
+			addToArpTable(msg.sorce_ip, msg.source_mac)
+			if msg.operation == ARP_OP_REQ then
+				--if is request answer it
+				sendArpPackage(ARP_OP_ANSW, msg.source_mac, msg.source_ip)
+			end
+		else
+			--not matching
+			error("Invalid ARP request")
+		end
+	else
+		--unknown "ethernet" frame type
+		error("Invalid network frame type")
+	end
+end
+local function senddeamon() 
+	libtcp.sendStep()
+end
 
 
 print("ip libary loaded")
-
-return lib
