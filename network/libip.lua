@@ -8,7 +8,7 @@ print("loading ip libary")
 local modem = require("component").modem
 local event = require("event")
 --consts public
-libip = {}
+local libip = {}
 libip.IP_PORT = 2048 -- the oc port used to send/recive ip packages NOT the t-/ucp port which is more the ethernetframe type
 libip.ARP_PORT = 2054 -- arp oc port
 libip.MAC_BROADCAST = "ffff-ffffffff-ffff" -- mac broadcast address
@@ -32,16 +32,6 @@ config.local_ip = "127.0.0.1"
 
 --IP
 print("STEP 1 loading IPv4")
---public
-function libip.sendIpPackage(target_ip, transport_protocol, _data)
-	local target_mac = resolveIP(target_ip)
-	if target_mac == nil then return false end
-	local package = {version = 4, ihl = 0, tos = IPP_TOS, totalLenght = 0, identification = IPP_IDENTIFICATION, 
-		flags = IPP_FLAGS, fragmentOffet = IPP_FRAGMENT_OFFSET, ttl = IPP_TTL, protocol = transport_protocol, 
-		header_checksum = 0, source_address = getOwnIp(), target_address = target_ip, data = _data}
-	modem.send(target, libip.IP_PORT, package)
-	return true
-end
 
 local function handleIpPackage(sender, data)
 	if data.version == 4 then
@@ -63,16 +53,6 @@ local function handleIpPackage(sender, data)
 	-- body
 end
 
--- package management
---public
-function libip.sendBroadcast(data)
-	modem.broadcast(libip.IP_PORT, data)
-end
-
---public
-function libip.getOwnIp()
-	return config.local_ip
-end
 
 
 print("STEP 2 loading ARP")
@@ -116,6 +96,36 @@ local function addToArpTable(iptr, mac)
 	arp_cache[iptr] = { ["mac"] = mac, ["time"] = os.time() }
 end
 
+
+
+print("STEP 3 loading IP (2)")
+
+--public
+function libip.sendIpPackage(target_ip, transport_protocol, _data)
+	local target_mac = resolveIP(target_ip)
+	if target_mac == nil then return false end
+	local package = {version = 4, ihl = 0, tos = IPP_TOS, totalLenght = 0, identification = IPP_IDENTIFICATION, 
+		flags = IPP_FLAGS, fragmentOffet = IPP_FRAGMENT_OFFSET, ttl = IPP_TTL, protocol = transport_protocol, 
+		header_checksum = 0, source_address = getOwnIp(), target_address = target_ip, data = _data}
+	modem.send(target, libip.IP_PORT, package)
+	return true
+end
+
+
+-- package management
+--public
+function libip.sendBroadcast(data)
+	modem.broadcast(libip.IP_PORT, data)
+end
+
+--public
+function libip.getOwnIp()
+	return config.local_ip
+end
+
+
+print("STEP 4 loading ARP (2)")
+
 --public
 function libip.getArpTable()
 	return arp_cache
@@ -125,12 +135,7 @@ addToArpTable("127.0.0.1", modem.address) --adding localhost to arptable
 
 -- deamons
 -- public 
-function libip.run() 
-	while true do
-		ipdeamon()
-		senddeamon()
-	end
-end
+
 local function iprecivedeamon()
 	suc, _, from, port, _, msg = event.pull(0.1,"modem_message")
 	if suc == nil then return end
@@ -154,6 +159,14 @@ local function iprecivedeamon()
 end
 local function senddeamon() 
 	libtcp.sendStep()
+end
+
+function libip.run() 
+	return -- todo remove
+	while true do
+		ipdeamon()
+		senddeamon()
+	end
 end
 
 
