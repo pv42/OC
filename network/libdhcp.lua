@@ -4,7 +4,7 @@ local os = require("os")
 
 local libdhcp = {}
 
-local SERVER_PPRT = 67
+libdhcp.SERVER_PPRT = 67
 local CLIENT_PORT = 68
 local TIMEOUT = 10
 
@@ -18,15 +18,15 @@ local state = 0 -- 0-idle   1-wait for offer   2-wait for pack
 local requested_ip = 0
 
 local function dhcpdiscover()
-	libudp.send(CLIENT_PORT, SERVER_PORT, libip.IP_BROADCAST, {operation = libdhcp.OP_DISCOVER})
+	libudp.send(CLIENT_PORT, libdhcp.SERVER_PORT, libip.IP_BROADCAST, {operation = libdhcp.OP_DISCOVER})
 end
 
 function libdhcp.dhcpoffer(offer_ip)
-	libudp.send(SERVER_PORT, CLIENT_PORT, libip.IP_BROADCAST, {operation = OP_OFFER, offer = offer_ip})
+	libudp.send(libdhcp.SERVER_PORT, CLIENT_PORT, libip.IP_BROADCAST, {operation = OP_OFFER, offer = offer_ip})
 end
 
 local function dhcprequest(server_ip, req_ip)
-	libudp.send(CLIENT_PORT, SERVER_PORT, server_ip, {operation = libdhcp.OP_REQUEST, request = req_ip})
+	libudp.send(CLIENT_PORT, libdhcp.SERVER_PORT, server_ip, {operation = libdhcp.OP_REQUEST, request = req_ip})
 end
 
 -- acknogledge (Boolean), if true send pack else send nak
@@ -36,7 +36,7 @@ function libdhcp.dhcpacknogledge(acknogledge)
 	else
 		op = OP_NAK
 	end
-	libudp.send(SERVER_PORT, CLIENT_PORT, libip.IP_BROADCAST, {operation = op})
+	libudp.send(libdhcp.SERVER_PORT, CLIENT_PORT, libip.IP_BROADCAST, {operation = op})
 end
 
 local function handlepack(package)

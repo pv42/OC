@@ -4,8 +4,6 @@ libudp = require("libudp")
 
 libip.config.local_ip = "192.168.0.1"
 
-libudp.addReceiveHandler(libudp.SERVER_PORT, handlediscover)
-
 local address_table = {}
 
 local function getFreeIp()
@@ -20,15 +18,22 @@ local function getFreeIp()
 end
 
 local function handlePackage(package)
-	if(package.operation = libdhcp.OP_DISCOVER)
+	if(package.operation == libdhcp.OP_DISCOVER) then
 		local ip = getFreeIp()
 		if(if == nil) then return end
 		libdhcp.dhcpoffer(ip)
 	elseif(package.operation = libdhcp.OP_REQUEST)
-		if package.
+		if address_table[package.request] == "offer" then
+			libdhcp.dhcppack(true)
+			address_table[package.request] = "inuse"
+		else 
+			libdhcp.dhcppack(false)
+		end
 	else
 	end
 end
+
+libip.addReceiveHandler(libdhcp.SERVER_PORT, handlePackage)
 
 
 
