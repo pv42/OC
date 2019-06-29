@@ -75,14 +75,15 @@ local arp_cache = {}
 function lib.sendArpPackage(op, targetmac, targetip) 
 	if targetmac == nil then targetmac = MAC_BROADCAST end
 	package = { hardware_adress_type = 1, protocol_adress_type = lib.IP_PORT, operation = op, source_mac = modem.adress,
-	source_ip = getOwnIp(), target_mac = targetmac, target_ip = targetip}
+	source_ip = lib.getOwnIp(), target_mac = targetmac, target_ip = targetip}
 	if targetmac == MAC_BROADCAST then 
-		modem.broadcast(lib.ARP_PORT, package)
+		modem.broadcast(lib.ARP_PORT, serialization.serializ(package))
 	else
 		modem.send(targetmac, lib.ARP_PORT, package)
 	end
 end
 
+-- returns the physical address of a given ip
 function lib.resolveIP(iptr)
 	if arp_cache[iptr] ~= nil then
 		if os.time() - arp_cache[iptr].time > ARP_TIMEOUT then
@@ -91,7 +92,7 @@ function lib.resolveIP(iptr)
 			return arp_cache[iptr].mac 
 		end
 	end
-	libip.sendArpPackage(ARP_OP_REQ ,MAC_BROADCAST, iptr)
+	lib.sendArpPackage(ARP_OP_REQ ,MAC_BROADCAST, iptr)
 	wait_time = 0
     while arp_cache[iptr] == nil do -- wait for answer
         if wait_time > ARP_REQ_TIMEOUT then
@@ -112,6 +113,7 @@ function lib.getArpTable()
 end
 
 lib.addToArpTable("127.0.0.1", modem.address) --adding localhost to arptable
+
 
 print("ip libary loaded")
 
