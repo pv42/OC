@@ -8,7 +8,7 @@ local receiveHandlers = {}
 
 function libudp.send(local_port, target_address, target_port, data)
 	local package = {source_port = local_port, destination_port = target_port, data = data}
-	libip.sendPackage(target_address, UDP_PROTOCOL_ID, package)
+	libip.sendIpPackage(target_address, UDP_PROTOCOL_ID, package)
 end
 
 local function recivePackage(package)
@@ -17,11 +17,10 @@ local function recivePackage(package)
 	end
 end
 
-function libip.addReceiveHandler(port, func)
-	receiveHandlers[protocol_id] = func
+function libudp.addReceiveHandler(port, func)
+	receiveHandlers[port] = func
 end
 
 
-libip.addRecieveHandler(UDP_PROTOCOL_ID,recivePackage)
-
+libip.addReceiveHandler(UDP_PROTOCOL_ID,recivePackage)
 return libudp

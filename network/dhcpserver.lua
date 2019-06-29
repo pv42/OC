@@ -1,6 +1,7 @@
 libip = require("libip")
-libdhcp = require("libdhcp")
 libudp = require("libudp")
+libdhcp = require("libdhcp")
+
 
 libip.config.local_ip = "192.168.0.1"
 
@@ -20,9 +21,9 @@ end
 local function handlePackage(package)
 	if(package.operation == libdhcp.OP_DISCOVER) then
 		local ip = getFreeIp()
-		if(if == nil) then return end
+		if(ip == nil) then return end
 		libdhcp.dhcpoffer(ip)
-	elseif(package.operation = libdhcp.OP_REQUEST)
+	elseif(package.operation == libdhcp.OP_REQUEST) then
 		if address_table[package.request] == "offer" then
 			libdhcp.dhcppack(true)
 			address_table[package.request] = "inuse"
