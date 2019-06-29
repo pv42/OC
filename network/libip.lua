@@ -10,37 +10,41 @@ local event = require("event")
 local serialization = require("serialization")
 --consts public
 local libip = {}
-libip.IP_PORT = 2048 -- the oc port used to send/recive ip packages NOT the t-/ucp port which is more the ethernetframe type
-libip.ARP_PORT = 2054 -- arp oc port
 libip.MAC_BROADCAST = "ffff-ffffffff-ffff" -- mac broadcast address
+libip.IP_BROADCAST = "255.255.255.255"
 --consts private
 local IP_VERSION = 4
-local TRP_TCP = 5 -- tcp package type
-local TRP_UDP = 8 -- upd package type
+--local TRP_TCP = 6 -- tcp package type
+--local TRP_UDP = 17 -- upd package type
 local IPP_IHL = 20
 local IPP_TOS = 0
 local IPP_IDENTIFICATION = 0
 local IPP_FLAGS = 0
 local IPP_FRAGMENT_OFFSET = 0
 local IPP_TTL = 1
+local IP_PORT = 2048 -- the oc port used to send/recive ip packages NOT the t-/ucp port which is more the ethernetframe type
+local ARP_PORT = 2054 -- arp oc port
 local ARP_OP_REQ = 1 -- arp request operation code
 local ARP_OP_ANSW = 2 -- arp answer operation code
 local ARP_REQ_TIMEOUT = 5 -- arp request timeout, after this time without an answer an ip is deamed unresolvable
 -- network config
-local config = {}
-config.local_ip = "127.0.0.1"
+libip.config = {}
+libip.config.local_ip = "127.0.0.1"
 
+
+local receiveHandlers = {}
 
 --IP
 print("STEP 1 loading IPv4")
 
-local function handleIpPackage(sender, data)
-	if data.version == 4 then
-		if(data.tos ~= IPP_TOS) then
-			if data.target_ip == libip.getOwnIp() then
-				if data.protocol ==  TRP_TCP  then 
-					--todo ??
-					if libtcp ~= nil then libtcp.handleTCPPacke(data.data, sender) end 
+local function handleIpPackage(sender, package)
+	if package.version == 4 then
+		if(package.tos ~= IPP_TOS) then
+			if package.target_ip == libip.getOwnIp() then
+				if(receiveHandlers[package.protocol] ~= nil) then
+					receiveHandlers[package.protocol](package.data)
+				else
+					error("no handler for protocol " .. package.protocol)
 				end 
 			else 
 				error("recived ipp for wrong adress, routing not active")
@@ -65,8 +69,8 @@ local function sendArpPackage(op, targetmac, targetip)
 	if targetmac == nil then targetmac = MAC_BROADCAST end
 	package = { hardware_adress_type = 1, protocol_adress_type = libip.IP_PORT, operation = op, source_mac = modem.adress,
 	source_ip = libip.getOwnIp(), target_mac = targetmac, target_ip = targetip}
-	if targetmac == MAC_BROADCAST then 
-		modem.broadcast(ARP_PORT, serialization.serialize(package))
+	if targetmac == MAC_BARP_POROADCAST then 
+		modem.broadcast(RT, serialization.serialize(package))
 	else
 		modem.send(targetmac, ARP_PORT, package)
 	end
@@ -74,6 +78,7 @@ end
 
 -- returns the physical address of a given ip
 local function resolveIP(iptr)
+	if(iptr == nil) then return libip.MAC_BROADCAST end
 	if arp_cache[iptr] ~= nil then
 		if os.time() - arp_cache[iptr].time > ARP_TIMEOUT then
 			arp_cache[iptr] = nil
@@ -85,7 +90,8 @@ local function resolveIP(iptr)
 	wait_time = 0
     while arp_cache[iptr] == nil do -- wait for answer
         if wait_time > ARP_REQ_TIMEOUT then
-            error("could not resolve ip")
+            print("could not resolve ip:" .. iptr)
+            return nil
         end
         os.sleep(0.5)
         wait_time = wait_time + 0.5
@@ -108,7 +114,7 @@ function libip.sendIpPackage(target_ip, transport_protocol, _data)
 	local package = {version = 4, ihl = 0, tos = IPP_TOS, totalLenght = 0, identification = IPP_IDENTIFICATION, 
 		flags = IPP_FLAGS, fragmentOffet = IPP_FRAGMENT_OFFSET, ttl = IPP_TTL, protocol = transport_protocol, 
 		header_checksum = 0, source_address = libip.getOwnIp(), target_address = target_ip, data = _data}
-	modem.send(target, libip.IP_PORT, serialization.serialize(package))
+	modem.send(target_mac, libip.IP_PORT, serialization.serialize(package))
 	return true
 end
 
@@ -132,8 +138,12 @@ function libip.getArpTable()
 	return arp_cache
 end
 
-addToArpTable("127.0.0.1", modem.address) --adding localhost to arptable
+function libip.addReceiveHandler(protocol_id, func)
+	receiveHandlers[protocol_id] = func
+end
 
+addToArpTable("127.0.0.1", modem.address) --adding localhost to arptable
+addToArpTable(libip.IP_BROADCAST, libip.MAC_BROADCAST)
 -- deamons
 -- public 
 
@@ -163,7 +173,6 @@ local function senddeamon()
 end
 
 function libip.run() 
-	-- return -- todo remove
 	while true do
 		ipdeamon()
 		senddeamon()
