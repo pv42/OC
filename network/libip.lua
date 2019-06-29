@@ -32,7 +32,7 @@ function lib.sendIpPackage(target_ip, transport_protocol, _data)
 	if target_mac == nil then return false end
 	local package = {version = 4, ihl = 0, tos = IPP_TOS, totalLenght = 0, identification = IPP_IDENTIFICATION, 
 		flags = IPP_FLAGS, fragmentOffet = IPP_FRAGMENT_OFFSET, ttl = IPP_TTL, protocol = transport_protocol, 
-		header_checksum = 0, source_address = getOwnIp(), target_address = target_ip, data = _data}
+		header_checksum = 0, source_address = lib.getOwnIp(), target_address = target_ip, data = _data}
 	modem.send(target, lib.IP_PORT, package)
 	return true
 end
@@ -40,7 +40,7 @@ end
 function lib.handleIpPackage(sender, data)
 	if data.version == 4 then
 		if(data.tos ~= IPP_TOS) then
-			if data.target_ip == libip.getOwnIp() then
+			if data.target_ip == lib.getOwnIp() then
 				if data.protocol ==  TRP_TCP  then 
 					--todo ??
 					if libtcp ~= nil then libtcp.handleTCPPacke(data.data, sender) end 
