@@ -162,7 +162,7 @@ local function ipreceivedeamon()
 	local msgu = serialization.unserialize(msg)
 	if port == libip.IP_PORT then
 		handleIpPackage(from, msgu)
-	elseif port == ARP_PORT then --ARP
+	elseif port == libip.ARP_PORT then --ARP
 		if msgu.hardware_adress_type == 1 and msgu.protocol_adress_type == libip.IP_PORT then
 			addToArpTable(msgu.sorce_ip, msgu.source_mac)
 			if msgu.operation == ARP_OP_REQ then
