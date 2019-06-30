@@ -70,9 +70,9 @@ local function sendArpPackage(op, targetmac, targetip)
 	package = { hardware_adress_type = 1, protocol_adress_type = libip.IP_PORT, operation = op, source_mac = modem.adress,
 	source_ip = libip.getOwnIp(), target_mac = targetmac, target_ip = targetip}
 	if targetmac == MAC_BARP_POROADCAST then 
-		modem.broadcast(ARP_PORT, serialization.serialize(package))
+		modem.broadcast(libip.ARP_PORT, serialization.serialize(package))
 	else
-		modem.send(targetmac, ARP_PORT, serialization.serialize(package))
+		modem.send(targetmac, libip.ARP_PORT, serialization.serialize(package))
 	end
 end
 
@@ -112,6 +112,7 @@ print("STEP 3 loading IP (2)")
 function libip.sendIpPackage(target_ip, transport_protocol, _data)
 	local target_mac = resolveIP(target_ip)
 	if target_mac == nil then return false end
+	if(type(transport_protocol) ~= "number") then error("protocol must be a number") end
 	local package = {version = 4, ihl = 0, tos = IPP_TOS, totalLenght = 0, identification = IPP_IDENTIFICATION, 
 		flags = IPP_FLAGS, fragmentOffet = IPP_FRAGMENT_OFFSET, ttl = IPP_TTL, protocol = transport_protocol, 
 		header_checksum = 0, source_address = libip.getOwnIp(), target_address = target_ip, data = _data}
@@ -127,6 +128,7 @@ end
 -- package management
 --public
 function libip.sendBroadcast(data)
+	print("deprecated call to broadcast")
 	modem.broadcast(libip.IP_PORT, data)
 end
 
@@ -144,6 +146,8 @@ function libip.getArpTable()
 end
 
 function libip.addReceiveHandler(protocol_id, func)
+	if(type(protocol_id) ~= "number") then error("protocol must be a number") end
+	if(type(func) ~= "function" and func ~= nil) then error("handler must be a function or nil") end
 	receiveHandlers[protocol_id] = func
 end
 
