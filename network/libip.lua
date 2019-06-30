@@ -39,10 +39,10 @@ print("STEP 1 loading IPv4")
 
 local function handleIpPackage(sender, package)
 	if package.version == 4 then
-		if(package.tos ~= IPP_TOS) then
+		if(package.tos == IPP_TOS) then
 			if package.target_ip == libip.getOwnIp() or package.target_ip == IP_BROADCAST then
 				if(receiveHandlers[package.protocol] ~= nil) then
-					receiveHandlers[package.protocol](package.data)
+					receiveHandlers[package.protocol](package.data, package.source_address)
 				else
 					error("no handler for protocol " .. package.protocol)
 				end 

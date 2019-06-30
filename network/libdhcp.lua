@@ -62,7 +62,7 @@ local function handleoffer(package, sender_ip)
 end
 
 function libdhcp.requestIP()
-	libudp.addReceiveHandler(CLIENT_PORT, waitforoffer)
+	libudp.addReceiveHandler(CLIENT_PORT, handleoffer)
 	dhcpdiscover()
 	-- check for timeouts
 	state = 1

@@ -8,7 +8,7 @@ libip.config.local_ip = "192.168.0.1"
 local address_table = {}
 
 local function getFreeIp()
-	for i in range(10,250) do
+	for i =10,250 do
 		local a = "192.168.0." .. i
 		if(address_table[a] == nil) then
 			address_table[a] = "offer"
