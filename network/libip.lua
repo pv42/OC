@@ -40,14 +40,14 @@ print("STEP 1 loading IPv4")
 local function handleIpPackage(sender, package)
 	if package.version == 4 then
 		if(package.tos == IPP_TOS) then
-			if package.target_ip == libip.getOwnIp() or package.target_ip == IP_BROADCAST then
+			if(package.target_address == libip.getOwnIp() or package.target_address == libip.IP_BROADCAST) then
 				if(receiveHandlers[package.protocol] ~= nil) then
 					receiveHandlers[package.protocol](package.data, package.source_address)
 				else
 					error("no handler for protocol " .. package.protocol)
 				end 
 			else 
-				error("recived ipp for wrong adress, routing not active")
+				error("recived ipp for wrong adress (" .. package.target_address .. "), routing not active")
 			end
 		else
 			error("invalid TOS, ip expected")
@@ -69,7 +69,7 @@ local function sendArpPackage(op, targetmac, targetip)
 	if targetmac == nil then targetmac = MAC_BROADCAST end
 	package = { hardware_adress_type = 1, protocol_adress_type = libip.IP_PORT, operation = op, source_mac = modem.adress,
 	source_ip = libip.getOwnIp(), target_mac = targetmac, target_ip = targetip}
-	if targetmac == MAC_BARP_POROADCAST then 
+	if(targetmac == MAC_BROADCAST) then 
 		modem.broadcast(libip.ARP_PORT, serialization.serialize(package))
 	else
 		modem.send(targetmac, libip.ARP_PORT, serialization.serialize(package))
