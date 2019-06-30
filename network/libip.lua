@@ -115,7 +115,7 @@ function libip.sendIpPackage(target_ip, transport_protocol, _data)
 	local package = {version = 4, ihl = 0, tos = IPP_TOS, totalLenght = 0, identification = IPP_IDENTIFICATION, 
 		flags = IPP_FLAGS, fragmentOffet = IPP_FRAGMENT_OFFSET, ttl = IPP_TTL, protocol = transport_protocol, 
 		header_checksum = 0, source_address = libip.getOwnIp(), target_address = target_ip, data = _data}
-	if(target_mac == MAC_BROADCAST) then
+	if(target_mac == libip.MAC_BROADCAST) then
 		modem.broadcast(libip.IP_PORT, serialization.serialize(package))
 	else
 		modem.send(target_mac, libip.IP_PORT, serialization.serialize(package))
@@ -155,14 +155,15 @@ addToArpTable(libip.IP_BROADCAST, libip.MAC_BROADCAST)
 local function ipreceivedeamon()
 	suc, _, from, port, _, msg = event.pull(0.1,"modem_message")
 	if suc == nil then return end
+	local msgu = serialization.unserialize(msg)
 	if port == libip.IP_PORT then
-		handleIpPackage(from, msg)
+		handleIpPackage(from, msgu)
 	elseif port == ARP_PORT then --ARP
-		if message.hardware_adress_type == 1 and msg.protocol_adress_type == libip.IP_PORT then
-			addToArpTable(msg.sorce_ip, msg.source_mac)
-			if msg.operation == ARP_OP_REQ then
+		if msgu.hardware_adress_type == 1 and msgu.protocol_adress_type == libip.IP_PORT then
+			addToArpTable(msgu.sorce_ip, msgu.source_mac)
+			if msgu.operation == ARP_OP_REQ then
 				--if is request answer it
-				sendArpPackage(ARP_OP_ANSW, msg.source_mac, msg.source_ip)
+				sendArpPackage(ARP_OP_ANSW, msgu.source_mac, msgu.source_ip)
 			end
 		else
 			--not matching
