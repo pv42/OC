@@ -5,4 +5,6 @@ local thread = require("thread")
 modem.open(libip.IP_PORT)
 modem.open(libip.ARP_PORT)
 
-t = thread.create(libip.run)
+t = thread.create(libip.run):detach()
+
+print("network deamon started")

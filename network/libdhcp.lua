@@ -30,8 +30,8 @@ local function dhcprequest(server_ip, req_ip)
 end
 
 -- acknogledge (Boolean), if true send pack else send nak
-function libdhcp.dhcpacknogledge(acknogledge)
-	if(acknogledge) then 
+function libdhcp.dhcpacknogledge(acknoledge)
+	if(acknoledge) then 
 		op = OP_PACK
 	else
 		op = OP_NAK

@@ -78,7 +78,8 @@ end
 
 -- returns the physical address of a given ip
 local function resolveIP(iptr)
-	if(iptr == nil) then return libip.MAC_BROADCAST end
+	if(iptr == nil) then error("tried to resolve nil ip") end
+	if(iptr == libip.IP_BROADCAST) then return libip.MAC_BROADCAST end
 	if arp_cache[iptr] ~= nil then
 		if os.time() - arp_cache[iptr].time > ARP_TIMEOUT then
 			arp_cache[iptr] = nil
@@ -114,7 +115,11 @@ function libip.sendIpPackage(target_ip, transport_protocol, _data)
 	local package = {version = 4, ihl = 0, tos = IPP_TOS, totalLenght = 0, identification = IPP_IDENTIFICATION, 
 		flags = IPP_FLAGS, fragmentOffet = IPP_FRAGMENT_OFFSET, ttl = IPP_TTL, protocol = transport_protocol, 
 		header_checksum = 0, source_address = libip.getOwnIp(), target_address = target_ip, data = _data}
-	modem.send(target_mac, libip.IP_PORT, serialization.serialize(package))
+	if(target_mac == MAC_BROADCAST) then
+		modem.broadcast(libip.IP_PORT, serialization.serialize(package))
+	else
+		modem.send(target_mac, libip.IP_PORT, serialization.serialize(package))
+	end
 	return true
 end
 
@@ -173,6 +178,7 @@ local function senddeamon()
 end
 
 function libip.run() 
+	print("network deamon running")
 	while true do
 		ipreceivedeamon()
 		senddeamon()
