@@ -22,8 +22,8 @@ local IPP_IDENTIFICATION = 0
 local IPP_FLAGS = 0
 local IPP_FRAGMENT_OFFSET = 0
 local IPP_TTL = 1
-local IP_PORT = 2048 -- the oc port used to send/recive ip packages NOT the t-/ucp port which is more the ethernetframe type
-local ARP_PORT = 2054 -- arp oc port
+libip.IP_PORT = 2048 -- the oc port used to send/recive ip packages NOT the t-/ucp port which is more the ethernetframe type
+libip.ARP_PORT = 2054 -- arp oc port
 local ARP_OP_REQ = 1 -- arp request operation code
 local ARP_OP_ANSW = 2 -- arp answer operation code
 local ARP_REQ_TIMEOUT = 5 -- arp request timeout, after this time without an answer an ip is deamed unresolvable
@@ -67,12 +67,12 @@ local arp_cache = {}
 
 local function sendArpPackage(op, targetmac, targetip) 
 	if targetmac == nil then targetmac = MAC_BROADCAST end
-	package = { hardware_adress_type = 1, protocol_adress_type = IP_PORT, operation = op, source_mac = modem.adress,
+	package = { hardware_adress_type = 1, protocol_adress_type = libip.IP_PORT, operation = op, source_mac = modem.adress,
 	source_ip = libip.getOwnIp(), target_mac = targetmac, target_ip = targetip}
 	if targetmac == MAC_BARP_POROADCAST then 
-		modem.broadcast(RT, serialization.serialize(package))
+		modem.broadcast(ARP_PORT, serialization.serialize(package))
 	else
-		modem.send(targetmac, ARP_PORT, package)
+		modem.send(targetmac, ARP_PORT, serialization.serialize(package))
 	end
 end
 
@@ -114,7 +114,7 @@ function libip.sendIpPackage(target_ip, transport_protocol, _data)
 	local package = {version = 4, ihl = 0, tos = IPP_TOS, totalLenght = 0, identification = IPP_IDENTIFICATION, 
 		flags = IPP_FLAGS, fragmentOffet = IPP_FRAGMENT_OFFSET, ttl = IPP_TTL, protocol = transport_protocol, 
 		header_checksum = 0, source_address = libip.getOwnIp(), target_address = target_ip, data = _data}
-	modem.send(target_mac, IP_PORT, serialization.serialize(package))
+	modem.send(target_mac, libip.IP_PORT, serialization.serialize(package))
 	return true
 end
 
@@ -122,7 +122,7 @@ end
 -- package management
 --public
 function libip.sendBroadcast(data)
-	modem.broadcast(IP_PORT, data)
+	modem.broadcast(libip.IP_PORT, data)
 end
 
 --public
@@ -150,7 +150,7 @@ addToArpTable(libip.IP_BROADCAST, libip.MAC_BROADCAST)
 local function iprecivedeamon()
 	suc, _, from, port, _, msg = event.pull(0.1,"modem_message")
 	if suc == nil then return end
-	if port == IP_PORT then
+	if port == libip.IP_PORT then
 		handleIpPackage(from, msg)
 	elseif port == ARP_PORT then --ARP
 		if message.hardware_adress_type == 1 and msg.protocol_adress_type == libip.IP_PORT then

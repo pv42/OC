@@ -4,7 +4,7 @@ local os = require("os")
 
 local libdhcp = {}
 
-libdhcp.SERVER_PPRT = 67
+libdhcp.SERVER_PORT = 67
 local CLIENT_PORT = 68
 local TIMEOUT = 10
 

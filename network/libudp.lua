@@ -6,7 +6,7 @@ local UDP_PROTOCOL_ID = 17
 
 local receiveHandlers = {}
 
-function libudp.send(local_port, target_address, target_port, data)
+function libudp.send(local_port, target_port, target_address, data)
 	local package = {source_port = local_port, destination_port = target_port, data = data}
 	libip.sendIpPackage(target_address, UDP_PROTOCOL_ID, package)
 end

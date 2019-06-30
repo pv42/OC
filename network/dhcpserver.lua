@@ -34,7 +34,7 @@ local function handlePackage(package)
 	end
 end
 
-libip.addReceiveHandler(libdhcp.SERVER_PORT, handlePackage)
+libudp.addReceiveHandler(libdhcp.SERVER_PORT, handlePackage)
 
 
 
