@@ -40,7 +40,7 @@ print("STEP 1 loading IPv4")
 local function handleIpPackage(sender, package)
 	if package.version == 4 then
 		if(package.tos ~= IPP_TOS) then
-			if package.target_ip == libip.getOwnIp() then
+			if package.target_ip == libip.getOwnIp() or package.target_ip == IP_BROADCAST then
 				if(receiveHandlers[package.protocol] ~= nil) then
 					receiveHandlers[package.protocol](package.data)
 				else
@@ -147,7 +147,7 @@ addToArpTable(libip.IP_BROADCAST, libip.MAC_BROADCAST)
 -- deamons
 -- public 
 
-local function iprecivedeamon()
+local function ipreceivedeamon()
 	suc, _, from, port, _, msg = event.pull(0.1,"modem_message")
 	if suc == nil then return end
 	if port == libip.IP_PORT then
@@ -174,7 +174,7 @@ end
 
 function libip.run() 
 	while true do
-		ipdeamon()
+		ipreceivedeamon()
 		senddeamon()
 	end
 end
