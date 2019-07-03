@@ -82,6 +82,24 @@ function lib.sendArpPackage(op, targetmac, targetip)
 	end
 end
 
+local function ipheader(lenght,ident,protocol,dest)
+    local iph = {}
+    iph.version=4
+    iph.ihl=5
+    iph.tos=1
+    iph.lenght=lenght
+    iph.identification=ident
+    iph.flags = 1 --DF
+    iph.frag_offset = 0
+    iph.ttl = 32
+    iph.protocol = protocol
+    iph.checksum = 0xffff
+    iph.source=ip
+    iph.destination=dest
+    return iph
+end
+
+
 function lib.resolveIP(iptr)
 	if arp_cache[iptr] ~= nil then
 		if os.time() - arp_cache[iptr].time > ARP_TIMEOUT then
@@ -103,6 +121,39 @@ end
 
 function lib.getArpTable()
 	return arp_cache
+end
+
+function lib.IPtoString(tip)
+    if tip == nil then return 0 end
+    return math.floor(tip/(256*256*256)).."."..(math.floor(tip/(256*256))%256).."."..(math.floor(tip/256)%256).."."..(tip%256)
+end
+function lib.StringtoIP(tip)
+    if tip == nil then return 0 end
+    local a = str_splitChar(tip,".")
+    local lip =  tonumber(a[1])
+    lip = lip * 256 + tonumber(a[2])
+    lip = lip * 256 + tonumber(a[3])
+    lip = lip * 256 + tonumber(a[4])
+    return lip
+end
+
+function lib.dhcpGetIP()
+    local oip = ip
+    ip = nil
+    local t = 0
+    while (ip==nil and t < 10) do 
+        if t > 0 then log.w("DHCP timed out") end
+        modem.transmit(DHCP_CHANNEL,DHCP_ANSWER_CHANNEL,os.getComputerID())
+        modem.open(DHCP_ANSWER_CHANNEL)
+        parallel.waitForAny(dhcp_recive,wait_5)
+        modem.close(DHCP_ANSWER_CHANNEL)
+        t = t+1
+    end
+    if (ip == nil) then 
+        log.e("DHCP couldn't get network configuration. Is a DHCP-Servrer running ?")
+        ip = oip 
+    end
+    
 end
 
 lib.addToArpTable("127.0.0.1", modem.address) --adding localhost to arptable
