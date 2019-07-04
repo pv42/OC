@@ -78,7 +78,7 @@ end
  
 print("STEP 2 loading ARP")
 -- ARP
-local ARP_TIMEOUT = 100
+local ARP_TIMEOUT = 10000lua
 local arp_cache = {}
  
 local function sendArpPackage(op, targetmac, targetip)
@@ -119,7 +119,7 @@ local function resolveIP(iptr)
             return arp_cache[iptr].mac
         end
     end
-    sendArpPackage(ARP_OP_REQ ,MAC_BROADCAST, iptr)
+    sendArpPackage(ARP_OP_REQ, MAC_BROADCAST, iptr)
     wait_time = 0
     while arp_cache[iptr] == nil do -- wait for answer
         if wait_time > ARP_REQ_TIMEOUT then
@@ -134,7 +134,8 @@ end
  
 local function addToArpTable(iptr, mac)
     if iptr == nil then error("tried to register nil to arp table") end
-    if type(iptr) ~= "number" then error("ip must be number in arp table")end
+    if type(iptr) ~= "number" then error("ip must be number in arp table") end
+    if mac == nil then error("tried to delete arp entry") end
     arp_cache[iptr] = { ["mac"] = mac, ["time"] = os.time() }
 end
  
