@@ -93,6 +93,21 @@ local function sendArpPackage(op, targetmac, targetip)
     end
 end
  
+function libip.IPtoString(tip)
+    if tip == nil then return 0 end
+    return math.floor(tip/(256*256*256)).."."..(math.floor(tip/(256*256))%256).."."..(math.floor(tip/256)%256).."."..(tip%256)
+end
+
+function libip.StringtoIP(tip)
+    if tip == nil then return 0 end
+    local a = str_splitChar(tip,".")
+    local lip =  tonumber(a[1])
+    lip = lip * 256 + tonumber(a[2])
+    lip = lip * 256 + tonumber(a[3])
+    lip = lip * 256 + tonumber(a[4])
+    return lip
+end
+
 -- returns the physical address of a given ip
 local function resolveIP(iptr)
     if(iptr == nil) then error("tried to resolve nil ip") end
@@ -108,7 +123,7 @@ local function resolveIP(iptr)
     wait_time = 0
     while arp_cache[iptr] == nil do -- wait for answer
         if wait_time > ARP_REQ_TIMEOUT then
-            print("could not resolve ip:" .. iptr)
+            print("could not resolve ip:" .. libip.IPtoString(iptr))
             return nil
         end
         os.sleep(0.5)
@@ -127,20 +142,6 @@ end
  
 print("STEP 3 loading IP (2)")
 
-function libip.IPtoString(tip)
-    if tip == nil then return 0 end
-    return math.floor(tip/(256*256*256)).."."..(math.floor(tip/(256*256))%256).."."..(math.floor(tip/256)%256).."."..(tip%256)
-end
-
-function libip.StringtoIP(tip)
-    if tip == nil then return 0 end
-    local a = str_splitChar(tip,".")
-    local lip =  tonumber(a[1])
-    lip = lip * 256 + tonumber(a[2])
-    lip = lip * 256 + tonumber(a[3])
-    lip = lip * 256 + tonumber(a[4])
-    return lip
-end
  
 --public
 function libip.sendIpPackage(target_ip, transport_protocol, _data)
@@ -202,6 +203,7 @@ local function ipreceivedeamon()
             addToArpTable(msgu.source_ip, msgu.source_mac)
             if msgu.operation == ARP_OP_REQ then
                 --if is request answer it
+                print("sending arp answer to " .. msgu.source_mac)
                 sendArpPackage(ARP_OP_ANSW, msgu.source_mac, msgu.source_ip)
             end
         else
