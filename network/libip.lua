@@ -103,7 +103,7 @@ local function resolveIP(iptr)
 end
  
 local function addToArpTable(iptr, mac)
-    if iptr == nil then error("tried to register nil to arp table")
+    if iptr == nil then error("tried to register nil to arp table") end
     arp_cache[iptr] = { ["mac"] = mac, ["time"] = os.time() }
 end
  
