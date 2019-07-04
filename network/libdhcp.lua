@@ -31,7 +31,7 @@ local function dhcprequest(server_ip, req_ip)
 end
 
 -- acknogledge (Boolean), if true send pack else send nak
-function libdhcp.dhcpacknogledge(acknoledge)
+function libdhcp.dhcpacknowledge(acknowledge)
 	if(acknoledge) then 
 		op = OP_PACK
 	else
@@ -55,6 +55,7 @@ end
 local function handleoffer(package, sender_ip) 
 	state = 2
 	if(package.operation == OP_OFFER and package.offer ~= nil) then
+		requested_ip = package.offer
 		dhcprequest(sender_ip, package.offer)
 		libudp.addReceiveHandler(CLIENT_PORT, handlepack)
 	else

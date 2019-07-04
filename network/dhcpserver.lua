@@ -25,10 +25,10 @@ local function handlePackage(package)
 		libdhcp.dhcpoffer(ip)
 	elseif(package.operation == libdhcp.OP_REQUEST) then
 		if address_table[package.request] == "offer" then
-			libdhcp.dhcppack(true)
+			libdhcp.dhcpacknowledge(true)
 			address_table[package.request] = "inuse"
 		else 
-			libdhcp.dhcppack(false)
+			libdhcp.dhcpacknowledge(false)
 		end
 	else
 	end

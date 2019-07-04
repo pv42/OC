@@ -78,7 +78,7 @@ end
  
 print("STEP 2 loading ARP")
 -- ARP
-local ARP_TIMEOUT = 10000lua
+local ARP_TIMEOUT = 10000
 local arp_cache = {}
  
 local function sendArpPackage(op, targetmac, targetip)
