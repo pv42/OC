@@ -103,6 +103,7 @@ local function resolveIP(iptr)
 end
  
 local function addToArpTable(iptr, mac)
+    if iptr == nil then error("tried to register nil to arp table")
     arp_cache[iptr] = { ["mac"] = mac, ["time"] = os.time() }
 end
  
@@ -180,10 +181,10 @@ local function ipreceivedeamon()
         handleIpPackage(from, msgu)
     elseif port == libip.ARP_PORT then --ARP
         if msgu.hardware_adress_type == 1 and msgu.protocol_adress_type == libip.IP_PORT then
-            addToArpTable(msgu.sorce_ip, msgu.source_mac)
+            addToArpTable(msgu.source_address, msgu.source_mac)
             if msgu.operation == ARP_OP_REQ then
                 --if is request answer it
-                sendArpPackage(ARP_OP_ANSW, msgu.source_mac, msgu.source_ip)
+                sendArpPackage(ARP_OP_ANSW, msgu.source_mac, msgu.source_address)
             end
         else
             --not matching
