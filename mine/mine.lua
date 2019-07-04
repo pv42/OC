@@ -39,10 +39,10 @@ function main()
 end
 
 function hasAngel( ... )
-  local solarGenDetected = false
+  local angelDetected = false
   for addr, info in pairs(computer.getDeviceInfo()) do
     if info.class == "generic" and info.description == "Angel upgrade" then
-      solarGenDetected = true
+      angelDetected = true
       break
     end
   end
