@@ -12,7 +12,7 @@ else
 	print("Modem:")
 	print("Status: . . . . . " .. "?")
 	print("physische Adresse:" .. com.modem.address)
-	print("IPv4 Adresse: . . " .. ipv4adr)
+	print("IPv4 Adresse: . . " .. libip.IPtoString(ipv4adr))
 end
 if libip ~= nil then 
 	print("")
@@ -21,7 +21,7 @@ if libip ~= nil then
 	 
 	print("IPv4 adress  | time   | physical adress")
 	for ipv4, entry in pairs(libip.getArpTable()) do 
-			print( ipv4 .. "| " .. entry.time .. "| " .. entry.mac)
+			print( libip.IPtoString(ipv4) .. "| " .. entry.time .. "| " .. entry.mac)
 	end
 	if i == 0 then print("<the ARP-table is empty>") end
 end

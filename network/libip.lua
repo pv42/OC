@@ -11,7 +11,7 @@ local serialization = require("serialization")
 --consts public
 local libip = {}
 libip.MAC_BROADCAST = "ffff-ffffffff-ffff" -- mac broadcast address
-libip.IP_BROADCAST = "255.255.255.255"
+libip.IP_BROADCAST = 0xffffffffff  -- 255.255.255.255
 --consts private
 local IP_VERSION = 4
 --local TRP_TCP = 6 -- tcp package type
@@ -29,7 +29,7 @@ local ARP_OP_ANSW = 2 -- arp answer operation code
 local ARP_REQ_TIMEOUT = 5 -- arp request timeout, after this time without an answer an ip is deamed unresolvable
 -- network config
 libip.config = {}
-libip.config.local_ip = "127.0.0.1"
+
 
 
 
@@ -71,7 +71,8 @@ local function sendArpPackage(op, targetmac, targetip)
     if targetmac == nil then targetmac = MAC_BROADCAST end
     package = { hardware_adress_type = 1, protocol_adress_type = libip.IP_PORT, operation = op, source_mac = modem.adress,
     source_ip = libip.getOwnIp(), target_mac = targetmac, target_ip = targetip}
-    if(targetmac == MAC_BROADCAST) then
+    if libip.getOwnIp() == 0 then package.source_ip = libip.IP_BROADCAST end
+    if targetmac == MAC_BROADCAST then
         modem.broadcast(libip.ARP_PORT, serialization.serialize(package))
     else
         modem.send(targetmac, libip.ARP_PORT, serialization.serialize(package))
@@ -104,6 +105,7 @@ end
  
 local function addToArpTable(iptr, mac)
     if iptr == nil then error("tried to register nil to arp table") end
+    if type(iptr)~=number then error("ip must be number in arp table")end
     arp_cache[iptr] = { ["mac"] = mac, ["time"] = os.time() }
 end
  
@@ -127,6 +129,7 @@ end
  
 --public
 function libip.sendIpPackage(target_ip, transport_protocol, _data)
+    if type(targetip ~= "number") then error("ip must be a number")
     local target_mac = resolveIP(target_ip)
     if target_mac == nil then return false end
     if(type(transport_protocol) ~= "number") then error("protocol must be a number") end
@@ -168,7 +171,7 @@ function libip.addReceiveHandler(protocol_id, func)
     receiveHandlers[protocol_id] = func
 end
  
-addToArpTable("127.0.0.1", modem.address) --adding localhost to arptable
+addToArpTable(libip.StringtoIP("127.0.0.1"), modem.address) --adding localhost to arptable
 addToArpTable(libip.IP_BROADCAST, libip.MAC_BROADCAST)
 -- deamons
 -- public
@@ -181,10 +184,10 @@ local function ipreceivedeamon()
         handleIpPackage(from, msgu)
     elseif port == libip.ARP_PORT then --ARP
         if msgu.hardware_adress_type == 1 and msgu.protocol_adress_type == libip.IP_PORT then
-            addToArpTable(msgu.source_address, msgu.source_mac)
+            addToArpTable(msgu.source_ip, msgu.source_mac)
             if msgu.operation == ARP_OP_REQ then
                 --if is request answer it
-                sendArpPackage(ARP_OP_ANSW, msgu.source_mac, msgu.source_address)
+                sendArpPackage(ARP_OP_ANSW, msgu.source_mac, msgu.source_ip)
             end
         else
             --not matching
@@ -207,6 +210,7 @@ function libip.run()
     end
 end
  
- 
+libip.config.local_ip = 0x0 -- 0.0.0.0
+
 print("ip libary loaded")
 return libip
