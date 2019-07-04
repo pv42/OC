@@ -59,6 +59,20 @@ local function handleIpPackage(sender, package)
     end
     -- body
 end
+
+-- for str -> ip
+local function str_splitChar(str,c)
+    local s = {}
+    local last = 1
+    for i=1,string.len(str) do
+        if(string.byte(str,i)==string.byte(c)) then
+            table.insert(s,string.sub(str,last,i-1))
+            last = i+1
+        end
+    end
+    table.insert(s,string.sub(str,last))
+    return s
+end
  
  
  
@@ -117,6 +131,7 @@ function libip.IPtoString(tip)
     if tip == nil then return 0 end
     return math.floor(tip/(256*256*256)).."."..(math.floor(tip/(256*256))%256).."."..(math.floor(tip/256)%256).."."..(tip%256)
 end
+
 function libip.StringtoIP(tip)
     if tip == nil then return 0 end
     local a = str_splitChar(tip,".")
@@ -129,7 +144,7 @@ end
  
 --public
 function libip.sendIpPackage(target_ip, transport_protocol, _data)
-    if type(targetip ~= "number") then error("ip must be a number")
+    if type(targetip ~= "number") then error("ip must be a number") end
     local target_mac = resolveIP(target_ip)
     if target_mac == nil then return false end
     if(type(transport_protocol) ~= "number") then error("protocol must be a number") end
