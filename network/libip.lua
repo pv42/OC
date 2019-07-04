@@ -11,7 +11,7 @@ local serialization = require("serialization")
 --consts public
 local libip = {}
 libip.MAC_BROADCAST = "ffff-ffffffff-ffff" -- mac broadcast address
-libip.IP_BROADCAST = 0xffffffffff  -- 255.255.255.255
+libip.IP_BROADCAST = 0xffffffff  -- 255.255.255.255
 --consts private
 local IP_VERSION = 4
 --local TRP_TCP = 6 -- tcp package type
@@ -82,11 +82,11 @@ local ARP_TIMEOUT = 100
 local arp_cache = {}
  
 local function sendArpPackage(op, targetmac, targetip)
-    if targetmac == nil then targetmac = MAC_BROADCAST end
-    package = { hardware_adress_type = 1, protocol_adress_type = libip.IP_PORT, operation = op, source_mac = modem.adress,
+    if targetmac == nil then targetmac = libip.MAC_BROADCAST end
+    package = { hardware_adress_type = 1, protocol_adress_type = libip.IP_PORT, operation = op, source_mac = modem.address,
     source_ip = libip.getOwnIp(), target_mac = targetmac, target_ip = targetip}
     if libip.getOwnIp() == 0 then package.source_ip = libip.IP_BROADCAST end
-    if targetmac == MAC_BROADCAST then
+    if targetmac == libip.MAC_BROADCAST then
         modem.broadcast(libip.ARP_PORT, serialization.serialize(package))
     else
         modem.send(targetmac, libip.ARP_PORT, serialization.serialize(package))
@@ -203,7 +203,7 @@ local function ipreceivedeamon()
             addToArpTable(msgu.source_ip, msgu.source_mac)
             if msgu.operation == ARP_OP_REQ then
                 --if is request answer it
-                print("sending arp answer to " .. msgu.source_mac)
+                print("sending arp answer to " .. msgu.source_mac .. " " .. libip.IPtoString(msgu.source_ip))
                 sendArpPackage(ARP_OP_ANSW, msgu.source_mac, msgu.source_ip)
             end
         else
