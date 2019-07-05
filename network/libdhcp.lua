@@ -45,6 +45,7 @@ local function handlepack(package)
 	if(package.operation == OP_PACK) then
 		state = 0
 		libip.config.local_ip = requested_ip
+		print("dhcp set ip to " .. libip.IPtoString(requested_ip))
 	elseif (package.operation == OP_NAK) then
 		error("dhcp request denied")
 	else
