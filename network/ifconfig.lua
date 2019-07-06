@@ -14,14 +14,13 @@ else
 	print("physische Adresse:" .. com.modem.address)
 	print("IPv4 Adresse: . . " .. libip.IPtoString(ipv4adr))
 end
+libip = pcall(require,"libip")
 if libip ~= nil then 
 	print("")
 	print("ARP-Table")
-
-	 
 	print("IPv4 adress  | time   | physical adress")
 	for ipv4, entry in pairs(libip.getArpTable()) do 
-			print( libip.IPtoString(ipv4) .. "| " .. entry.time .. "| " .. entry.mac)
+			print(libip.IPtoString(ipv4) .. string.rep(" ", math.max(15 - #tostring(pack_type), 0)) .. "| " .. entry.time .. "| " .. entry.mac)
 	end
 	if i == 0 then print("<the ARP-table is empty>") end
 end
