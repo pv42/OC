@@ -6,29 +6,36 @@ libdhcp = require("libdhcp")
 libip.config.local_ip = libip.StringtoIP("192.168.0.1")
 
 local address_table = {}
+local mac_table = {}
 
 local function getFreeIp()
 	for i =10,250 do
 		local a = libip.StringtoIP("192.168.0." .. i)
 		if(address_table[a] == nil) then
-			address_table[a] = "offer"
 			return a
 		end 
 	end
 	return nil
 end
 
-local function handlePackage(package)
-	if(package.operation == libdhcp.OP_DISCOVER) then
-		local ip = getFreeIp()
-		if(ip == nil) then return end
-		libdhcp.dhcpoffer(ip)
-	elseif(package.operation == libdhcp.OP_REQUEST) then
-		if address_table[package.request] == "offer" then
+local function handlePackage(package, ip, mac)
+	if package.operation == libdhcp.OP_DISCOVER then
+		local fip
+    if mac_table[mac] then
+      fip = mac_table[mac]
+    else 
+      fip = getFreeIp()
+		  mac_table[mac] = fip
+    if(fip == nil) then return end
+    address_table[fip] = "offer"
+		libdhcp.dhcpoffer(fip)
+	elseif package.operation == libdhcp.OP_REQUEST  then
+		if address_table[package.request] == "offer" and mac_table[mac] == package.request then
 			libdhcp.dhcpacknowledge(true)
 			address_table[package.request] = "inuse"
 		else 
 			libdhcp.dhcpacknowledge(false)
+      print("DHCP ack denied at: " .. address_table[package.request])
 		end
 	else
 	end

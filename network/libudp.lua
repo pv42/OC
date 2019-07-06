@@ -13,9 +13,9 @@ function libudp.send(local_port, target_port, target_address, data)
   libip.sendIpPackage(target_address, UDP_PROTOCOL_ID, package)
 end
 
-local function recivePackage(package, source_ip)
+local function recivePackage(package, source_ip, source_mac)
 	if(receiveHandlers[package.destination_port] ~= nil) then
-		receiveHandlers[package.destination_port](package.data, source_ip)
+		receiveHandlers[package.destination_port](package.data, source_ip, source_mac)
 	end
 end
 
