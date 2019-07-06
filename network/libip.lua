@@ -13,7 +13,7 @@ local libip = {}
 libip.MAC_BROADCAST = "ffff-ffffffff-ffff" -- mac broadcast address
 libip.IP_BROADCAST = 0xffffffff  -- 255.255.255.255
 --consts private
-local IP_VERSION = 4
+local IP_VERSION = 4 -- legacy ip
 --local TRP_TCP = 6 -- tcp package type
 --local TRP_UDP = 17 -- upd package type
 local IPP_IHL = 20
@@ -29,9 +29,6 @@ local ARP_OP_ANSW = 2 -- arp answer operation code
 local ARP_REQ_TIMEOUT = 5 -- arp request timeout, after this time without an answer an ip is deamed unresolvable
 -- network config
 libip.config = {}
-
-
-
 
 
 local receiveHandlers = {}

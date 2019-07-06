@@ -1,5 +1,5 @@
 print("loading tcp libary")
-lib = {}
+libtcp = {}
 --libs
 if libip== nil then error("no valid internet protocol active") end
 -- const
@@ -12,7 +12,7 @@ local TCP_ACK_TIMEOUT = 10
 --locals
 local ports = {}
 
-function lib.handleTCPPackeage(tcpp, senderIP)
+function libtcp.handleTCPPackeage(tcpp, senderIP)
 	if ports[tcpp.destination_port] == nil then error("recived tcpp on closed port " .. tcpp.destination_port) 
 	else
 		conn = ports[tcpp.destination_port]
@@ -25,7 +25,7 @@ function lib.handleTCPPackeage(tcpp, senderIP)
 	end
 end
 
-function lib.openConnection(target_adress_, target_port_, local_port_)
+function libtcp.openConnection(target_adress_, target_port_, local_port_)
 	if local_port_ == nil then local_port_ = get_free_port() end
 	conn = {packageBuffer_r={}, packageBuffer_s={}, packageSendTimeStep = {}, local_port = local_port_, remote_port = target_port_,
 	 remote_adress = target_adress_ ,seq = random(), ack = 0}
@@ -53,17 +53,17 @@ local function get_free_port()
 	end
 	return port
 end
-function awaitConnection(port)
+function libtcp.awaitConnection(port)
 	-- body
 end
-function random()
-	return 19 -- wtf
+local function random()
+	return 19 -- wtf, not even a fair dice roll
 end
-function closeConnection(conn)
+function libtcp.closeConnection(conn)
 	-- body
 	ports(conn.ta)
 end
-function reciveTCPPackage(conn, isSyn)
+function libtcp.reciveTCPPackage(conn, isSyn)
 	if isSyn then
 		while #conn.packageBuffer == 0 do
 			os.sleep(0.05)
@@ -79,7 +79,8 @@ function reciveTCPPackage(conn, isSyn)
 		return conn.packageBuffer[conn.ack + 1]
 	end
 end
-function sendTCPPackage( conn , data, _flags, _ack)
+
+function libtcp.sendTCPPackage( conn , data, _flags, _ack)
 	if _flags == nil then _flags = flags() end
 	if _ack == nil then _ack = 0 end
  	local package = { source_port = conn.local_port, destination_port = conn.remote_port, seq = conn.getNextSeq(),
@@ -88,7 +89,6 @@ function sendTCPPackage( conn , data, _flags, _ack)
 
 	}
 	conn.packageBuffer_s[package.seq] = package
- 	
 end
 
 local function flags()
@@ -112,7 +112,7 @@ local function ack_flags()
 end
 
 --called by the network deamon
-function lib.sendStep() 
+function libtcp.sendStep() 
 	for port, conn in pairs(ports) do 
 		for seq, package in pairs(conn.packageBuffer_s) do
 			if conn.packageSendTimeStep[seq] == nil or os.time() - conn.packageSendTimeStep[seq] > TCP_ACK_TIMEOUT then 	
@@ -123,4 +123,4 @@ function lib.sendStep()
 	end
 end 
 
-return lib
+return libtcp
