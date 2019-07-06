@@ -1,4 +1,4 @@
-endrobot = require("robot")
+robot = require("robot")
 
 function main()
 	while true do

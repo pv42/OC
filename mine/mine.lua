@@ -39,13 +39,13 @@ function main()
 end
 
 function hasAngel( ... )
-  local solarGenDetected = false
-for addr, info in pairs(computer.getDeviceInfo()) do
-  if info.class == "generic" and info.description == "Angel upgrade" then
-    solarGenDetected = true
-    break
+  local angelDetected = false
+  for addr, info in pairs(computer.getDeviceInfo()) do
+    if info.class == "generic" and info.description == "Angel upgrade" then
+      angelDetected = true
+      break
+    end
   end
-end
 end
 
 function mine()
@@ -211,5 +211,5 @@ function placeDown()
   end
   robot.placeDown()
 end
-main()
 
+main()

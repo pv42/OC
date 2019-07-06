@@ -26,11 +26,12 @@ function libdhcp.dhcpoffer(offer_ip)
 end
 
 local function dhcprequest(server_ip, req_ip)
+	print("sending dhcp req for " .. libip.IPtoString(req_ip) .. " to " .. libip.IPtoString(server_ip))
 	libudp.send(CLIENT_PORT, libdhcp.SERVER_PORT, server_ip, {operation = libdhcp.OP_REQUEST, request = req_ip})
 end
 
 -- acknogledge (Boolean), if true send pack else send nak
-function libdhcp.dhcpacknogledge(acknoledge)
+function libdhcp.dhcpacknowledge(acknowledge)
 	if(acknoledge) then 
 		op = OP_PACK
 	else
@@ -44,6 +45,7 @@ local function handlepack(package)
 	if(package.operation == OP_PACK) then
 		state = 0
 		libip.config.local_ip = requested_ip
+		print("dhcp set ip to " .. libip.IPtoString(requested_ip))
 	elseif (package.operation == OP_NAK) then
 		error("dhcp request denied")
 	else
@@ -54,6 +56,7 @@ end
 local function handleoffer(package, sender_ip) 
 	state = 2
 	if(package.operation == OP_OFFER and package.offer ~= nil) then
+		requested_ip = package.offer
 		dhcprequest(sender_ip, package.offer)
 		libudp.addReceiveHandler(CLIENT_PORT, handlepack)
 	else

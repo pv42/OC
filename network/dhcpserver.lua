@@ -3,13 +3,13 @@ libudp = require("libudp")
 libdhcp = require("libdhcp")
 
 
-libip.config.local_ip = "192.168.0.1"
+libip.config.local_ip = libip.StringtoIP("192.168.0.1")
 
 local address_table = {}
 
 local function getFreeIp()
 	for i =10,250 do
-		local a = "192.168.0." .. i
+		local a = libip.StringtoIP("192.168.0." .. i)
 		if(address_table[a] == nil) then
 			address_table[a] = "offer"
 			return a
@@ -25,10 +25,10 @@ local function handlePackage(package)
 		libdhcp.dhcpoffer(ip)
 	elseif(package.operation == libdhcp.OP_REQUEST) then
 		if address_table[package.request] == "offer" then
-			libdhcp.dhcppack(true)
+			libdhcp.dhcpacknowledge(true)
 			address_table[package.request] = "inuse"
 		else 
-			libdhcp.dhcppack(false)
+			libdhcp.dhcpacknowledge(false)
 		end
 	else
 	end
