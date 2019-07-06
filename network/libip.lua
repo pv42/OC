@@ -13,7 +13,7 @@ local thread = require("thread")
 
 --consts public
 local libip = {}
-libip.MAC_BROADCAST = "ffff-ffffffff-ffff" -- mac broadcast address
+libip.MAC_BROADCAST = "ffffffff-ffff-ffff-ffff-ffffffff" -- mac broadcast address
 libip.IP_BROADCAST = 0xffffffff  -- 255.255.255.255
 --consts private
 local IP_VERSION = 4 -- legacy ip
@@ -31,7 +31,10 @@ local ARP_OP_REQ = 1 -- arp request operation code
 local ARP_OP_ANSW = 2 -- arp answer operation code
 local ARP_REQ_TIMEOUT = 5 -- arp request timeout, after this time without an answer an ip is deamed unresolvable
 -- network config
-libip.config = {}
+libip.config = {
+	dns_server=0, -- 0.0.0.0
+	local_ip= 0 -- 0.0.0.0
+}
 
 
 local receiveHandlers = {}
@@ -77,7 +80,7 @@ end
  
 log.i("STEP 2 loading ARP")
 -- ARP
-local ARP_TIMEOUT = 10000
+local ARP_TIMEOUT = 1000
 local arp_cache = {}
  
 local function sendArpPackage(op, targetmac, targetip)
@@ -220,8 +223,6 @@ function libip.run()
         senddeamon()
     end
 end
- 
-libip.config.local_ip = 0x0 -- 0.0.0.0
 
 log.i("ip libary loaded")
 return libip

@@ -1,7 +1,7 @@
 libip = require("libip")
 libudp = require("libudp")
 libdhcp = require("libdhcp")
-
+log = require("log")
 
 libip.config.local_ip = libip.StringtoIP("192.168.0.1")
 
@@ -35,14 +35,14 @@ local function handlePackage(package, ip, mac)
 			address_table[package.request] = "inuse"
 		else 
 			libdhcp.dhcpacknowledge(false)
-      print("DHCP ack denied at: " .. address_table[package.request])
+      log.w("DHCP ack denied a-t: " .. address_table[package.request])
 		end
 	else
 	end
 end
 
 libudp.addReceiveHandler(libdhcp.SERVER_PORT, handlePackage)
-
+log.i("DHCP server running")
 
 
 

@@ -32,7 +32,7 @@ end
 -- acknogledge (Boolean), if true send pack else send nak
 function libdhcp.dhcpacknowledge(acknowledge)
 	local op = OP_NAK 
-  if(acknoledge) then 
+  if acknowledge then 
 		op = OP_PACK
 	end
 	libudp.send(libdhcp.SERVER_PORT, CLIENT_PORT, libip.IP_BROADCAST, {operation = op})

@@ -18,6 +18,8 @@ local function type_to_str(frame_type, msg)
       if msg.data then
         if msg.data.destination_port == libdhcp.SERVER_PORT or msg.data.destination_port == 68 then
           return "DHCP"
+        elseif msg.data.destination_port == 53 then 
+          return "DNS" 
         end
         return "UPD/" .. tostring(msg.data.destination_port)
       else
@@ -39,7 +41,7 @@ local function type_to_str(frame_type, msg)
   end
 end
 
-io.write("NMon 1.0.06\n")
+io.write("NMon 1.0.06  (C) 2019 pv42\n")
 io.write("Press 'Ctrl-C' to exit\n")
 pcall(function()
   repeat
