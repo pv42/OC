@@ -20,6 +20,7 @@ local function frame_type_to_str(frame_type)
   end
 end
 
+io.write("NMon 1.0.03\n")
 io.write("Press 'Ctrl-C' to exit\n")
 pcall(function()
   repeat
@@ -31,7 +32,20 @@ pcall(function()
     local type = tostring(evt[1]) 
     if type == "modem_message" then
       local frame_type = evt[4]
-
+      local msg = serialization.unserialize(evt[6])
+      if msg then 
+        if frame_type == libip.IP_PORT then 
+          if msg.target_address then
+            msg.target_address = libip.IPtoString(msg.target_address)
+          end
+          if msg.source_address then
+            msg.source_address = libip.IPtoString(msg.source_address)
+          end
+          if msg.protocol then 
+            if msg.protocol == 17 then msg.protocol = "UDP" end
+          end
+        end
+      end
       if interactive then gpu.setForeground(0xCC2200) end
       io.write("[" .. os.date("%T") .. "] ")
       if interactive then gpu.setForeground(0x44CC00) end
@@ -39,15 +53,8 @@ pcall(function()
       if interactive then gpu.setForeground(0xB0B00F) end
       io.write(string.sub(tostring(evt[3]),1,8) .. " ")
       if interactive then gpu.setForeground(0xFFFFFF) end
-      if evt.n > 2 then
-        for i = 5, evt.n do
-          if i == 3 then
-            io.write("  " .. string.sub(tostring(evt[i]),1,8))
-          else  
-            io.write("  " .. tostring(evt[i]))
-          end
-        end
-      end
+      io.write("  " .. tostring(evt[5]))
+      io.write("  " .. tostring(evt[6])) --
       io.write("\n")
     end
   until evt[1] == "interrupted"
