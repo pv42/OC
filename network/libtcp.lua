@@ -1,6 +1,8 @@
-print("loading tcp libary")
-libtcp = {}
 --libs
+local log = require("log")
+local libip = require("libip") 
+log.i("loading tcp libary")
+libtcp = {}
 if libip== nil then error("no valid internet protocol active") end
 -- const
 local TCP_DATA_OFFSET = 0
