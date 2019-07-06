@@ -3,12 +3,14 @@ if(type(_G.libip) == "table") then
     return _G.libip
 end
  
-log.i("loading ip libary")
 --libaries
+local log = require("log")
+log.i("loading ip libary")
 local modem = require("component").modem
 local event = require("event")
 local serialization = require("serialization")
-local log = require("log")
+local thread = require("thread")
+
 --consts public
 local libip = {}
 libip.MAC_BROADCAST = "ffff-ffffffff-ffff" -- mac broadcast address
@@ -167,7 +169,7 @@ function libip.getOwnIp()
 end
  
  
-print("STEP 4 loading ARP (2)")
+log.i("STEP 4 loading ARP (2)")
  
 --public
 function libip.getArpTable()
