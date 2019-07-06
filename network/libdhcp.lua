@@ -12,7 +12,7 @@ libdhcp.OP_DISCOVER = 1
 local OP_OFFER = 2
 libdhcp.OP_REQUEST = 3
 local OP_PACK = 5
-local OP_PACK = 6
+local OP_NAK = 6
 
 local state = 0 -- 0-idle   1-wait for offer   2-wait for pack
 local requested_ip = 0
@@ -32,10 +32,9 @@ end
 
 -- acknogledge (Boolean), if true send pack else send nak
 function libdhcp.dhcpacknowledge(acknowledge)
-	if(acknoledge) then 
+	local op = OP_NAK 
+  if(acknoledge) then 
 		op = OP_PACK
-	else
-		op = OP_NAK
 	end
 	libudp.send(libdhcp.SERVER_PORT, CLIENT_PORT, libip.IP_BROADCAST, {operation = op})
 end
