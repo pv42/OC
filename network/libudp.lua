@@ -8,9 +8,9 @@ local receiveHandlers = {}
 
 --public
 function libudp.send(local_port, target_port, target_address, data)
-	if(type(local_port)  ~= "number" or type(target_port)  ~= "number") then error("port must be a number") end
-	local package = {source_port = local_port, destination_port = target_port, data = data}
-	libip.sendIpPackage(target_address, UDP_PROTOCOL_ID, package)
+  if(type(local_port)  ~= "number" or type(target_port)  ~= "number") then error("port must be a number") end
+  local package = {source_port = local_port, destination_port = target_port, data = data}
+  libip.sendIpPackage(target_address, UDP_PROTOCOL_ID, package)
 end
 
 local function recivePackage(package, source_ip)

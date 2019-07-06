@@ -8,6 +8,7 @@ print("loading ip libary")
 local modem = require("component").modem
 local event = require("event")
 local serialization = require("serialization")
+local log = require("log")
 --consts public
 local libip = {}
 libip.MAC_BROADCAST = "ffff-ffffffff-ffff" -- mac broadcast address
@@ -34,27 +35,26 @@ libip.config = {}
 local receiveHandlers = {}
  
 --IP
-print("STEP 1 loading IPv4")
+log.i("STEP 1 loading IPv4")
  
 local function handleIpPackage(sender, package)
     if package.version == 4 then
         if(package.tos == IPP_TOS) then
             if(package.target_address == libip.getOwnIp() or package.target_address == libip.IP_BROADCAST) then
                 if(receiveHandlers[package.protocol] ~= nil) then
-                    receiveHandlers[package.protocol](package.data, package.source_address)
+                    thread.create(receiveHandlers[package.protocol],package.data, package.source_address)
                 else
-                    error("no handler for protocol " .. package.protocol)
+                    log.w("no handler for protocol " .. package.protocol)
                 end
             else
-                error("recived ipp for wrong address (" .. package.target_address .. "), routing not active")
+                log.w("recived ipp for wrong address (" .. package.target_address .. "), routing not active")
             end
         else
-            error("invalid TOS, ip expected")
+            log.w("invalid TOS, ip expected")
         end
     else
-        error("invalid ip version")
+        log.e("invalid ip version")
     end
-    -- body
 end
 
 -- for str -> ip
@@ -73,7 +73,7 @@ end
  
  
  
-print("STEP 2 loading ARP")
+log.i("STEP 2 loading ARP")
 -- ARP
 local ARP_TIMEOUT = 10000
 local arp_cache = {}
@@ -120,7 +120,7 @@ local function resolveIP(iptr)
     wait_time = 0
     while arp_cache[iptr] == nil do -- wait for answer
         if wait_time > ARP_REQ_TIMEOUT then
-            print("could not resolve ip:" .. libip.IPtoString(iptr))
+            log.w("could not resolve ip:" .. libip.IPtoString(iptr))
             return nil
         end
         os.sleep(0.5)
@@ -138,7 +138,7 @@ end
  
  
  
-print("STEP 3 loading IP (2)")
+log.i("STEP 3 loading IP (2)")
 
  
 --public
@@ -160,11 +160,6 @@ end
  
  
 -- package management
---public
-function libip.sendBroadcast(data)
-    print("deprecated call to broadcast")
-    modem.broadcast(libip.IP_PORT, data)
-end
  
 --public
 function libip.getOwnIp()
@@ -201,12 +196,11 @@ local function ipreceivedeamon()
             addToArpTable(msgu.source_ip, msgu.source_mac)
             if msgu.operation == ARP_OP_REQ then
                 --if is request answer it
-                print("sending arp answer to " .. msgu.source_mac .. " " .. libip.IPtoString(msgu.source_ip))
+                log.i("sending arp answer to " .. msgu.source_mac .. " " .. libip.IPtoString(msgu.source_ip))
                 sendArpPackage(ARP_OP_ANSW, msgu.source_mac, msgu.source_ip)
             end
         else
-            --not matching
-            error("Invalid ARP request")
+            log.e("Invalid ARP request")
         end
     else
         --unknown "ethernet" frame type
@@ -218,7 +212,7 @@ local function senddeamon()
 end
  
 function libip.run()
-    print("network deamon running")
+    log.i("network deamon running")
     while true do
         ipreceivedeamon()
         senddeamon()
@@ -227,5 +221,5 @@ end
  
 libip.config.local_ip = 0x0 -- 0.0.0.0
 
-print("ip libary loaded")
+log.i("ip libary loaded")
 return libip
