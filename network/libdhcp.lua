@@ -26,7 +26,6 @@ function libdhcp.dhcpoffer(offer_ip)
 end
 
 local function dhcprequest(server_ip, req_ip)
-	print("sending dhcp req for " .. libip.IPtoString(req_ip) .. " to " .. libip.IPtoString(server_ip))
 	libudp.send(CLIENT_PORT, libdhcp.SERVER_PORT, server_ip, {operation = libdhcp.OP_REQUEST, request = req_ip})
 end
 
