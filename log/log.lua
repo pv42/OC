@@ -24,7 +24,7 @@ function log.e(msg)
   if interactive then
     gpu.setForeground(0xFF0000) -- red
   end
-  io.write("[ERR] " .. msg)
+  io.write("[ERR] " .. msg .. "\n")
   restore_color()
 end
 
@@ -33,7 +33,7 @@ function log.w(msg)
   if interactive then
     gpu.setForeground(0xFFFF00) -- yellow
   end
-  io.write("[WRN] " .. msg)
+  io.write("[WRN] " .. msg .. "\n")
   restore_color()
 end
 
@@ -42,7 +42,7 @@ function log.i(msg)
   if interactive then
     gpu.setForeground(0xFFFFFF) -- white
   end
-  io.write("[INF] " .. msg)
+  io.write("[INF] " .. msg .. "\n")
   restore_color()
 end
 

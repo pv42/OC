@@ -1,9 +1,9 @@
 if(type(_G.libip) == "table") then
-    print("ip libary is already loaded")
+    log.w("ip libary is already loaded")
     return _G.libip
 end
  
-print("loading ip libary")
+log.i("loading ip libary")
 --libaries
 local modem = require("component").modem
 local event = require("event")
