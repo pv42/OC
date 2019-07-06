@@ -15,7 +15,7 @@ local function type_to_str(frame_type, msg)
   if frame_type == libip.IP_PORT then 
     if msg.protocol == 17 then
       return "IP/UPD"
-    else if msg.protocol == -1 then -- placeholder
+    elseif msg.protocol == -1 then -- placeholder
       return "IP/TCP"
     else
       return "IP/" .. tostring(msg.protocol)
@@ -31,7 +31,7 @@ local function type_to_str(frame_type, msg)
   end
 end
 
-io.write("NMon 1.0.03\n")
+io.write("NMon 1.0.05\n")
 io.write("Press 'Ctrl-C' to exit\n")
 pcall(function()
   repeat
@@ -44,7 +44,6 @@ pcall(function()
     if evt_type == "modem_message" then
       local frame_type = evt[4]
       local msg, e = serialization.unserialize(evt[6])
-      print(e)
       if msg then 
         if frame_type == libip.IP_PORT then 
           if msg.target_address then
@@ -67,7 +66,7 @@ pcall(function()
       io.write(string.sub(tostring(evt[3]),1,8) .. " ")
       if interactive then gpu.setForeground(0xFFFFFF) end
       io.write("  " .. tostring(evt[5]))
-      io.write("  " .. tostring(evt[6])) --
+      io.write("  " .. serialization.serialize(msg))
       io.write("\n")
     end
   until evt[1] == "interrupted"
