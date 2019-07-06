@@ -49,7 +49,7 @@ local function handleIpPackage(sender, package)
                     error("no handler for protocol " .. package.protocol)
                 end
             else
-                error("recived ipp for wrong adress (" .. package.target_address .. "), routing not active")
+                error("recived ipp for wrong address (" .. package.target_address .. "), routing not active")
             end
         else
             error("invalid TOS, ip expected")
@@ -83,7 +83,7 @@ local arp_cache = {}
  
 local function sendArpPackage(op, targetmac, targetip)
     if targetmac == nil then targetmac = libip.MAC_BROADCAST end
-    package = { hardware_adress_type = 1, protocol_adress_type = libip.IP_PORT, operation = op, source_mac = modem.address,
+    package = { hardware_address_type = 1, protocol_address_type = libip.IP_PORT, operation = op, source_mac = modem.address,
     source_ip = libip.getOwnIp(), target_mac = targetmac, target_ip = targetip}
     if libip.getOwnIp() == 0 then package.source_ip = libip.IP_BROADCAST end
     if targetmac == libip.MAC_BROADCAST then
@@ -200,7 +200,7 @@ local function ipreceivedeamon()
     if port == libip.IP_PORT then
         handleIpPackage(from, msgu)
     elseif port == libip.ARP_PORT then --ARP
-        if msgu.hardware_adress_type == 1 and msgu.protocol_adress_type == libip.IP_PORT then
+        if msgu.hardware_address_type == 1 and msgu.protocol_address_type == libip.IP_PORT then
             addToArpTable(msgu.source_ip, msgu.source_mac)
             if msgu.operation == ARP_OP_REQ then
                 --if is request answer it
