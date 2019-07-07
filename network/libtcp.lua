@@ -106,7 +106,7 @@ function libtcp.Connection:recivePackage(isSyn)
       return v
     end
   else
-    while self.packageBuffer_r[conn.ack + 1] == nil) do
+    while self.packageBuffer_r[self.ack + 1] == nil do
       os.sleep(0.05)
     end
     return conn.packageBuffer[conn.ack + 1]
@@ -116,7 +116,7 @@ end
 function libtcp.Connection:sendPackage(data, _flags)
   if _flags == nil then _flags = flags() end
   if _ack == nil then _ack = 0 end
-  local package = { source_port = conn.local_port, destination_port = conn.remote_port, seq = self.getNextSeq(),
+  local package = { source_port = self.local_port, destination_port = self.remote_port, seq = self:getNextSeq(),
    ack = _ack, data_offset = TCP_DATA_OFFSET, reserved = TCP_RESERVED, flags = _flags, window = TCP_WINDOW,
    checksum = TCP_CHECKSUM, urget_pointer = TCP_URGENT_POINTER
   }
