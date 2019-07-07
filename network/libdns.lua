@@ -7,21 +7,21 @@ local DNS_QUERRY_TIMEOUT = 10
 local DNS_CACHE_TIMEOUT = 1000
 
 local dns_cache = {}
-local request_handler = nil
+local querry_handler = nil
 
 local function sendDNSQuerry(name)
   if dns_server == 0 then return nil end -- root dns server/dns server not set up
   libudp.send(DNS_PORT, DNS_PORT, libip.config.dns_server, {type="Q",content={[name]=0}}) -- 0 is a placeholder
 end
 
-function libdns.sendDNSRequest()
-  --todo
+function libdns.sendDNSRequest(ip, content)
+  libudp.send(DNS_PORT, DNS_PORT, ip, {type="R",content=content})
 end
 
 function libdns.reloveDNS(name)
   if dns_cache[name] ~= nil then return dns_cache[name] end
   sendDNSQuerry(name)
-  for local i = 1, 10*DNS_QUERRY_TIMEOUT do
+  for i = 1, 10*DNS_QUERRY_TIMEOUT do
     os.sleep(0.1)
     if dns_cache[name] ~= nil then return dns_cache[name] end
   end
@@ -32,12 +32,12 @@ end
 local function handlePackage(package, ip)
   if not package.content then error("received contentless dns package") end
   if package.type == "Q"  then --querry
-    if request_handler then 
-      request_handler(package) 
+    if querry_handler then 
+      querry_handler(package, ip) 
     else
-      error("no dns request handler is set up")
+      error("no dns querry handler is set up")
     end
-  elseif package.type = "R" then -- response
+  elseif package.type == "R" then -- response
     for k, v in pairs(package.content) do
       dns_cache[k] = v
     end
@@ -52,3 +52,6 @@ function setRequestHandler(func) -- interface for dns server
 end
 
 libudp.addReceiveHandler(DNS_PORT,handlePackage)
+dns_cache["localhost"] = 0x7f000001 -- 127.0.0.1
+
+return libdns

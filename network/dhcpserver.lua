@@ -20,13 +20,14 @@ end
 
 local function handlePackage(package, ip, mac)
 	if package.operation == libdhcp.OP_DISCOVER then
-		local fip
+		local fip = nil 
     if mac_table[mac] then
       fip = mac_table[mac]
     else 
       fip = getFreeIp()
 		  mac_table[mac] = fip
-    if(fip == nil) then return end
+    end
+    if fip == nil then return end
     address_table[fip] = "offer"
 		libdhcp.dhcpoffer(fip)
 	elseif package.operation == libdhcp.OP_REQUEST  then
