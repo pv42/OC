@@ -1,11 +1,13 @@
 local libdns = require("libdns")
 local log = require("log")
+local fs = require("filesystem")
+local serialization = require("serialization")
 
 local CONFIG_PATH = "/etc/dnsserver.cfg"
 
 if not fs.exists(CONFIG_PATH) then
   f = io.open(CONFIG_PATH, "w")
-  f:write("{hostlist={["localhost"=0x7f000001]}}") -- 127.0.0.1
+  f:write("{hostlist={[\"localhost\"]=0x7f000001}}") -- 127.0.0.1
   f:close()
   log.i("created config file " .. CONFIG_PATH)
 end

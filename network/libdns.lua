@@ -46,9 +46,9 @@ local function handlePackage(package, ip)
   end
 end
 
-function setRequestHandler(func) -- interface for dns server
-  if type(func) ~= "function" then error("request handler must be a function") end
-  request_handler = func
+function libdns.setQuerryHandler(func) -- interface for dns server
+  if type(func) ~= "function" then error("querry handler must be a function") end
+  querry_handler = func
 end
 
 libudp.addReceiveHandler(DNS_PORT,handlePackage)
