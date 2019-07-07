@@ -34,6 +34,7 @@ else
 	else
 		config_good = true
 		if cfg.ip then libip.config.local_ip = libip.StringtoIP(cfg.ip) end
+		if cfg.dns_server then libip.config.dns_server = libip.StringtoIP(cfg.dns_server) end
 	end
 end
 

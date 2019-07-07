@@ -21,7 +21,16 @@ if libip ~= nil then
 	print("IPv4 adress     time    physical adress")
 	for ipv4, entry in pairs(libip.getArpTable()) do
       local ip_str = libip.IPtoString(ipv4)
-			print(ip_str .. string.rep(" ", math.max(15 - #tostring(ip_str), 0) + 1) .. entry.time .. " " .. entry.mac)
+			print(ip_str .. string.rep(" ", math.max(15 - #ip_str, 0) + 1) .. entry.time .. " " .. entry.mac)
 	end
 	if i == 0 then print("<the ARP-table is empty>") end
+end
+if libdns ~= nil then
+  print("")
+  print("DNS-Cache")
+  print("Domain           IP")
+  for name,ip in pairs(libdns.getDNSCache()) do
+    local ip_str = libip.IPtoString(ip)
+    print(name .. string.rep(" ", math.max(20 - #name, 0) + 1) .. ip_str)
+  end
 end

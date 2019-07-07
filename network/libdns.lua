@@ -1,6 +1,7 @@
 print("loading dns libary")
 local libdns = {}
 local libudp = require("libudp")
+local log = require("log")
 -- const
 local DNS_PORT = 53
 local DNS_QUERRY_TIMEOUT = 10
@@ -10,7 +11,10 @@ local dns_cache = {}
 local querry_handler = nil
 
 local function sendDNSQuerry(name)
-  if dns_server == 0 then return nil end -- root dns server/dns server not set up
+  if libip.config.dns_server == 0 then 
+    log.w("no dns server set up, edit /etc/network.cfg")
+    return nil
+  end -- root dns server/dns server not set up
   libudp.send(DNS_PORT, DNS_PORT, libip.config.dns_server, {type="Q",content={[name]=0}}) -- 0 is a placeholder
 end
 
@@ -53,5 +57,9 @@ end
 
 libudp.addReceiveHandler(DNS_PORT,handlePackage)
 dns_cache["localhost"] = 0x7f000001 -- 127.0.0.1
+
+function libdns.getDNSCache()
+  return dns_cache
+end
 
 return libdns
