@@ -69,7 +69,7 @@ function libtcp.Connection:open(target_adress_, target_port_, local_port_)
   ports[local_port_] = conn -- marks port as used
   ocflags = flags()
   ocflags.SYN = true
-  sendTCPPackage(conn, nil, ocflags)
+  conn:sendPackage(nil, ocflags)
   tcpp = conn:recivePackage()
   if tcpp.flags.SYN and tcpp.flags.ACK then
     sendTCPPackage(conn, nil, ack_flags(), tcpp.seq)
@@ -119,9 +119,12 @@ function libtcp.Connection:sendPackage(data, _flags)
   local package = { source_port = conn.local_port, destination_port = conn.remote_port, seq = self.getNextSeq(),
    ack = _ack, data_offset = TCP_DATA_OFFSET, reserved = TCP_RESERVED, flags = _flags, window = TCP_WINDOW,
    checksum = TCP_CHECKSUM, urget_pointer = TCP_URGENT_POINTER
-
   }
   self.packageBuffer_s[package.seq] = package
+end
+
+function libtcp.Connection:send(data)
+  self:sendPackage(data) 
 end
 
 
