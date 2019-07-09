@@ -1,5 +1,6 @@
 print("loading dns libary")
 local libdns = {}
+local libip = require("libip")
 local libudp = require("libudp")
 local log = require("log")
 -- const
@@ -22,14 +23,14 @@ function libdns.sendDNSRequest(ip, content)
   libudp.send(DNS_PORT, DNS_PORT, ip, {type="R",content=content})
 end
 
-function libdns.reloveDNS(name)
+function libdns.resolveDNS(name)
   if dns_cache[name] ~= nil then return dns_cache[name] end
   sendDNSQuerry(name)
   for i = 1, 10*DNS_QUERRY_TIMEOUT do
     os.sleep(0.1)
     if dns_cache[name] ~= nil then return dns_cache[name] end
   end
-  print("could not resolve" .. name)
+  print("could not resolve '" .. name .. "'")
   return nil
 end
 
