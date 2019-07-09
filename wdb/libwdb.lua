@@ -22,3 +22,5 @@ end
 function libwdb.disconnect() 
 	server_ip = nil
 end
+ 
+return libwdb
