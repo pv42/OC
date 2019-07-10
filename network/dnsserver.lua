@@ -25,7 +25,7 @@ else
   if cfg and cfg.hostlist then
     hostlist = cfg.hostlist
   else 
-    log.e("could not parse dnsserver config: " ..m)
+    log.e("could not parse dnsserver config: " .. m)
   end
 end
 

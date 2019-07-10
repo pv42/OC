@@ -2,6 +2,7 @@
 
 local com = require("component")
 _, libip = pcall(require,"libip")
+_, libdns = pcall(require,"libdns")
 
 print("ip-configuration")
 if not com.isAvailable("modem") then
@@ -15,6 +16,7 @@ else
 	print("physische Adresse:" .. com.modem.address)
 	print("IPv4 Adresse: . . " .. ipv4adr)
 end
+
 if libip ~= nil then 
 	print("")
 	print("ARP-Table")
@@ -35,7 +37,9 @@ if libip ~= nil then
 		end
 		io.write(k)
 	end
+	print("")
 end
+
 if libdns ~= nil then
   print("")
   print("DNS-Cache")
