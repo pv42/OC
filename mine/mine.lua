@@ -29,13 +29,23 @@ end
 local angel = false
 local args = shell.parse(...)
 
-local function sendAir(z)
+function sendAir(z)
  if not libwdb then return end
  if not z then z = 0 end
  libwdb.sendBlock(x,y,z,"air") 
 end
 
-local function main()
+function hasAngel( ... )
+  local angelDetected = false
+  for addr, info in pairs(computer.getDeviceInfo()) do
+    if info.class == "generic" and info.description == "Angel upgrade" then
+      angelDetected = true
+      break
+    end
+  end
+end
+
+function main()
   print("Mine v1.2.26")
   angel = hasAngel()
   local tx = 0
@@ -50,17 +60,7 @@ local function main()
   mine()
 end
 
-local function hasAngel( ... )
-  local angelDetected = false
-  for addr, info in pairs(computer.getDeviceInfo()) do
-    if info.class == "generic" and info.description == "Angel upgrade" then
-      angelDetected = true
-      break
-    end
-  end
-end
-
-local function mine()
+function mine()
   print("Starting mining")
   libwdb.connect()
   while robot.durability() > DURABILITY_LOW do
@@ -73,7 +73,7 @@ local function mine()
   libwdb.disconnect()
 end
 
-local function goToNextHole()
+function goToNextHole()
   if x >= MAX_X - 1 then 
     floor = math.floor(y/3) + 1
     goTo(floor % 3, 3 * floor) 
@@ -98,14 +98,14 @@ local function goToNextHole()
   end
 end
 
-local function shouldMine(blockName)
+function shouldMine(blockName)
   for i,name in ipairs(MINE_BLACKLIST) do 
     if blockName == name then return false end
   end 
   return true
 end
 
-local function hole()
+function hole()
   print("Hole @ x=" .. x .. " y="  .. y)
   while depth < MAX_depth do
     depth = depth + 1
@@ -124,7 +124,7 @@ local function hole()
   robot.turnAround()
 end
 
-local function checkSurroundings(depth)
+function checkSurroundings(depth)
   local u = geo.analyze(sides.up).name
   local d = geo.analyze(sides.down).name
   local l = geo.analyze(sides.left).name
@@ -159,7 +159,7 @@ local function checkSurroundings(depth)
   end
 end
 
-local function empty()
+function empty()
   print("emptying")
   robot.turnRight()
   for slot = 1,robot.inventorySize() do
@@ -170,7 +170,7 @@ local function empty()
   robot.turnLeft()
 end
 
-local function chargeAndEmpty()
+function chargeAndEmpty()
   print("back to charge/empty")
   local ox = x
   local oy = y
@@ -183,12 +183,12 @@ local function chargeAndEmpty()
   goTo(ox,oy)
 end
 
-local function goToStart()
+function goToStart()
   goTo(0,-1)
   print("went to start")
 end
 
-local function goTo(tx, ty)
+function goTo(tx, ty)
   while y < ty do
     mv_up()
     sendAir()
@@ -213,7 +213,7 @@ local function goTo(tx, ty)
   end
 end
 
-local function mv_fw()
+function mv_fw()
   local sucses, reason = robot.forward()
   while not sucses do
     robot.swing()
@@ -224,7 +224,7 @@ local function mv_fw()
   end
 end
 
-local function mv_up()
+function mv_up()
   local sucses, reason = robot.up()
   while not sucses do 
     robot.swingUp()
@@ -233,7 +233,7 @@ local function mv_up()
   y = y+1
 end
 
-local function mv_dwn()
+function mv_dwn()
   local sucses, reason = robot.down()
   while not sucses do
     sucses, reason = robot.down()
@@ -242,7 +242,7 @@ local function mv_dwn()
   y = y-1
 end
 
-local function placeDown()
+function placeDown()
   for slot = 1,robot.inventorySize() do
     if inv.getStackInInternalSlot(slot) ~= nil then
       name = inv.getStackInInternalSlot(slot).name

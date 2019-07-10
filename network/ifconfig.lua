@@ -43,7 +43,7 @@ end
 if libdns ~= nil then
   print("")
   print("DNS-Cache")
-  print("Domain           IP")
+  print("Domain                IP")
   for name,ip in pairs(libdns.getDNSCache()) do
     local ip_str = libip.IPtoString(ip)
     print(name .. string.rep(" ", math.max(20 - #name, 0) + 1) .. ip_str)
