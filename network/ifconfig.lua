@@ -36,8 +36,24 @@ if libip ~= nil then
 		 io.write(", ")
 		end
 		io.write(k)
+		if k == 17 then io.write("-UDP") end
 	end
 	print("")
+end
+
+if libudp ~= nil then
+  print("")
+  print("UDP-Ports    Name")
+  for k,v in pairs(libudp.getHandlerList()) do 
+    io.write(k)
+    io.write(string.rep(" ", math.max(13 - #tostring(k), 0)))
+    if k == 67 then io.write("DHCP-Server\n") 
+    elseif k == 68 then io.write("DHCP-Client\n") 
+    elseif k == 53 then io.write("DNS\n") 
+    elseif k == 97 then io.write("wdb\n") 
+    else io.write("?\n")
+    end
+  end
 end
 
 if libdns ~= nil then

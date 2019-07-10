@@ -32,7 +32,7 @@ local args = shell.parse(...)
 function sendAir(z)
  if not libwdb then return end
  if not z then z = 0 end
- libwdb.sendBlock(x,y,z,"air") 
+ libwdb.sendBlock(x,y,z,"minecraft:air") 
 end
 
 function hasAngel( ... )

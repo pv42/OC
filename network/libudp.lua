@@ -26,6 +26,10 @@ function libudp.addReceiveHandler(port, func)
 	receiveHandlers[port] = func
 end
 
+function libudp.getHandlerList()
+  return receiveHandlers
+end
+
 
 libip.addReceiveHandler(UDP_PROTOCOL_ID,recivePackage)
 return libudp
