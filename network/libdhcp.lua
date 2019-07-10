@@ -21,8 +21,8 @@ local function dhcpdiscover()
 	libudp.send(CLIENT_PORT, libdhcp.SERVER_PORT, libip.IP_BROADCAST, {operation = libdhcp.OP_DISCOVER})
 end
 
-function libdhcp.dhcpoffer(offer_ip)
-	libudp.send(libdhcp.SERVER_PORT, CLIENT_PORT, libip.IP_BROADCAST, {operation = OP_OFFER, offer = offer_ip})
+function libdhcp.dhcpoffer(offer_ip, dns_server_ip)
+	libudp.send(libdhcp.SERVER_PORT, CLIENT_PORT, libip.IP_BROADCAST, {operation = OP_OFFER, offer = offer_ip, dns=dns_server_ip})
 end
 
 local function dhcprequest(server_ip, req_ip)
@@ -55,6 +55,7 @@ local function handleoffer(package, sender_ip)
 	state = 2
 	if(package.operation == OP_OFFER and package.offer ~= nil) then
 		requested_ip = package.offer
+		if package.dns then libip.config.dns_server = package.dns end
 		dhcprequest(sender_ip, package.offer)
 		libudp.addReceiveHandler(CLIENT_PORT, handlepack)
 	else

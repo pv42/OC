@@ -1,6 +1,7 @@
 robot = require("robot")
 
 function main()
+	return -- fixme first
 	while true do
 		sandSlot = getItem("minecraft:soulsand", 4)
 		skullSlot = getItem("minecraft:skull", 4)

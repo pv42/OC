@@ -8,6 +8,8 @@ libip.config.local_ip = libip.StringtoIP("192.168.0.1")
 local address_table = {}
 local mac_table = {}
 
+local DNS_SERVER = libip.StringtoIP("192.168.0.1")
+
 local function getFreeIp()
 	for i =10,250 do
 		local a = libip.StringtoIP("192.168.0." .. i)
@@ -29,7 +31,7 @@ local function handlePackage(package, ip, mac)
     end
     if fip == nil then return end
     address_table[fip] = "offer"
-		libdhcp.dhcpoffer(fip)
+		libdhcp.dhcpoffer(fip, DNS_SERVER)
 	elseif package.operation == libdhcp.OP_REQUEST  then
 		if address_table[package.request] == "offer" and mac_table[mac] == package.request then
 			libdhcp.dhcpacknowledge(true)

@@ -30,6 +30,7 @@ libip.ARP_PORT = 2054 -- arp oc port
 local ARP_OP_REQ = 1 -- arp request operation code
 local ARP_OP_ANSW = 2 -- arp answer operation code
 local ARP_REQ_TIMEOUT = 5 -- arp request timeout, after this time without an answer an ip is deamed unresolvable
+local ARP_TIMEOUT = 10000 -- ~ 130s -- cache timeout
 -- network config
 libip.config = {
 	dns_server=0, -- 0.0.0.0
@@ -80,7 +81,7 @@ end
  
 log.i("STEP 2 loading ARP")
 -- ARP
-local ARP_TIMEOUT = 1000
+
 local arp_cache = {}
  
 local function sendArpPackage(op, targetmac, targetip)
@@ -222,6 +223,10 @@ function libip.run()
         ipreceivedeamon()
         senddeamon()
     end
+end
+
+function libip.getHandlerList()
+  return receiveHandlers
 end
 
 log.i("ip libary loaded")

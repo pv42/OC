@@ -24,6 +24,17 @@ if libip ~= nil then
 			print(ip_str .. string.rep(" ", math.max(15 - #ip_str, 0) + 1) .. entry.time .. " " .. entry.mac)
 	end
 	if i == 0 then print("<the ARP-table is empty>") end
+	print("")
+	print("loaded used transport protocolls:")
+	local first = true
+	for k,v in pairs(libip.getHandlerList()) do 
+		if first then
+		 first = false
+		else
+		 io.write(", ")
+		end
+		io.write(k)
+	end
 end
 if libdns ~= nil then
   print("")

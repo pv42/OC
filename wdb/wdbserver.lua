@@ -5,6 +5,7 @@ local libwdb = require("libwdb")
 local serialization = require("serialization")
 local fs = require("filesystem")
 local log = require("log")
+local event = require("event")
 
 local path = "/usr/misc/wdb.db"
 

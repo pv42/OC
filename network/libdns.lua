@@ -19,7 +19,7 @@ local function sendDNSQuerry(name)
   libudp.send(DNS_PORT, DNS_PORT, libip.config.dns_server, {type="Q",content={[name]=0}}) -- 0 is a placeholder
 end
 
-function libdns.sendDNSRequest(ip, content)
+function libdns.sendDNSResponse(ip, content)
   libudp.send(DNS_PORT, DNS_PORT, ip, {type="R",content=content})
 end
 
