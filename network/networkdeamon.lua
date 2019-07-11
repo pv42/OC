@@ -40,7 +40,7 @@ end
 
 local function run()
 	os.sleep(0.05) -- to force a yield
-	process.findProcess().name = "networkdeamon"
+	-- process.findProcess().name = "networkdeamon" -- why doesn't this work
 	libip.run()
 end 
 
@@ -49,4 +49,5 @@ t = thread.create(run):detach()
 if config_good then
 	if cfg.dhcp then libdhcp.requestIP() end
 end
+
 log.i("network deamon started")
