@@ -3,7 +3,7 @@
 -- config
 local MAX_depth = 58
 local MAX_X = 50
-local BATTERY_LOW = 6000
+local BATTERY_LOW = 20000
 local DURABILITY_LOW = 0.1
 local MINE_BLACKLIST = {"minecraft:stone", "minecraft:cobblestone", "minecraft:torch", "minecraft:air", "minecraft:water", "minecraft:flowing_water", "minecraft:lava", "minecraft:flowing_lava"}
 -- dont change 
