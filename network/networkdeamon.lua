@@ -38,7 +38,13 @@ else
 	end
 end
 
-t = thread.create(libip.run):detach()
+local function run()
+	os.sleep(0.05) -- to force a yield
+	process.findProcess().name = "networkdeamon"
+	libip.run()
+end 
+
+t = thread.create(run):detach()
 
 if config_good then
 	if cfg.dhcp then libdhcp.requestIP() end

@@ -218,7 +218,6 @@ function libip.run()
     log.i("network deamon running")
     while true do
         ipreceivedeamon()
-        senddeamon()
     end
 end
 
