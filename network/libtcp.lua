@@ -94,7 +94,7 @@ function libtcp.Connection:open(target_adress_, target_port_, local_port_)
   else 
     error("connection refused")
   end
-    table.insert(connections, conn}
+    table.insert(connections, conn)
     return conn
 end
 
@@ -161,7 +161,7 @@ function libtcp.handleTCPPackeage(tcpp, senderIP)
 		if tcpp.flags.ACK then
 			conn.packageBuffer_s[tcpp.ack] = nil -- package acknowleged, must not be send again
 		end
-    if not tcpp.flags.ACK or tcpp.flags.SYN
+    if not tcpp.flags.ACK or tcpp.flags.SYN then
 			conn.packageBuffer_r[tcpp.seq] = tcpp -- put in rec buffer and acknoledge
 			lib.sendTCPPackage(conn, nil, ack_flags(), tcpp.seq)
 		end
