@@ -4,7 +4,7 @@ local gpu = tty.gpu()
 local interactive = io.output().tty
 --local color, isPal
 if interactive then
-  color, isPal = gpu.getForeground()
+  local color, isPal = gpu.getForeground()
 end
 
 local function save_color()

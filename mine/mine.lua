@@ -56,13 +56,13 @@ function main()
   end
   print("Starting @ " .. tx .. ", " .. ty)
   os.sleep(2)
+  libwdb.connect()
   goTo(tx,ty)
   mine()
 end
 
 function mine()
   print("Starting mining")
-  libwdb.connect()
   while robot.durability() > DURABILITY_LOW do
     hole()
     if computer.energy() <= BATTERY_LOW then chargeAndEmpty() end

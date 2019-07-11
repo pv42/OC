@@ -13,7 +13,7 @@ local thread = require("thread")
 
 --consts public
 local libip = {}
-libip.MAC_BROADCAST = "ffffffff-ffff-ffff-ffff-ffffffff" -- mac broadcast address
+libip.MAC_BROADCAST = "ffffffff-ffff-ffff-ffff-ffffffffffff" -- mac broadcast address
 libip.IP_BROADCAST = 0xffffffff  -- 255.255.255.255
 --consts private
 local IP_VERSION = 4 -- legacy ip
@@ -212,9 +212,6 @@ local function ipreceivedeamon()
         --unknown "ethernet" frame type
         error("Invalid network frame type")
     end
-end
-local function senddeamon()
-    libtcp.sendStep()
 end
  
 function libip.run()
