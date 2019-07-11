@@ -56,9 +56,10 @@ function main()
   end
   print("Starting @ " .. tx .. ", " .. ty)
   os.sleep(2)
-  libwdb.connect()
+  if libwdb then libwdb.connect() end
   goTo(tx,ty)
   mine()
+  if libwdb then libwdb.disconnect() end
 end
 
 function mine()
@@ -70,7 +71,6 @@ function mine()
   end
   goToStart()
   empty()
-  libwdb.disconnect()
 end
 
 function goToNextHole()
