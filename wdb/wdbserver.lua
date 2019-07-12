@@ -11,6 +11,7 @@ local path = "/usr/misc/wdb.db"
 
 local function recivePackage(package)
 	--package = serialization.unserialize(package_s)
+	if package.x == nil or package.y == nil or package.z == nil then return end
 	if db[package.x] == nil then db[package.x] = {} end
 	if db[package.x][package.y] == nil then db[package.x][package.y] = {} end
 	db[package.x][package.y][package.z] = package.block 

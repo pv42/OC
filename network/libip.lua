@@ -29,7 +29,7 @@ libip.IP_PORT = 2048 -- the oc port used to send/recive ip packages NOT the t-/u
 libip.ARP_PORT = 2054 -- arp oc port
 local ARP_OP_REQ = 1 -- arp request operation code
 local ARP_OP_ANSW = 2 -- arp answer operation code
-local ARP_REQ_TIMEOUT = 5 -- arp request timeout, after this time without an answer an ip is deamed unresolvable
+local ARP_REQ_TIMEOUT = 2 -- arp request timeout, after this time without an answer an ip is deamed unresolvable
 local ARP_TIMEOUT = 10000 -- ~ 130s -- cache timeout
 -- network config
 libip.config = {
@@ -129,8 +129,8 @@ local function resolveIP(iptr)
             log.w("could not resolve ip:" .. libip.IPtoString(iptr))
             return nil
         end
-        os.sleep(0.5)
-        wait_time = wait_time + 0.5
+        os.sleep(0.1)
+        wait_time = wait_time + 0.1
     end
     return arp_cache[iptr].mac
 end
@@ -210,7 +210,7 @@ local function ipreceivedeamon()
         end
     else
         --unknown "ethernet" frame type
-        error("Invalid network frame type")
+        log.w("Invalid network frame type:" .. port)
     end
 end
  

@@ -112,7 +112,7 @@ function hole()
     mv_fw()
     sendAir(depth)
     placeDown()
-    checkSurroundings()
+    checkSurroundings(depth)
   end
   print("Hole:returning")
   robot.turnAround()
