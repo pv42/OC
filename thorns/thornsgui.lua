@@ -17,8 +17,8 @@ function thronsgui.createButton(x_pos,y_pos,x_size,y_size,text)
     btn.size.x= x_size
     btn.size.y = y_size
     btn.color = {}
-    btn.color.text = colors.white
-    btn.color.bg = colors.gray
+    btn.color.text = out.gpu().getPaletteColor(colors.white)
+    btn.color.bg = out.gpu().getPaletteColor(colors.gray)
     btn.text = text 
     btn.onClick = function() end
     btn.draw = function () 
@@ -67,8 +67,8 @@ function createText(x,y,text)
     txt.size.x = string.len(text)
     txt.size.y = 1
     txt.color = {}
-    txt.color.bg = colors.white
-    txt.color.text = colors.black
+    txt.color.bg = out.gpu().getPaletteColor(colors.white)
+    txt.color.text = out.gpu().getPaletteColor(colors.black)
     txt.draw = function()
         out.setBackgroundColor(txt.color.bg)
         out.setTextColor(txt.color.text)
@@ -260,9 +260,9 @@ function createTextBox(x_pos,y_pos,x_size,y_size)
     tb.color = {}
     tb.hint = {}
     tb.hint.text = "<hint>"
-    tb.hint.color = colors.lightGray
+    tb.hint.color = out.gpu().getPaletteColor(colors.lightGray)
     tb.draw = function()
-        drawFilledBox(tb.pos.x,tb.pos.y,tb.pos.x + tb.size.x - 1,tb.pos.y + tb.size.y - 1,colors.black)
+        drawFilledBox(tb.pos.x,tb.pos.y,tb.pos.x + tb.size.x - 1,tb.pos.y + tb.size.y - 1,out.gpu().getPaletteColor(colors.black))
         out.setCursor(tb.pos.x,tb.pos.y)
         out.setForeground(tb.hint.color)
         --out.set
@@ -297,10 +297,10 @@ end
 local function drawImage(file)
   local f,msg = io.open(file)
   if not f then error(msg) end
-  local cont = r:read("a*")
+  local cont = f:read("a*")
   for i=1,#cont do 
     local ch = string.sub(cont, i,i)
-    out.gpu().setBackground(out.gpu().getPaletteColor(0)) -- white per default
+    out.gpu().setBackground(out.gpu().getPaletteColor(colors.white)) -- white per default
     if string.byte(ch) >= 48 and string.byte(ch) <= 57 then
       out.gpu().setBackground( out.gpu().getPaletteColor(string.byte(ch) - 48)) -- 0 .. 9
     end
@@ -318,11 +318,11 @@ end
 --shows logo
 function showLogo(t)
     return -- todo
-    out.gpu().setBackground(colors.white)
+    out.gpu().setBackground(out.gpu().getPaletteColor(colors.white))
     out.clear()
-    drawImage("/usr/lib/thronslogo")
+    drawImage("/usr/lib/thornslogo")
     os.sleep(t)
-    out.setBackground(colors.black)
+    out.setBackground(out.gpu().getPaletteColor(colors.black))
     out.clear()
 end
 showLogo(0.4)
