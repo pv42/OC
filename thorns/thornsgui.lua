@@ -295,10 +295,24 @@ function thronsgui.handleNextEvent()
 end
 
 local function drawImage(file)
-  f,msg = io.open(file)
+  local f,msg = io.open(file)
   if not f then error(msg) end
-  cont = r:read("a*")
-  for
+  local cont = r:read("a*")
+  for i=1,#cont do 
+    local ch = string.sub(cont, i,i)
+    out.gpu().setBackground(out.gpu().getPaletteColor(0)) -- white per default
+    if string.byte(ch) >= 48 and string.byte(ch) <= 57 then
+      out.gpu().setBackground( out.gpu().getPaletteColor(string.byte(ch) - 48)) -- 0 .. 9
+    end
+    if string.byte(ch) >= 97 and string.byte(ch) <= 102 then
+      out.gpu().setBackground( out.gpu().getPaletteColor(string.byte(ch) - 87)) -- a .. f
+    end
+    if ch ~= "\n" then 
+      io.write(" ") 
+    else
+      io.write("\n")
+    end 
+  end
 end
 
 --shows logo
