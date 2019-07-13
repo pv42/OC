@@ -1,62 +1,55 @@
 local term = require("term")
 local colors = require("colors")
-local thronsgui = {}
+local thornsgui = {}
 local out = term
 
 local function drawFilledBox(x,y,x_size,ysize,color)
   out.gpu().setBackground(color)
   out.gpu().fill(x,y,x_size,ysize," ")
 end 
-function thronsgui.createButton(x_pos,y_pos,x_size,y_size,text)
-    local btn = {}
-    btn.type = "button"
-    btn.pos = {}
-    btn.pos.x = x_pos
-    btn.pos.y = y_pos
-    btn.size = {}
-    btn.size.x= x_size
-    btn.size.y = y_size
-    btn.color = {}
-    btn.color.text = out.gpu().getPaletteColor(colors.white)
-    btn.color.bg = out.gpu().getPaletteColor(colors.gray)
-    btn.text = text 
-    btn.onClick = function() end
-    btn.draw = function () 
-        --out.setCursorPos(1,1) --nessescary ?
-        drawFilledBox(
-            btn.pos.x,
-            btn.pos.y,
-            btn.pos.x + btn.size.x-1,
-            btn.pos.y + btn.size.y-1,
-            btn.color.bg
-        )
-        out.gpu().setForeground(btn.color.text)
-        local len = #(btn.text)
-        out.setCursor(btn.pos.x, btn.pos.y)
-        out.write(btn.text)
+function thornsgui.createButton(x_pos,y_pos,x_size,y_size,text)
+  local btn = {}
+  btn.type = "button"
+  btn.pos = {}
+  btn.pos.x = x_pos
+  btn.pos.y = y_pos
+  btn.size = {}
+  btn.size.x= x_size
+  btn.size.y = y_size
+  btn.color = {}
+  btn.color.text = out.gpu().getPaletteColor(colors.white)
+  btn.color.bg = out.gpu().getPaletteColor(colors.gray)
+  btn.text = text 
+  btn.onClick = function() end
+  btn.draw = function() 
+    --out.setCursorPos(1,1) --nessescary ?
+    drawFilledBox(
+      btn.pos.x,
+      btn.pos.y,
+      btn.size.x,
+      btn.size.y,
+      btn.color.bg
+    )
+    out.gpu().setForeground(btn.color.text)
+    local len = #(btn.text)
+    out.setCursor(btn.pos.x, btn.pos.y)
+    out.write(btn.text)
+  end
+  btn.handleClick = function (x,y)
+    if x >= btn.pos.x and y>= btn.pos.y and x < btn.pos.x + btn.size.x and y < btn.pos.y + btn.size.y then
+      if(btn.onClick ~= nil) then btn.onClick() end 
+      return true
+    else 
+      return false
     end
-    btn.setColors = function(textc,backc)
-        btn.color.bg = backc
-        btn.color.text = textc
-    end
-    btn.handleClick = function (x,y)
-        if(x >= btn.pos.x and y>= btn.pos.y and x < btn.pos.x + btn.size.x and y < btn.pos.y + btn.size.y) then
-            if(btn.onClick ~= nil) then btn.onClick() end 
-            return true
-        else 
-            return false
-        end
-    end
-    btn.registerEventListener = function()
-        table.insert(out.clickSensitive,btn)
-    end
-    btn.setOnClick = function(f)
-        btn.onClick = f
-    end
-    return btn
+  end
+  btn.registerEventListener = function()
+    table.insert(out.clickSensitive,btn)
+  end
+  return btn
 end
 
-function createText(x,y,text)
+function thornsgui.createText(x,y,text)
     txt = {}
     txt.type = "text"
     txt.pos = {}
@@ -75,18 +68,10 @@ function createText(x,y,text)
         out.setCursorPos(txt.pos.x, txt.pos.y)
         out.write(text)
     end
-    txt.setPos = function(x_,y_)
-        txt.pos.x = x_
-        txt.pos.y = y_
-    end
-    txt.setColors = function(textc,backc)
-        txt.color.bg = backc
-        txt.color.text = textc
-    end
     return txt
 end
 
-function createTable(dim_x,dim_y,x_pos,y_pos)
+function thornsgui.createTable(dim_x,dim_y,x_pos,y_pos)
     local tbl = {}
     tbl.type = "table"
     tbl.dim = {dim_x,dim_y}
@@ -136,10 +121,6 @@ function createTable(dim_x,dim_y,x_pos,y_pos)
        
         tbl.elements[x][y] = element
     end
-    tbl.setPos = function(x_,y_)
-        tbl.pos.x = x_
-        tbl.pos.y = y_
-    end
     tbl.setColors = function(txtc,backc,type) -- optional:type(string) only color a type of subelements
         for i = 1,tbl.dim[1] do
             for j = 1,tbl.dim[2] do
@@ -154,7 +135,9 @@ function createTable(dim_x,dim_y,x_pos,y_pos)
     end
     return tbl
 end
-function createDropdownSelector(x,y)
+
+
+function thornsgui.createDropdownSelector(x,y)
     dds = {}
     dds.type="dropdownselector"
     dds.pos  = {}
@@ -317,14 +300,13 @@ end
 
 --shows logo
 function showLogo(t)
-    return -- todo
     out.gpu().setBackground(out.gpu().getPaletteColor(colors.white))
     out.clear()
     drawImage("/usr/lib/thornslogo")
     os.sleep(t)
-    out.setBackground(out.gpu().getPaletteColor(colors.black))
+    out.gpu().setBackground(out.gpu().getPaletteColor(colors.black))
     out.clear()
 end
 showLogo(0.4)
 
-return thronsgui
+return thornsgui
