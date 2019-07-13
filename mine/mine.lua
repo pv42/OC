@@ -21,10 +21,50 @@ local math = require("math")
 local inv = component.inventory_controller
 local geo = component.geolyzer
 local msg, libwdb = pcall(require,"libwdb")
+local msg, libgps 
+
+local gx,gy,gz
+local grot
 
 if not libwdb then 
   print("libwdb could not be loaded, disabling: " .. msg)
+else
+  msg, libgps = pcall(require,"libwdb")
+  if not libgps then
+    print("libgps could not be loaded, disabling: " .. msg)
+    libwdb = nil
+  else
+    gx,gy,gz = gps.locate()
+    gy = gy + 1
+    if not gx then
+      print("can't determine position") 
+      libwdb = nil
+    else 
+      -- determine rotation
+      mv_fw() -- z++
+      dx,dy,dz = gps.locate()
+      if dz > gz then grot = 0 -- z+ -> gz +
+      elseif dx > gx then grot = 1 -- z+ -> gx +
+      elseif dz < gz then grot = 2 -- z+ -> gz-
+      elseif dz < gz then grot = 3 end -- z+ -> gx -
+    end
+  end
 end
+
+local function getGX(x,z) 
+  if grot == 0 then return gx + x
+  elseif grot == 1 then return gx + z 
+  elseif grot == 2 then return gx - x 
+  elseif grot == 3 then return gx - z end
+end
+
+local function getGZ(x,z) 
+  if grot == 0 then return gz + z
+  elseif grot == 1 then return gz - x 
+  elseif grot == 2 then return gz - z
+  elseif grot == 3 then return gz + x end
+end
+
 
 local angel = false
 local args = shell.parse(...)
@@ -32,7 +72,7 @@ local args = shell.parse(...)
 function sendAir(z)
  if not libwdb then return end
  if not z then z = 0 end
- libwdb.sendBlock(x,y,z,"minecraft:air") 
+ libwdb.sendBlock(getGX(x,z),y,getGZ(x,z),"minecraft:air") 
 end
 
 function hasAngel( ... )
@@ -131,31 +171,31 @@ function checkSurroundings(depth)
   local r = geo.analyze(sides.right).name
   if shouldMine(u) then
     robot.swingUp() 
-    if libwdb then libwdb.sendBlock(x, y+1, depth, "air") end
+    if libwdb then libwdb.sendBlock(getGX(x,depth), y+1, getGZ(x,depth), "air") end
   else
-    if libwdb then libwdb.sendBlock(x, y+1, depth, u) end
+    if libwdb then libwdb.sendBlock(getGX(x,depth), y+1, getGZ(x,depth), u) end
   end
   if shouldMine(d) then
     robot.swingDown() 
-    if libwdb then libwdb.sendBlock(x, y-1, depth, "air") end
+    if libwdb then libwdb.sendBlock(getGX(x,depth), y-1, getGZ(x,depth), "air") end
   else
-    if libwdb then libwdb.sendBlock(x, y-1, depth, d) end
+    if libwdb then libwdb.sendBlock(getGX(x,depth), y-1, getGZ(x,depth), d) end
   end
   if shouldMine(l) then 
     robot.turnLeft()
     robot.swing()
     robot.turnRight()
-    if libwdb then libwdb.sendBlock(x+1, y, depth, "air") end
+    if libwdb then libwdb.sendBlock(getGX(x+1,depth), y, getGZ(x+1,depth), "air") end
   else
-    if libwdb then libwdb.sendBlock(x+1, y, depth, l) end
+    if libwdb then libwdb.sendBlock(getGX(x+1,depth), y, getGZ(x+1,depth), l) end
   end
   if shouldMine(r) then
     robot.turnRight()
     robot.swing()
     robot.turnLeft()
-    if libwdb then libwdb.sendBlock(x-1, y, depth, "air") end
+    if libwdb then libwdb.sendBlock(getGX(x-1,depth), y, getGZ(x-1,depth), "air") end
   else
-    if libwdb then libwdb.sendBlock(x-1, y, depth, r) end
+    if libwdb then libwdb.sendBlock(getGX(x-1,depth), y, getGZ(x-1,depth), r) end
   end
 end
 
