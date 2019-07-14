@@ -21,7 +21,11 @@ function stats(base_path)
 end
 
 function drawFileSymbol(x,y,ext)
-  term.gpu().setBackground(0x333333)
+  if ext == "lua" or ext == "LUA" then 
+    term.gpu().setBackground(0x3333ff)
+  else
+    term.gpu().setBackground(0x333333)
+  end 
   term.gpu().setForeground(0xffffff)
   term.setCursor(x,y)
   io.write("   " .. unicode.char(0x2819) .. unicode.char(0x28bf))
@@ -41,17 +45,16 @@ function draw()
   term.gpu().setBackground(0xffffff)
   term.gpu().setForeground(0)
   term.clear()
-  print(#stats(pwd))
+  local x = 3
+  local y = 1
   for _,f in pairs(stats(pwd)) do
-    local x = 3
-    local y = 1
     drawFileSymbol(x, y, f.ext)
     term.setCursor(x + 6, y)
     io.write(f.name)
     term.setCursor(x + 6, y+1)
     io.write(f.size)
     term.setCursor(x + 6, y+2)
-    local text = "FILE"
+    local text = ext.."-file"
     if f.isDir then text = "DIR" end
     io.write(text)
     x = x + 20
@@ -63,3 +66,4 @@ function draw()
 end
 
 draw()
+print("") --\n

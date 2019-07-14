@@ -26,31 +26,6 @@ local msg, libgps
 local gx,gy,gz
 local grot
 
-if not libwdb then 
-  print("libwdb could not be loaded, disabling: " .. msg)
-else
-  msg, libgps = pcall(require,"libwdb")
-  if not libgps then
-    print("libgps could not be loaded, disabling: " .. msg)
-    libwdb = nil
-  else
-    gx,gy,gz = gps.locate()
-    gy = gy + 1
-    if not gx then
-      print("can't determine position") 
-      libwdb = nil
-    else 
-      -- determine rotation
-      mv_fw() -- z++
-      dx,dy,dz = gps.locate()
-      if dz > gz then grot = 0 -- z+ -> gz +
-      elseif dx > gx then grot = 1 -- z+ -> gx +
-      elseif dz < gz then grot = 2 -- z+ -> gz-
-      elseif dz < gz then grot = 3 end -- z+ -> gx -
-    end
-  end
-end
-
 local function getGX(x,z) 
   if grot == 0 then return gx + x
   elseif grot == 1 then return gx + z 
@@ -293,6 +268,31 @@ function placeDown()
     end  
   end
   robot.placeDown()
+end
+
+if not libwdb then 
+  print("libwdb could not be loaded, disabling: " .. msg)
+else
+  msg, libgps = pcall(require,"libwdb")
+  if not libgps then
+    print("libgps could not be loaded, disabling: " .. msg)
+    libwdb = nil
+  else
+    gx,gy,gz = libgps.locate()
+    gy = gy + 1
+    if not gx then
+      print("can't determine position") 
+      libwdb = nil
+    else 
+      -- determine rotation
+      mv_fw() -- z++
+      dx,dy,dz = libgps.locate()
+      if dz > gz then grot = 0 -- z+ -> gz +
+      elseif dx > gx then grot = 1 -- z+ -> gx +
+      elseif dz < gz then grot = 2 -- z+ -> gz-
+      elseif dz < gz then grot = 3 end -- z+ -> gx -
+    end
+  end
 end
 
 main()
