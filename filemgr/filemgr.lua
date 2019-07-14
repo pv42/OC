@@ -21,8 +21,8 @@ end
 
 function drawFileSymbol(x,y,ext)
   
-  term.setBackground(0x0)
-  term.setForeground(0xffffff)
+  term.gpu().setBackground(0x0)
+  term.gpu().setForeground(0xffffff)
   term.setCursor(x,y)
   io.write("   " .. unicode.char(0x2819) .. unicode.char(0x28bf))
   term.setCursor(x,y+1)
@@ -31,13 +31,13 @@ function drawFileSymbol(x,y,ext)
   io.write(" " .. ext .. " ")
   term.setCursor(x,y+3)
   io.write("     ")
-  term.setBackground(0xffffff)
-  term.setForeground(0)
+  term.gpu().setBackground(0xffffff)
+  term.gpu().setForeground(0)
 end
 
 function draw()
-  term.setBackground(0xffffff)
-  term.setForeground(0)
+  term.gpu().setBackground(0xffffff)
+  term.gpu().setForeground(0)
   term.clear()
   for _,f in pairs(stats(pwd)) do
     local x = 1
