@@ -14,7 +14,7 @@ function stats(base_path)
     info.name = f:gsub("/+$","")
     info.isDir = fs.isDirectory(full_path)
     info.size = fs.size(full_path)
-    info.ext = info.name:match("(%).[^.]+)$") or ""
+    info.ext = (info.name:match("(%.[^.]+)$") or ""):sub(2) -- regex for .xyz and then remove .
     table.insert(content, info)
   end
   return content
@@ -41,10 +41,10 @@ function draw()
   term.gpu().setBackground(0xffffff)
   term.gpu().setForeground(0)
   term.clear()
+  print(#stats(pwd))
   for _,f in pairs(stats(pwd)) do
     local x = 3
-    local y = 3
-
+    local y = 1
     drawFileSymbol(x, y, f.ext)
     term.setCursor(x + 6, y)
     io.write(f.name)
@@ -54,7 +54,11 @@ function draw()
     local text = "FILE"
     if f.isDir then text = "DIR" end
     io.write(text)
-    x = x + 15
+    x = x + 20
+    if x > term.gpu().getResolution() - 20 and x > 3 then
+      x = 3
+      y = y + 5
+    end 
   end
 end
 
