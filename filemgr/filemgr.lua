@@ -1,7 +1,8 @@
 --filemgr.lua
-local thorns = require("thornsgui")
+--local thorns = require("thornsgui")
 local fs = require("filesystem") 
 local term = require("term")
+local unicode = require("unicode")
 
 local pwd = os.getenv().PWD
 
@@ -20,15 +21,16 @@ function stats(base_path)
 end
 
 function drawFileSymbol(x,y,ext)
-  
-  term.gpu().setBackground(0x0)
+  term.gpu().setBackground(0x333333)
   term.gpu().setForeground(0xffffff)
   term.setCursor(x,y)
   io.write("   " .. unicode.char(0x2819) .. unicode.char(0x28bf))
   term.setCursor(x,y+1)
   io.write("     ")
   term.setCursor(x,y+2)
-  io.write(" " .. ext .. " ")
+  io.write("     ")
+  term.setCursor(x+1,y+2)
+  io.write(ext)
   term.setCursor(x,y+3)
   io.write("     ")
   term.gpu().setBackground(0xffffff)
@@ -40,13 +42,19 @@ function draw()
   term.gpu().setForeground(0)
   term.clear()
   for _,f in pairs(stats(pwd)) do
-    local x = 1
-    local y = 1
+    local x = 3
+    local y = 3
 
     drawFileSymbol(x, y, f.ext)
-    term.setCursor(x, y + 5)
+    term.setCursor(x + 6, y)
     io.write(f.name)
-    x =x+7
+    term.setCursor(x + 6, y+1)
+    io.write(f.size)
+    term.setCursor(x + 6, y+2)
+    local text = "FILE"
+    if f.isDir then text = "DIR" end
+    io.write(text)
+    x = x + 15
   end
 end
 
