@@ -260,11 +260,11 @@ function createTextBox(x_pos,y_pos,x_size,y_size)
 end
 
 -- clears current out-pipes clickSensitive-mem
-function thronsgui.clearClickListeners()
+function thornsgui.clearClickListeners()
     out.clickSensitive = {}
 end
 -- waits for and handels next click event
-function thronsgui.handleNextEvent()
+function thornsgui.handleNextEvent()
     local ev, comp, x, y,  btn = os.pullEvent("touch")
     -- if in sub window calc offset:
     if out.getPosition ~= nil then 
