@@ -232,7 +232,7 @@ function thornsgui.createDropdownSelector(x,y)
     return dds
 end
 
-function createTextBox(x_pos,y_pos,x_size,y_size)
+function thornsgui.createTextBox(x_pos,y_pos,x_size,y_size)
     tb = {}
     tb.pos = {}
     tb.pos.x = x_pos
@@ -248,7 +248,7 @@ function createTextBox(x_pos,y_pos,x_size,y_size)
         drawFilledBox(tb.pos.x,tb.pos.y,tb.pos.x + tb.size.x - 1,tb.pos.y + tb.size.y - 1,out.gpu().getPaletteColor(colors.black))
         out.setCursor(tb.pos.x,tb.pos.y)
         out.setForeground(tb.hint.color)
-        --out.set
+        io.write()
         out.setCursorBlink(true)
     end
     tb.setHintText = function(txt)

@@ -1,5 +1,5 @@
 --filemgr.lua
---local thorns = require("thornsgui")
+local thorns = require("thornsgui")
 local fs = require("filesystem") 
 local term = require("term")
 local unicode = require("unicode")
@@ -45,6 +45,8 @@ function draw()
   term.gpu().setBackground(0xffffff)
   term.gpu().setForeground(0)
   term.clear()
+  local tb = thornsgui.createTextBox(1,1,40,1)
+  tb.draw()
   local x = 3
   local y = 1
   for _,f in pairs(stats(pwd)) do

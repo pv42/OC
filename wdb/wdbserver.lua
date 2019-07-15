@@ -48,6 +48,7 @@ local function load()
 		local m
 		db, m = serialization.unserialize(cont)
 		if not db then 
+			m = m or "unkonw reason"
 			log.e("could not read db file: " .. m)
 			return
 		else

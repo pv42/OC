@@ -30,7 +30,9 @@ local function getGX(x,z)
   if grot == 0 then return gx + x
   elseif grot == 1 then return gx + z 
   elseif grot == 2 then return gx - x 
-  elseif grot == 3 then return gx - z end
+  elseif grot == 3 then return gx - z 
+  else error("grot is invalid") 
+  end
 end
 
 local function getGZ(x,z) 
@@ -273,24 +275,29 @@ end
 if not libwdb then 
   print("libwdb could not be loaded, disabling: " .. msg)
 else
-  msg, libgps = pcall(require,"libwdb")
+  msg, libgps = pcall(require,"libgps")
   if not libgps then
     print("libgps could not be loaded, disabling: " .. msg)
     libwdb = nil
   else
     gx,gy,gz = libgps.locate()
-    gy = gy + 1
     if not gx then
       print("can't determine position") 
       libwdb = nil
     else 
+      gy = gy + 1 -- bc mine starts at y = -1
       -- determine rotation
       mv_fw() -- z++
+      robot.turnLeft()
+      robot.turnLeft()
       dx,dy,dz = libgps.locate()
       if dz > gz then grot = 0 -- z+ -> gz +
       elseif dx > gx then grot = 1 -- z+ -> gx +
       elseif dz < gz then grot = 2 -- z+ -> gz-
       elseif dz < gz then grot = 3 end -- z+ -> gx -
+      mv_fw()
+      robot.turnLeft()
+      robot.turnLeft()
     end
   end
 end
