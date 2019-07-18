@@ -111,6 +111,7 @@ function thornsgui.VerticalView:create()
   vv.size.x = 0
   vv.size.y = 0
   vv.elements = {} -- dont modify manually
+  return vv
 end
 function thornsgui.VerticalView:addElement(ele)
   table.insert(self.elements, ele)
@@ -135,12 +136,13 @@ thornsgui.HorizontalView = {}
 thornsgui.HorizontalView.__index = thornsgui.HorizontalView
 
 function thornsgui.HorizontalView:create()
-  local vv = {}
-  setmetatable(vv, thornsgui.VerticalView)
-  vv.size = {}
-  vv.size.x = 0
-  vv.size.y = 0
-  vv.elements = {} -- dont modify manually
+  local hv = {}
+  setmetatable(hv, thornsgui.HorizontalView)
+  hv.size = {}
+  hv.size.x = 0
+  hv.size.y = 0
+  hv.elements = {} -- dont modify manually
+  return hv
 end
 function thornsgui.HorizontalView:addElement(ele)
   table.insert(self.elements, ele)
@@ -171,7 +173,7 @@ function thornsgui.Custom:create(xsize,ysize,drawfunc)
   cust.size = {}
   cust.size.x = xsize
   cust.size.y = ysize
-  cost.pos = {}
+  cust.pos = {}
   cust.pos.x = 1
   cust.pos.y = 1
   cust.drawfunc = drawfunc
