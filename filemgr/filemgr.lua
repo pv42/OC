@@ -45,26 +45,23 @@ function draw()
   term.gpu().setBackground(0xffffff)
   term.gpu().setForeground(0)
   term.clear()
-  local tb = thornsgui.createTextBox(1,1,40,1)
-  tb.draw()
-  local x = 3
-  local y = 1
+  local hv0 = thorns.HorizontalView:create()
   for _,f in pairs(stats(pwd)) do
-    drawFileSymbol(x, y, f.ext)
-    term.setCursor(x + 6, y)
-    io.write(f.name)
-    term.setCursor(x + 6, y+1)
-    io.write(f.size)
-    term.setCursor(x + 6, y+2)
-    local text = ext.."-file"
-    if f.isDir then text = "DIR" end
-    io.write(text)
-    x = x + 20
-    if x > term.gpu().getResolution() - 20 and x > 3 then
-      x = 3
-      y = y + 5
-    end 
+    local df = function(out)
+      drawFileSymbol(out, 1, 1, f.ext)
+      out.setCursor(4, 1)
+      out.write(f.name)
+      out.setCursor(4, 2)
+      out.write(f.size)
+      out.setCursor(4, 3)
+      local text = ext .. "-file"
+      if f.isDir then text = "DIR" end
+      out.write(text)
+    end
+    local custom = thorns.Custom:create(5,5,df)
+    hv0:addElement(custom)
   end
+  hv0:draw()
 end
 
 draw()

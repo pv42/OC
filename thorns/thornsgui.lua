@@ -14,7 +14,7 @@ local function createTermOffset(ox,oy)
     local g = {}
     g.setForeground = out.gpu().setForeground
     g.setBackground = out.gpu().setBackground
-    g.fill = function(x,y,xs,yz,c)
+    g.fill = function(x,y,xs,ys,c)
       out.gpu().fill(x+ox,y+oy,xs,ys,c)
     end
     g.getPaletteColor = out.gpu().getPaletteColor
@@ -51,7 +51,7 @@ function thornsgui.Button:create(x_pos,y_pos,x_size,y_size,text)
   return btn
 end
 
-function thornsgui.Button:draw(self)
+function thornsgui.Button:draw()
     --out.setCursorPos(1,1) --nessescary ?
     drawFilledBox(
       self.pos.x,
@@ -61,13 +61,12 @@ function thornsgui.Button:draw(self)
       self.color.bg
     )
     out.gpu().setForeground(self.color.text)
-    local len = #(self.text)
     out.setCursor(self.pos.x, self.pos.y)
     out.write(self.text)
 end
 
-function thornsgui.Button:handleClick(self,x,y)
-  if x >= self.pos.x and y >= self.pos.y and x < self.pos.x + self.size.x and y < self.pos.y + btn.size.y then
+function thornsgui.Button:handleClick(x,y)
+  if x >= self.pos.x and y >= self.pos.y and x < self.pos.x + self.size.x and y < self.pos.y + self.size.y then
     if(self.onClick ~= nil) then self.onClick() end 
     return true
   else 
@@ -95,32 +94,32 @@ function thornsgui.Text:create(x,y,text)
     return txt
 end
 
-function thornsgui.Text:draw(self)
+function thornsgui.Text:draw()
   out.setBackgroundColor(self.color.bg)
   out.setTextColor(self.color.text)
-  out.setCursorPos(self.pos.x, txt.pos.y)
-  out.write(text)
+  out.setCursorPos(self.pos.x, self.pos.y)
+  out.write(self.text)
 end
 
 -- elements in a Vertical view have their x and y position managed by the view
 thornsgui.VerticalView = {}
 thornsgui.VerticalView.__index = thornsgui.VerticalView
 function thornsgui.VerticalView:create()
-  vv = {}
+  local vv = {}
   setMetatable(vv, thornsgui.VerticalView)
   vv.size = {}
   vv.size.x = 0
   vv.size.y = 0
   vv.elements = {} -- dont modify manually
 end
-function thornsgui.VerticalView:addElement(self, ele)
+function thornsgui.VerticalView:addElement(ele)
   table.insert(self.elements, ele)
   if ele.size.x > self.size.x then self.size.x = ele.size.x end
   self.size.y = self.size.y + ele.size.y
 end
 
 
-function thornsgui.VerticalView:draw(self)
+function thornsgui.VerticalView:draw()
   local cx = self.pos.x
   local cy = self.pos.y
   for _,ele in pairs(self.elements) do
@@ -143,13 +142,13 @@ function thornsgui.HorizontalView:create()
   vv.size.y = 0
   vv.elements = {} -- dont modify manually
 end
-function thornsgui.HorizontalView:addElement(self, ele)
+function thornsgui.HorizontalView:addElement(ele)
   table.insert(self.elements, ele)
   if ele.size.y > self.size.y then self.size.y = ele.size.y end
   self.size.x = self.size.x + ele.size.x
 end
 
-function thornsgui.Horizontal:draw(self)
+function thornsgui.Horizontal:draw()
   local cx = self.pos.x
   local cy = self.pos.y
   for _,ele in pairs(self.elements) do
@@ -175,7 +174,7 @@ function thornsgui.Custom:create(xsize,ysize,drawfunc)
   return cust
 end
 
-function thornsgui.Custom:draw(self)
+function thornsgui.Custom:draw()
   self.drawfunct(createTermOffset(self.pos.x, self.pos.y))
 end
 
