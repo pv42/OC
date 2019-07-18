@@ -20,25 +20,25 @@ function stats(base_path)
   return content
 end
 
-function drawFileSymbol(x,y,ext)
+function drawFileSymbol(out,x,y,ext)
   if ext == "lua" or ext == "LUA" then 
-    term.gpu().setBackground(0x3333ff)
+    out.gpu().setBackground(0x3333ff)
   else
-    term.gpu().setBackground(0x333333)
+    out.gpu().setBackground(0x333333)
   end 
-  term.gpu().setForeground(0xffffff)
-  term.setCursor(x,y)
-  io.write("   " .. unicode.char(0x2819) .. unicode.char(0x28bf))
-  term.setCursor(x,y+1)
-  io.write("     ")
-  term.setCursor(x,y+2)
-  io.write("     ")
-  term.setCursor(x+1,y+2)
-  io.write(ext)
-  term.setCursor(x,y+3)
-  io.write("     ")
-  term.gpu().setBackground(0xffffff)
-  term.gpu().setForeground(0)
+  out.gpu().setForeground(0xffffff)
+  out.setCursor(x,y)
+  out.write("   " .. unicode.char(0x2819) .. unicode.char(0x28bf))
+  out.setCursor(x,y+1)
+  out.write("     ")
+  out.setCursor(x,y+2)
+  out.write("     ")
+  out.setCursor(x+1,y+2)
+  out.write(ext)
+  out.setCursor(x,y+3)
+  out.write("     ")
+  out.gpu().setBackground(0xffffff)
+  out.gpu().setForeground(0)
 end
 
 function draw()

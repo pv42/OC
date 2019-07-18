@@ -21,8 +21,8 @@ local function createTermOffset(ox,oy)
     return g
   end
   t.write = out.write
-  t.setCursorPos = function(x, y)
-    out.setCursorPos(x + ox, y + oy)
+  t.setCursor = function(x, y)
+    out.setCursor(x + ox, y + oy)
   end
   return t
 end
@@ -52,7 +52,7 @@ function thornsgui.Button:create(x_pos,y_pos,x_size,y_size,text)
 end
 
 function thornsgui.Button:draw()
-    --out.setCursorPos(1,1) --nessescary ?
+    --out.setCursor(1,1) --nessescary ?
     drawFilledBox(
       self.pos.x,
       self.pos.y,
@@ -97,7 +97,7 @@ end
 function thornsgui.Text:draw()
   out.setBackgroundColor(self.color.bg)
   out.setTextColor(self.color.text)
-  out.setCursorPos(self.pos.x, self.pos.y)
+  out.setCursor(self.pos.x, self.pos.y)
   out.write(self.text)
 end
 
@@ -187,7 +187,7 @@ function thornsgui.Custom:create(xsize,ysize,drawfunc)
 end
 
 function thornsgui.Custom:draw()
-  self.drawfunct(createTermOffset(self.pos.x, self.pos.y))
+  self.drawfunc(createTermOffset(self.pos.x, self.pos.y))
 end
 
 --[[
