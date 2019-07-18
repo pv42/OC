@@ -32,7 +32,7 @@ thornsgui.Button.__index = thornsgui.Button
 
 function thornsgui.Button:create(x_pos,y_pos,x_size,y_size,text)
   local btn = {}
-  setMetatable(btn, thornsgui.Button)
+  setmetatable(btn, thornsgui.Button)
   btn.type = "button"
   btn.pos = {}
   btn.pos.x = x_pos
@@ -79,7 +79,7 @@ thornsgui.Text.__index = thornsgui.Text
 
 function thornsgui.Text:create(x,y,text)
     local txt = {}
-    setMetatable(txt, thornsgui.Text)
+    setmetatable(txt, thornsgui.Text)
     txt.type = "text"
     txt.pos = {}
     txt.pos.x = x
@@ -106,7 +106,7 @@ thornsgui.VerticalView = {}
 thornsgui.VerticalView.__index = thornsgui.VerticalView
 function thornsgui.VerticalView:create()
   local vv = {}
-  setMetatable(vv, thornsgui.VerticalView)
+  setmetatable(vv, thornsgui.VerticalView)
   vv.size = {}
   vv.size.x = 0
   vv.size.y = 0
@@ -135,8 +135,8 @@ thornsgui.HorizontalView = {}
 thornsgui.HorizontalView.__index = thornsgui.HorizontalView
 
 function thornsgui.HorizontalView:create()
-  vv = {}
-  setMetatable(vv, thornsgui.VerticalView)
+  local vv = {}
+  setmetatable(vv, thornsgui.VerticalView)
   vv.size = {}
   vv.size.x = 0
   vv.size.y = 0
@@ -148,7 +148,7 @@ function thornsgui.HorizontalView:addElement(ele)
   self.size.x = self.size.x + ele.size.x
 end
 
-function thornsgui.Horizontal:draw()
+function thornsgui.HorizontalView:draw()
   local cx = self.pos.x
   local cy = self.pos.y
   for _,ele in pairs(self.elements) do
