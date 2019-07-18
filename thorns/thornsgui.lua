@@ -102,9 +102,9 @@ function thornsgui.Text:draw(self)
   out.write(text)
 end
 
+-- elements in a Vertical view have their x and y position managed by the view
 thornsgui.VerticalView = {}
 thornsgui.VerticalView.__index = thornsgui.VerticalView
-
 function thornsgui.VerticalView:create()
   vv = {}
   setMetatable(vv, thornsgui.VerticalView)
@@ -113,13 +113,12 @@ function thornsgui.VerticalView:create()
   vv.size.y = 0
   vv.elements = {} -- dont modify manually
 end
-
--- elements in a Vertical view have their x and y position managed by the view
 function thornsgui.VerticalView:addElement(self, ele)
   table.insert(self.elements, ele)
   if ele.size.x > self.size.x then self.size.x = ele.size.x end
   self.size.y = self.size.y + ele.size.y
 end
+
 
 function thornsgui.VerticalView:draw(self)
   local cx = self.pos.x
@@ -132,6 +131,10 @@ function thornsgui.VerticalView:draw(self)
   end
 end
 
+-- elements in a Horizontal view have their x and y position managed by the view
+thornsgui.HorizontalView = {}
+thornsgui.HorizontalView.__index = thornsgui.HorizontalView
+
 function thornsgui.HorizontalView:create()
   vv = {}
   setMetatable(vv, thornsgui.VerticalView)
@@ -140,8 +143,6 @@ function thornsgui.HorizontalView:create()
   vv.size.y = 0
   vv.elements = {} -- dont modify manually
 end
-
--- elements in a Horizontal view have their x and y position managed by the view
 function thornsgui.HorizontalView:addElement(self, ele)
   table.insert(self.elements, ele)
   if ele.size.y > self.size.y then self.size.y = ele.size.y end
@@ -157,6 +158,25 @@ function thornsgui.Horizontal:draw(self)
     ele:draw()
     cx = cx + ele.size.x
   end
+end
+
+
+
+thornsgui.Custom = {}
+thornsgui.Custom.__index = thornsgui.Custom
+
+function thornsgui.Custom:create(xsize,ysize,drawfunc)
+  local cust = {}
+  cust.size.x = xsize
+  cust.size.y = ysize
+  cust.pos.x = 1
+  cust.pos.y = 1
+  cust.drawfunc = drawfunc
+  return cust
+end
+
+function thornsgui.Custom:draw(self)
+  self.drawfunct(createTermOffset(self.pos.x, self.pos.y))
 end
 
 --[[
