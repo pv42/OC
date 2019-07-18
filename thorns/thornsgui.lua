@@ -110,6 +110,9 @@ function thornsgui.VerticalView:create()
   vv.size = {}
   vv.size.x = 0
   vv.size.y = 0
+  vv.pos = {}
+  vv.pos.x = 1
+  vv.pos.y = 1
   vv.elements = {} -- dont modify manually
   return vv
 end
@@ -141,6 +144,9 @@ function thornsgui.HorizontalView:create()
   hv.size = {}
   hv.size.x = 0
   hv.size.y = 0
+  hv.pos = {}
+  hv.pos.x = 1
+  hv.pos.y = 1
   hv.elements = {} -- dont modify manually
   return hv
 end
