@@ -166,8 +166,12 @@ thornsgui.Custom.__index = thornsgui.Custom
 
 function thornsgui.Custom:create(xsize,ysize,drawfunc)
   local cust = {}
+  setmetatable(cust, thornsgui.Custom)
+  cust.type = "text"
+  cust.size = {}
   cust.size.x = xsize
   cust.size.y = ysize
+  cost.pos = {}
   cust.pos.x = 1
   cust.pos.y = 1
   cust.drawfunc = drawfunc
