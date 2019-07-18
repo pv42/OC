@@ -69,7 +69,6 @@ end
 
 --class connection
 
-local connections = {}
 
 libtcp.Connection = {}
 libtcp.Connection.__index = libtcp.Connection

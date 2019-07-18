@@ -7,8 +7,32 @@ local function drawFilledBox(x,y,x_size,ysize,color)
   out.gpu().setBackground(color)
   out.gpu().fill(x,y,x_size,ysize," ")
 end 
-function thornsgui.createButton(x_pos,y_pos,x_size,y_size,text)
+
+local function createTermOffset(ox,oy)
+  local t = {}
+  t.gpu =  function()
+    local g = {}
+    g.setForeground = out.gpu().setForeground
+    g.setBackground = out.gpu().setBackground
+    g.fill = function(x,y,xs,yz,c)
+      out.gpu().fill(x+ox,y+oy,xs,ys,c)
+    end
+    g.getPaletteColor = out.gpu().getPaletteColor
+    return g
+  end
+  t.write = out.write
+  t.setCursorPos = function(x, y)
+    out.setCursorPos(x + ox, y + oy)
+  end
+  return t
+end
+
+thornsgui.Button = {}
+thornsgui.Button.__index = thornsgui.Button
+
+function thornsgui.Button:create(x_pos,y_pos,x_size,y_size,text)
   local btn = {}
+  setMetatable(btn, thornsgui.Button)
   btn.type = "button"
   btn.pos = {}
   btn.pos.x = x_pos
@@ -20,37 +44,43 @@ function thornsgui.createButton(x_pos,y_pos,x_size,y_size,text)
   btn.color.text = out.gpu().getPaletteColor(colors.white)
   btn.color.bg = out.gpu().getPaletteColor(colors.gray)
   btn.text = text 
-  btn.onClick = function() end
-  btn.draw = function() 
-    --out.setCursorPos(1,1) --nessescary ?
-    drawFilledBox(
-      btn.pos.x,
-      btn.pos.y,
-      btn.size.x,
-      btn.size.y,
-      btn.color.bg
-    )
-    out.gpu().setForeground(btn.color.text)
-    local len = #(btn.text)
-    out.setCursor(btn.pos.x, btn.pos.y)
-    out.write(btn.text)
-  end
-  btn.handleClick = function (x,y)
-    if x >= btn.pos.x and y>= btn.pos.y and x < btn.pos.x + btn.size.x and y < btn.pos.y + btn.size.y then
-      if(btn.onClick ~= nil) then btn.onClick() end 
-      return true
-    else 
-      return false
-    end
-  end
+  btn.onClick = function() end -- should be overwriten 
   btn.registerEventListener = function()
     table.insert(out.clickSensitive,btn)
   end
   return btn
 end
 
-function thornsgui.createText(x,y,text)
-    txt = {}
+function thornsgui.Button:draw(self)
+    --out.setCursorPos(1,1) --nessescary ?
+    drawFilledBox(
+      self.pos.x,
+      self.pos.y,
+      self.size.x,
+      self.size.y,
+      self.color.bg
+    )
+    out.gpu().setForeground(self.color.text)
+    local len = #(self.text)
+    out.setCursor(self.pos.x, self.pos.y)
+    out.write(self.text)
+end
+
+function thornsgui.Button:handleClick(self,x,y)
+  if x >= self.pos.x and y >= self.pos.y and x < self.pos.x + self.size.x and y < self.pos.y + btn.size.y then
+    if(self.onClick ~= nil) then self.onClick() end 
+    return true
+  else 
+    return false
+  end
+end
+
+thornsgui.Text = {}
+thornsgui.Text.__index = thornsgui.Text
+
+function thornsgui.Text:create(x,y,text)
+    local txt = {}
+    setMetatable(txt, thornsgui.Text)
     txt.type = "text"
     txt.pos = {}
     txt.pos.x = x
@@ -62,19 +92,78 @@ function thornsgui.createText(x,y,text)
     txt.color = {}
     txt.color.bg = out.gpu().getPaletteColor(colors.white)
     txt.color.text = out.gpu().getPaletteColor(colors.black)
-    txt.draw = function()
-        out.setBackgroundColor(txt.color.bg)
-        out.setTextColor(txt.color.text)
-        out.setCursorPos(txt.pos.x, txt.pos.y)
-        out.write(text)
-    end
     return txt
 end
 
+function thornsgui.Text:draw(self)
+  out.setBackgroundColor(self.color.bg)
+  out.setTextColor(self.color.text)
+  out.setCursorPos(self.pos.x, txt.pos.y)
+  out.write(text)
+end
+
+thornsgui.VerticalView = {}
+thornsgui.VerticalView.__index = thornsgui.VerticalView
+
+function thornsgui.VerticalView:create()
+  vv = {}
+  setMetatable(vv, thornsgui.VerticalView)
+  vv.size = {}
+  vv.size.x = 0
+  vv.size.y = 0
+  vv.elements = {} -- dont modify manually
+end
+
+-- elements in a Vertical view have their x and y position managed by the view
+function thornsgui.VerticalView:addElement(self, ele)
+  table.insert(self.elements, ele)
+  if ele.size.x > self.size.x then self.size.x = ele.size.x end
+  self.size.y = self.size.y + ele.size.y
+end
+
+function thornsgui.VerticalView:draw(self)
+  local cx = self.pos.x
+  local cy = self.pos.y
+  for _,ele in pairs(self.elements) do
+    ele.pos.x = cx
+    ele.pos.y = cy
+    ele:draw()
+    cy = cy + ele.size.y
+  end
+end
+
+function thornsgui.HorizontalView:create()
+  vv = {}
+  setMetatable(vv, thornsgui.VerticalView)
+  vv.size = {}
+  vv.size.x = 0
+  vv.size.y = 0
+  vv.elements = {} -- dont modify manually
+end
+
+-- elements in a Horizontal view have their x and y position managed by the view
+function thornsgui.HorizontalView:addElement(self, ele)
+  table.insert(self.elements, ele)
+  if ele.size.y > self.size.y then self.size.y = ele.size.y end
+  self.size.x = self.size.x + ele.size.x
+end
+
+function thornsgui.Horizontal:draw(self)
+  local cx = self.pos.x
+  local cy = self.pos.y
+  for _,ele in pairs(self.elements) do
+    ele.pos.x = cx
+    ele.pos.y = cy
+    ele:draw()
+    cx = cx + ele.size.x
+  end
+end
+
+--[[
 function thornsgui.createTable(dim_x,dim_y,x_pos,y_pos)
     local tbl = {}
     tbl.type = "table"
-    tbl.dim = {dim_x,dim_y}
+    tbl.dim = {dim_x, dim_y}
     tbl.pos = {}
     tbl.pos.x = x_pos
     tbl.pos.y = y_pos
@@ -258,6 +347,7 @@ function thornsgui.createTextBox(x_pos,y_pos,x_size,y_size)
         tb.hint.color = color
     end
 end
+]]--
 
 -- clears current out-pipes clickSensitive-mem
 function thornsgui.clearClickListeners()
@@ -265,16 +355,16 @@ function thornsgui.clearClickListeners()
 end
 -- waits for and handels next click event
 function thornsgui.handleNextEvent()
-    local ev, comp, x, y,  btn = os.pullEvent("touch")
-    -- if in sub window calc offset:
-    if out.getPosition ~= nil then 
-        local ox,oy = out.getPosition()
-        x = x-ox+1
-        y = y-oy+1
-    end
-    for a,b in pairs(out.clickSensitive) do
-        if(b.handleClick(x,y)) then break end
-    end
+  local ev, comp, x, y,  btn = os.pullEvent("touch")
+  -- if in sub window calc offset:
+  if out.getPosition ~= nil then 
+    local ox,oy = out.getPosition()
+    x = x-ox+1
+    y = y-oy+1
+  end
+  for a,b in pairs(out.clickSensitive) do
+    if(b.handleClick(x,y)) then break end
+  end
 end
 
 local function drawImage(file)

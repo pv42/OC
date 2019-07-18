@@ -1,10 +1,22 @@
 -- ifconfig.lua 
 
 local com = require("component")
+local shell = require("shell")
 _, libip = pcall(require,"libip")
 _, libdns = pcall(require,"libdns")
 
+args, options = shell.parse(...)
 print("ip-configuration")
+
+if options.h then
+  print(
+[[Shows current network Status
+ifconfig [-d | -h]
+-d shows dns DNS-Cache
+-h shows this help]])
+  return
+end
+
 if not com.isAvailable("modem") then
 	print("No network hardware found")
 	return
@@ -56,7 +68,7 @@ if libudp ~= nil then
   end
 end
 
-if libdns ~= nil then
+if libdns ~= nil and options.d then
   print("")
   print("DNS-Cache")
   print("Domain                IP")
