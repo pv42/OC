@@ -44,7 +44,7 @@ end
 
 function draw()
   local vv0 = thorns.HorizontalView:create()
-  local exitBtn = thorns.Button:create(1,1,1,1,"X")
+  local exitBtn = thorns.Button:create(1,1,1,1," X")
   exitBtn.color.text = 0xffffff -- white
   exitBtn.color.bg = 0xff0000 -- red
   exitBtn.onClick = function()
@@ -78,11 +78,15 @@ function draw()
 end
 function main()
   term.gpu().setBackground(0xffffff)
-  term.gpu().setForeground(0)
+  term.gpu().setForeground(0x000000)
   term.clear()
   while not stop do 
     draw()
   end
+  term.gpu().setBackground(0x000000)
+  term.gpu().setForeground(0xffffff)
+  term.clear()
+  term.setCursor(1,1)
 end
 
 draw()

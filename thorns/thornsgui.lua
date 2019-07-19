@@ -152,7 +152,7 @@ function thornsgui.HorizontalView:create()
   hv.pos = {}
   hv.pos.x = 1
   hv.pos.y = 1
-  hv.elements = {} -- dont modify manually
+  hv.elements = {} -- don't modify manually
   return hv
 end
 function thornsgui.HorizontalView:addElement(ele)
