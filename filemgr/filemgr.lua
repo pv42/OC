@@ -5,6 +5,7 @@ local term = require("term")
 local unicode = require("unicode")
 
 local pwd = os.getenv().PWD
+local stop = false
 
 function stats(base_path)
   local content = {}
@@ -42,10 +43,15 @@ function drawFileSymbol(out,x,y,ext)
 end
 
 function draw()
-  term.gpu().setBackground(0xffffff)
-  term.gpu().setForeground(0)
-  term.clear()
-  local hv0 = thorns.HorizontalView:create()
+  local vv0 = thorns.HorizontalView:create()
+  local exitBtn = thorns.Button.create(1,1,1,1,"X")
+  exitBtn.color.text = 0xffffff -- white
+  exitBtn.color.bg = 0xff0000 -- red
+  exitBtn.onClick = function()
+    stop = true
+  end
+  vv0:addElement(exitBtn)
+  local hv = thorns.HorizontalView:create()
   for _,f in pairs(stats(pwd)) do
     local df = function(out)
       drawFileSymbol(out, 1, 1, f.ext)
@@ -55,14 +61,28 @@ function draw()
       out.write(f.size)
       out.setCursor(7, 3)
       local text = f.ext .. "-file"
+      if f.ext = "" then text = "file" end
       if f.isDir then text = "DIR" end
       out.write(text)
     end
     local custom = thorns.Custom:create(20, 5, df)
-    hv0:addElement(custom)
+    if hv.size.x + custom.size.x > term.gpu().getResolution() then
+      vv0:addElement(hv)
+      hv = thorns.HorizontalView:create()
+    end
+    hv:addElement(custom)
   end
-  hv0:draw()
+  vv0:addElement(hv)
+  vv0:draw()
   thorns.handleNextEvent()
+end
+function main()
+  term.gpu().setBackground(0xffffff)
+  term.gpu().setForeground(0)
+  term.clear()
+  while not stop do 
+    draw()
+  end
 end
 
 draw()

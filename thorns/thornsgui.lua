@@ -2,6 +2,8 @@ local term = require("term")
 local colors = require("colors")
 local thornsgui = {}
 local out = term
+local event = require("event")
+out.clickSensitive = {}
 
 local function drawFilledBox(x,y,x_size,ysize,color)
   out.gpu().setBackground(color)
@@ -24,6 +26,7 @@ local function createTermOffset(ox,oy)
   t.setCursor = function(x, y)
     out.setCursor(x + ox, y + oy)
   end
+  out.clickSensitive = {}
   return t
 end
 
@@ -386,7 +389,7 @@ function thornsgui.clearClickListeners()
 end
 -- waits for and handels next click event
 function thornsgui.handleNextEvent()
-  local ev, comp, x, y,  btn = os.pullEvent("touch")
+  local ev, comp, x, y,  btn = event.pull("touch")
   -- if in sub window calc offset:
   if out.getPosition ~= nil then 
     local ox,oy = out.getPosition()
