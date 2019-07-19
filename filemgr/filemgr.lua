@@ -46,7 +46,7 @@ function draw()
   local vv0 = thorns.VerticalView:create()
   local head = thorns.HorizontalView:create()
   
-  local titletext = "FileMgr - " .. pwd .. string.rep(" ", term.getResolution() - 12 - #pwd)
+  local titletext = thorns.Text:create(1,1,"FileMgr - " .. pwd .. string.rep(" ", term.gpu().getResolution() - 12 - #pwd))
   local exitBtn = thorns.Button:create(1,1,2,1," X")
   exitBtn.color.text = 0xffffff -- white
   exitBtn.color.bg = 0xff0000 -- red
