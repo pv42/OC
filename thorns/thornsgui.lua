@@ -48,9 +48,7 @@ function thornsgui.Button:create(x_pos,y_pos,x_size,y_size,text)
   btn.color.bg = out.gpu().getPaletteColor(colors.gray)
   btn.text = text 
   btn.onClick = function() end -- should be overwriten 
-  btn.registerEventListener = function()
-    table.insert(out.clickSensitive,btn)
-  end
+  table.insert(out.clickSensitive,btn)
   return btn
 end
 
@@ -125,7 +123,6 @@ function thornsgui.VerticalView:addElement(ele)
   if ele.size.x > self.size.x then self.size.x = ele.size.x end
   self.size.y = self.size.y + ele.size.y
 end
-
 
 function thornsgui.VerticalView:draw()
   local cx = self.pos.x

@@ -43,14 +43,24 @@ function drawFileSymbol(out,x,y,ext)
 end
 
 function draw()
-  local vv0 = thorns.HorizontalView:create()
-  local exitBtn = thorns.Button:create(1,1,1,1," X")
+  local vv0 = thorns.VerticalView:create()
+  local head = thorns.HorizontalView:create()
+  
+  local titletext = "FileMgr - " .. pwd .. string.rep(" ", term.getResolution() - 12 - #pwd)
+  local exitBtn = thorns.Button:create(1,1,2,1," X")
   exitBtn.color.text = 0xffffff -- white
   exitBtn.color.bg = 0xff0000 -- red
   exitBtn.onClick = function()
     stop = true
   end
-  vv0:addElement(exitBtn)
+  head:addElement(titletext)
+  head:addElement(exitBtn)
+  vv0:addElement(head)
+  local parentBtn = thorns.Button:create(1,1,3,1," ^")
+  parentBtn.onClick = function()
+    pwd = fs.realPath(pwd .."/..")
+  end
+  vv0:addElement(parentBtn)
   local hv = thorns.HorizontalView:create()
   for _,f in pairs(stats(pwd)) do
     local df = function(out)
@@ -89,5 +99,5 @@ function main()
   term.setCursor(1,1)
 end
 
-draw()
+main()
 print("") --\n
