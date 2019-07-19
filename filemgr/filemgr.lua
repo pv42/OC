@@ -95,6 +95,11 @@ function draw()
       gout.write(text)
     end
     local custom = thorns.Custom:create(20, 5, df)
+    if f.isDir then 
+        custom:makeClickable()
+        custom.onClick = function() 
+          pwd = pwd .. "/" .. f.name
+        end
     if hv.size.x + custom.size.x > term.gpu().getResolution() then
       vv0:addElement(hv)
       hv = thorns.HorizontalView:create()
@@ -119,4 +124,3 @@ function main()
 end
 
 main()
-print("") --\n

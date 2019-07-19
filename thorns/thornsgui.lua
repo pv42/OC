@@ -192,6 +192,19 @@ function thornsgui.Custom:draw()
   self.drawfunc(createTermOffset(self.pos.x, self.pos.y))
 end
 
+function thornsgui.Custom:handleClick(x,y)
+  if x >= self.pos.x and y >= self.pos.y and x < self.pos.x + self.size.x and y < self.pos.y + self.size.y then
+    if(self.onClick ~= nil) then self.onClick() end 
+    return true
+  else 
+    return false
+  end
+end
+
+function thornsgui.Custom:makeClickable()
+  table.insert(out.clickSensitive, self)
+end
+
 --[[
 function thornsgui.createTable(dim_x,dim_y,x_pos,y_pos)
     local tbl = {}
@@ -397,7 +410,6 @@ function thornsgui.handleNextEvent()
   end
   for a,b in pairs(out.clickSensitive) do
     if(b.handleClick(x,y)) then break end
-    error("miss")
   end
 end
 
