@@ -49,19 +49,20 @@ function draw()
   for _,f in pairs(stats(pwd)) do
     local df = function(out)
       drawFileSymbol(out, 1, 1, f.ext)
-      out.setCursor(4, 1)
+      out.setCursor(7, 1)
       out.write(f.name)
-      out.setCursor(4, 2)
+      out.setCursor(7, 2)
       out.write(f.size)
-      out.setCursor(4, 3)
-      local text = ext .. "-file"
+      out.setCursor(7, 3)
+      local text = f.ext .. "-file"
       if f.isDir then text = "DIR" end
       out.write(text)
     end
-    local custom = thorns.Custom:create(5,5,df)
+    local custom = thorns.Custom:create(20, 5, df)
     hv0:addElement(custom)
   end
   hv0:draw()
+  thorns.handleNextEvent()
 end
 
 draw()
