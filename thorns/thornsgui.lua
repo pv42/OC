@@ -26,7 +26,7 @@ local function createTermOffset(ox,oy)
   t.setCursor = function(x, y)
     out.setCursor(x + ox, y + oy)
   end
-  out.clickSensitive = {}
+  t.clickSensitive = {}
   return t
 end
 
