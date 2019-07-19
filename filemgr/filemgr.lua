@@ -44,7 +44,7 @@ end
 
 function draw()
   local vv0 = thorns.HorizontalView:create()
-  local exitBtn = thorns.Button.create(1,1,1,1,"X")
+  local exitBtn = thorns.Button:create(1,1,1,1,"X")
   exitBtn.color.text = 0xffffff -- white
   exitBtn.color.bg = 0xff0000 -- red
   exitBtn.onClick = function()
@@ -61,7 +61,7 @@ function draw()
       out.write(f.size)
       out.setCursor(7, 3)
       local text = f.ext .. "-file"
-      if f.ext = "" then text = "file" end
+      if f.ext == "" then text = "file" end
       if f.isDir then text = "DIR" end
       out.write(text)
     end

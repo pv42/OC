@@ -110,6 +110,7 @@ thornsgui.VerticalView.__index = thornsgui.VerticalView
 function thornsgui.VerticalView:create()
   local vv = {}
   setmetatable(vv, thornsgui.VerticalView)
+  vv.type = "verticalView"
   vv.size = {}
   vv.size.x = 0
   vv.size.y = 0
@@ -144,6 +145,7 @@ thornsgui.HorizontalView.__index = thornsgui.HorizontalView
 function thornsgui.HorizontalView:create()
   local hv = {}
   setmetatable(hv, thornsgui.HorizontalView)
+  hv.type = "horizontalView"
   hv.size = {}
   hv.size.x = 0
   hv.size.y = 0
@@ -178,7 +180,7 @@ thornsgui.Custom.__index = thornsgui.Custom
 function thornsgui.Custom:create(xsize,ysize,drawfunc)
   local cust = {}
   setmetatable(cust, thornsgui.Custom)
-  cust.type = "text"
+  cust.type = "custom"
   cust.size = {}
   cust.size.x = xsize
   cust.size.y = ysize
@@ -389,7 +391,7 @@ function thornsgui.clearClickListeners()
 end
 -- waits for and handels next click event
 function thornsgui.handleNextEvent()
-  local ev, comp, x, y,  btn = event.pull("touch")
+  local ev, _, x, y,  btn = event.pull("touch")
   -- if in sub window calc offset:
   if out.getPosition ~= nil then 
     local ox,oy = out.getPosition()
