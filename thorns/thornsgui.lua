@@ -409,7 +409,7 @@ function thornsgui.handleNextEvent()
     y = y-oy+1
   end
   for a,b in pairs(out.clickSensitive) do
-    if(b.handleClick(x,y)) then break end
+    if(b:handleClick(x,y)) then break end
   end
 end
 

@@ -58,9 +58,11 @@ function drawFolderSymbol(gout,x,y)
 end
 
 function draw()
+  term.gpu().setBackground(0xffffff)
+  term.gpu().setForeground(0x000000)
+  term.clear()
   local vv0 = thorns.VerticalView:create()
   local head = thorns.HorizontalView:create()
-  
   local titletext = thorns.Text:create(1,1,"FileMgr - " .. pwd .. string.rep(" ", term.gpu().getResolution() - 12 - #pwd))
   local exitBtn = thorns.Button:create(1,1,2,1," X")
   exitBtn.color.text = 0xffffff -- white
@@ -96,10 +98,11 @@ function draw()
     end
     local custom = thorns.Custom:create(20, 5, df)
     if f.isDir then 
-        custom:makeClickable()
-        custom.onClick = function() 
-          pwd = pwd .. "/" .. f.name
-        end
+      custom:makeClickable()
+      custom.onClick = function() 
+        pwd = pwd .. "/" .. f.name
+      end
+    end
     if hv.size.x + custom.size.x > term.gpu().getResolution() then
       vv0:addElement(hv)
       hv = thorns.HorizontalView:create()
@@ -107,16 +110,16 @@ function draw()
     hv:addElement(custom)
   end
   vv0:addElement(hv)
+  thorns.clearClickListeners()
   vv0:draw()
   thorns.handleNextEvent()
 end
 function main()
-  term.gpu().setBackground(0xffffff)
-  term.gpu().setForeground(0x000000)
-  term.clear()
+  thorns.clearClickListeners()
   while not stop do 
     draw()
   end
+  thorns.clearClickListeners()
   term.gpu().setBackground(0x000000)
   term.gpu().setForeground(0xffffff)
   term.clear()
