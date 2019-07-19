@@ -5,6 +5,8 @@ local term = require("term")
 local unicode = require("unicode")
 
 local pwd = os.getenv().PWD
+local prev_wd = nil
+local next_wd = nil
 local stop = false
 
 function stats(base_path)
@@ -61,6 +63,7 @@ function draw()
   term.gpu().setBackground(0xffffff)
   term.gpu().setForeground(0x000000)
   term.clear()
+  thorns.clearClickListeners()
   local vv0 = thorns.VerticalView:create()
   local head = thorns.HorizontalView:create()
   local titletext = thorns.Text:create(1,1,"FileMgr - " .. pwd .. string.rep(" ", term.gpu().getResolution() - 12 - #pwd))
@@ -73,11 +76,23 @@ function draw()
   head:addElement(titletext)
   head:addElement(exitBtn)
   vv0:addElement(head)
+  local prevBtn = thorns.Button:create(1,1,3,1," <")
+  prevBtn.onClick = function()
+    next_wd = pwd
+    pwd = prev_wd
+  end
+  local nextBtn = thorns.Button:create(1,1,3,1," >")
   local parentBtn = thorns.Button:create(1,1,3,1," ^")
   parentBtn.onClick = function()
+    prev_wd = pwd
     pwd = fs.realPath(pwd .."/..")
   end
-  vv0:addElement(parentBtn)
+  local menu = thorns.HorizontalView:create()
+  menu:addElement(prevBtn)
+  menu:addElement(nextBtn)
+  menu:addElement(thorns.Text:create(1,1," ")) -- placeholder
+  menu:addElement(parentBtn)
+  vv0:addElement(menu)
   local hv = thorns.HorizontalView:create()
   for _,f in pairs(stats(pwd)) do
     local df = function(gout)
@@ -100,6 +115,7 @@ function draw()
     if f.isDir then 
       custom:makeClickable()
       custom.onClick = function() 
+        prev_wd = pwd
         pwd = pwd .. "/" .. f.name
       end
     end
@@ -110,7 +126,7 @@ function draw()
     hv:addElement(custom)
   end
   vv0:addElement(hv)
-  thorns.clearClickListeners()
+  
   vv0:draw()
   thorns.handleNextEvent()
 end
