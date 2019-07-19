@@ -96,8 +96,8 @@ function thornsgui.Text:create(x,y,text)
 end
 
 function thornsgui.Text:draw()
-  out.setBackgroundColor(self.color.bg)
-  out.setTextColor(self.color.text)
+  out.gpu().setBackground(self.color.bg)
+  out.gpu().setForeground(self.color.text)
   out.setCursor(self.pos.x, self.pos.y)
   out.write(self.text)
 end
@@ -397,6 +397,7 @@ function thornsgui.handleNextEvent()
   end
   for a,b in pairs(out.clickSensitive) do
     if(b.handleClick(x,y)) then break end
+    error("miss")
   end
 end
 
