@@ -6,6 +6,8 @@ thornsgui.SCROLLBAR_ALWAYS = 86
 thornsgui.SCROLLBAR_NEVER = 87
 local out = term
 local event = require("event")
+local dragHandler = nil
+local dropHandler = nil
 out.clickSensitive = {}
 
 local function drawFilledBox(x,y,x_size,ysize,color)
@@ -37,6 +39,11 @@ thornsgui.Button = {}
 thornsgui.Button.__index = thornsgui.Button
 
 function thornsgui.Button:create(x_pos,y_pos,x_size,y_size,text)
+  checkArg(1, x_pos, "number")
+  checkArg(2, y_pos, "number")
+  checkArg(3, x_size, "number")
+  checkArg(4, y_size, "number")
+  checkArg(5, text, "string")
   local btn = {}
   setmetatable(btn, thornsgui.Button)
   btn.type = "button"
@@ -69,6 +76,7 @@ function thornsgui.Button:draw()
     out.write(self.text)
 end
 
+-- don't call public
 function thornsgui.Button:handleClick(x,y)
   if x >= self.pos.x and y >= self.pos.y and x < self.pos.x + self.size.x and y < self.pos.y + self.size.y then
     if(self.onClick ~= nil) then self.onClick() end 
@@ -82,20 +90,23 @@ thornsgui.Text = {}
 thornsgui.Text.__index = thornsgui.Text
 
 function thornsgui.Text:create(x,y,text)
-    local txt = {}
-    setmetatable(txt, thornsgui.Text)
-    txt.type = "text"
-    txt.pos = {}
-    txt.pos.x = x
-    txt.pos.y = y
-    txt.text = text
-    txt.size = {}
-    txt.size.x = string.len(text)
-    txt.size.y = 1
-    txt.color = {}
-    txt.color.bg = out.gpu().getPaletteColor(colors.white)
-    txt.color.text = out.gpu().getPaletteColor(colors.black)
-    return txt
+  checkArg(1, x, "number")
+  checkArg(2, y, "number")
+  checkArg(3, text, "string")
+  local txt = {}
+  setmetatable(txt, thornsgui.Text)
+  txt.type = "text"
+  txt.pos = {}
+  txt.pos.x = x
+  txt.pos.y = y
+  txt.text = text
+  txt.size = {}
+  txt.size.x = string.len(text)
+  txt.size.y = 1
+  txt.color = {}
+  txt.color.bg = out.gpu().getPaletteColor(colors.white)
+  txt.color.text = out.gpu().getPaletteColor(colors.black)
+  return txt
 end
 
 function thornsgui.Text:draw()
@@ -121,7 +132,9 @@ function thornsgui.VerticalView:create()
   vv.elements = {} -- dont modify manually
   return vv
 end
+
 function thornsgui.VerticalView:addElement(ele)
+  checkArg(1, ele, "table")
   table.insert(self.elements, ele)
   if ele.size.x > self.size.x then self.size.x = ele.size.x end
   self.size.y = self.size.y + ele.size.y
@@ -156,6 +169,7 @@ function thornsgui.HorizontalView:create()
   return hv
 end
 function thornsgui.HorizontalView:addElement(ele)
+  checkArg(1, ele, "table")
   table.insert(self.elements, ele)
   if ele.size.y > self.size.y then self.size.y = ele.size.y end
   self.size.x = self.size.x + ele.size.x
@@ -178,6 +192,9 @@ thornsgui.Custom = {}
 thornsgui.Custom.__index = thornsgui.Custom
 
 function thornsgui.Custom:create(xsize,ysize,drawfunc)
+  checkArg(1, xsize, "number")
+  checkArg(2, ysize, "number")
+  checkArg(3, drawfunc, "function")
   local cust = {}
   setmetatable(cust, thornsgui.Custom)
   cust.type = "custom"
@@ -196,6 +213,8 @@ function thornsgui.Custom:draw()
 end
 
 function thornsgui.Custom:handleClick(x,y)
+  checkArg(1, x, "number")
+  checkArg(2, y, "number")
   if x >= self.pos.x and y >= self.pos.y and x < self.pos.x + self.size.x and y < self.pos.y + self.size.y then
     if(self.onClick ~= nil) then self.onClick() end 
     return true
@@ -212,6 +231,7 @@ thornsgui.HorizontalScrollbar = {}
 thornsgui.HorizontalScrollbar.__index = thornsgui.HorizontalScrollbar
 
 function thornsgui.HorizontalScrollbar:create(xsize)
+  checkArg(1, xsize, "number")
   local hsb = {}
   setmetatable(hsb, thornsgui.HorizontalScrollbar)
   hsb.size = {}
@@ -241,11 +261,10 @@ function thornsgui.HorizontalScrollbar:draw()
     self.onScroll(self.value)
   end
   rightbtn:draw()
-  local scrollpart = nil
-  local scrollbg = nil
+  local scrollpart = thornsgui.Button:create(2 + (value / maxvalue) * (self.size.x - 2), self.pos.y, 2,1, "  ")
+  local scrollbg = thornsgui.Text:create(2, self.pos.y, 1,1, string.rep(" ", self.size.x - 2))
   scrollbg:draw()
   scrollpart:draw()
-  -- TODO
 end
 
 --[[
