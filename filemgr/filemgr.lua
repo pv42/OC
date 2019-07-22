@@ -86,6 +86,7 @@ function draw()
   parentBtn.onClick = function()
     prev_wd = pwd
     pwd = fs.realPath(pwd .."/..")
+    if pwd == "" then pwd = "/" end
   end
   local menu = thorns.HorizontalView:create()
   menu:addElement(prevBtn)

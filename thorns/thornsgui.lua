@@ -1,6 +1,9 @@
 local term = require("term")
 local colors = require("colors")
 local thornsgui = {}
+thornsgui.SCROLLBAR_AUTO = 85 -- the values dont matter
+thornsgui.SCROLLBAR_ALWAYS = 86
+thornsgui.SCROLLBAR_NEVER = 87
 local out = term
 local event = require("event")
 out.clickSensitive = {}
@@ -203,6 +206,46 @@ end
 
 function thornsgui.Custom:makeClickable()
   table.insert(out.clickSensitive, self)
+end
+
+thornsgui.HorizontalScrollbar = {}
+thornsgui.HorizontalScrollbar.__index = thornsgui.HorizontalScrollbar
+
+function thornsgui.HorizontalScrollbar:create(xsize)
+  local hsb = {}
+  setmetatable(hsb, thornsgui.HorizontalScrollbar)
+  hsb.size = {}
+  hsb.size.x = xsize
+  hsb.size.y = 1 -- dont change this
+  hsb.pos = {}
+  hsb.pos.x = 1
+  hsp.pos.y = 1
+  hsb.onScroll = function(value) end -- change this; value is float
+  hsb.value = 0
+  hsb.maxvalue = 1
+  return hsb
+end
+
+function thornsgui.HorizontalScrollbar:draw()
+  local leftbtn = thornsgui.Button:create(self.pos.x, self.pos.y, 1,1, "<")
+  leftbtn.onClick = function() 
+    self.value = self.value - 1
+    if self.value < 0 then self.value = 0 end
+    self.onScroll(self.value)
+  end
+  leftbtn:draw()
+  local rightbtn = thornsgui.Button:create(self.pos.x + self.size.x - 1 , self.pos.y, 1,1, ">")
+  rightbtn.onClick = function() 
+    self.value = self.value + 1 
+    if self.value > self.maxvalue then self.value = self.maxvalue end
+    self.onScroll(self.value)
+  end
+  rightbtn:draw()
+  local scrollpart = nil
+  local scrollbg = nil
+  scrollbg:draw()
+  scrollpart:draw()
+  -- TODO
 end
 
 --[[
