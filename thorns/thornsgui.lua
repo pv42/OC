@@ -262,7 +262,7 @@ function thornsgui.HorizontalScrollbar:create(xsize)
     hsb.onScroll(hsb.value)
   end
   hsb._scrollpart = thornsgui.Button:create(1, hsb.pos.y, 2,1, "  ")
-  hsb.scrollpart.onClick = function(x0,y0) --ignore y 
+  hsb._scrollpart.onClick = function(x0,y0) --ignore y 
     local v0 = hsb.value
     dragHandler = function(x,y) 
       hsb.value = v0 + (x - x0) * hsb.maxvalue / (hsb.size.x - 4)
@@ -286,10 +286,10 @@ function thornsgui.HorizontalScrollbar:draw()
   self._scrollpart.pos.y = self.pos.y
   self._leftbtn.pos.x = self.pos.x
   self._leftbtn.pos.y = self.pos.y
-  self._serightbtn.pos.x = self.pos.x
-  self._serightbtn.pos.y = self.pos.y + self.size.x - 1
+  self._rightbtn.pos.x = self.pos.x + self.size.x - 1
+  self._rightbtn.pos.y = self.pos.y
   self._leftbtn:draw()
-  self._serightbtn:draw()
+  self._rightbtn:draw()
   self._scrollbg:draw()
   self._scrollpart:draw()
 end

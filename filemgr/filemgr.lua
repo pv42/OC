@@ -135,6 +135,7 @@ function draw()
   local statsView = drawStats()
   local oldwd = pwd
   vv0:addElement(statsView)
+  vv0:draw()
   while not stop do
     if oldwd ~= pwd then  
         vv0:removeElement(statsView)
