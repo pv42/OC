@@ -239,7 +239,7 @@ function thornsgui.HorizontalScrollbar:create(xsize)
   hsb.size.y = 1 -- dont change this
   hsb.pos = {}
   hsb.pos.x = 1
-  hsp.pos.y = 1
+  hsb.pos.y = 1
   hsb.onScroll = function(value) end -- change this; value is float
   hsb.value = 0
   hsb.maxvalue = 1
@@ -253,16 +253,17 @@ function thornsgui.HorizontalScrollbar:draw()
     if self.value < 0 then self.value = 0 end
     self.onScroll(self.value)
   end
-  leftbtn:draw()
+  
   local rightbtn = thornsgui.Button:create(self.pos.x + self.size.x - 1 , self.pos.y, 1,1, ">")
   rightbtn.onClick = function() 
     self.value = self.value + 1 
     if self.value > self.maxvalue then self.value = self.maxvalue end
     self.onScroll(self.value)
   end
-  rightbtn:draw()
-  local scrollpart = thornsgui.Button:create(2 + (value / maxvalue) * (self.size.x - 2), self.pos.y, 2,1, "  ")
+  local scrollpart = thornsgui.Button:create(2 + (self.value / self.maxvalue) * (self.size.x - 2), self.pos.y, 2,1, "  ")
   local scrollbg = thornsgui.Text:create(2, self.pos.y, 1,1, string.rep(" ", self.size.x - 2))
+  leftbtn:draw()
+  rightbtn:draw()
   scrollbg:draw()
   scrollpart:draw()
 end
@@ -470,8 +471,8 @@ function thornsgui.handleNextEvent()
     x = x-ox+1
     y = y-oy+1
   end
-  for a,b in pairs(out.clickSensitive) do
-    if(b:handleClick(x,y)) then break end
+  for _,cs in pairs(out.clickSensitive) do
+    if(cs:handleClick(x,y)) then break end
   end
 end
 
