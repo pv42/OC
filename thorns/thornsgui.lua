@@ -140,6 +140,12 @@ function thornsgui.VerticalView:addElement(ele)
   self.size.y = self.size.y + ele.size.y
 end
 
+function thornsgui.VerticalView:removeElement(ele)
+  checkArg(1, ele, "table")
+  table.remove(self.elements, ele)
+  self.size.y = self.size.y - ele.size.y
+end
+
 function thornsgui.VerticalView:draw()
   local cx = self.pos.x
   local cy = self.pos.y
@@ -243,29 +249,49 @@ function thornsgui.HorizontalScrollbar:create(xsize)
   hsb.onScroll = function(value) end -- change this; value is float
   hsb.value = 0
   hsb.maxvalue = 1
+  hsb._leftbtn = thornsgui.Button:create(hsb.pos.x, hsb.pos.y, 1,1, "<")
+  hsb._leftbtn.onClick = function() 
+    hsb.value = hsb.value - 1
+    if hsb.value < 0 then hsb.value = 0 end
+    hsb.onScroll(hsb.value)
+  end
+  hsb._rightbtn = thornsgui.Button:create(hsb.pos.x + hsb.size.x - 1 , hsb.pos.y, 1,1, ">")
+  hsb._rightbtn.onClick = function() 
+    hsb.value = hsb.value + 1 
+    if hsb.value > hsb.maxvalue then hsb.value = hsb.maxvalue end
+    hsb.onScroll(hsb.value)
+  end
+  hsb._scrollpart = thornsgui.Button:create(1, hsb.pos.y, 2,1, "  ")
+  hsb.scrollpart.onClick = function(x0,y0) --ignore y 
+    local v0 = hsb.value
+    dragHandler = function(x,y) 
+      hsb.value = v0 + (x - x0) * hsb.maxvalue / (hsb.size.x - 4)
+      if hsb.value < 0 then hsb.value = 0 end
+      if hsb.value > hsb.maxvalue then hsb.value = hsb.maxvalue end
+      hsb._scrollbg:draw()
+      hsb._scrollpart.pos.x = hsb._scrollpart.pos.x + x - x0 
+      hsb._scrollpart:draw()
+    end --ignore y
+    dropHandler = function() --unregister handlers
+        dragHandler = nil
+        dropHandler = nil
+      end
+  end
+  hsb._scrollbg = thornsgui.Text:create(hsb.pos.x + 1, hsb.pos.y, string.rep(" ", hsb.size.x - 2))
   return hsb
 end
 
 function thornsgui.HorizontalScrollbar:draw()
-  local leftbtn = thornsgui.Button:create(self.pos.x, self.pos.y, 1,1, "<")
-  leftbtn.onClick = function() 
-    self.value = self.value - 1
-    if self.value < 0 then self.value = 0 end
-    self.onScroll(self.value)
-  end
-  
-  local rightbtn = thornsgui.Button:create(self.pos.x + self.size.x - 1 , self.pos.y, 1,1, ">")
-  rightbtn.onClick = function() 
-    self.value = self.value + 1 
-    if self.value > self.maxvalue then self.value = self.maxvalue end
-    self.onScroll(self.value)
-  end
-  local scrollpart = thornsgui.Button:create(2 + (self.value / self.maxvalue) * (self.size.x - 2), self.pos.y, 2,1, "  ")
-  local scrollbg = thornsgui.Text:create(2, self.pos.y, 1,1, string.rep(" ", self.size.x - 2))
-  leftbtn:draw()
-  rightbtn:draw()
-  scrollbg:draw()
-  scrollpart:draw()
+  self._scrollpart.pos.x = self.pos.x + 1 + (self.value / self.maxvalue) * (self.size.x - 4)
+  self._scrollpart.pos.y = self.pos.y
+  self._leftbtn.pos.x = self.pos.x
+  self._leftbtn.pos.y = self.pos.y
+  self._serightbtn.pos.x = self.pos.x
+  self._serightbtn.pos.y = self.pos.y + self.size.x - 1
+  self._leftbtn:draw()
+  self._serightbtn:draw()
+  self._scrollbg:draw()
+  self._scrollpart:draw()
 end
 
 --[[
@@ -464,15 +490,21 @@ function thornsgui.clearClickListeners()
 end
 -- waits for and handels next click event
 function thornsgui.handleNextEvent()
-  local ev, _, x, y,  btn = event.pull("touch")
+  local ev, _, x, y,  btn = event.pullMultiple("touch","drag","drop")
   -- if in sub window calc offset:
   if out.getPosition ~= nil then 
     local ox,oy = out.getPosition()
     x = x-ox+1
     y = y-oy+1
   end
-  for _,cs in pairs(out.clickSensitive) do
-    if(cs:handleClick(x,y)) then break end
+  if ev == "touch" then
+    for _,cs in pairs(out.clickSensitive) do
+      if(cs:handleClick(x,y, btn)) then break end
+    end
+  elseif ev == "drag" then
+    if dragHandler then dragHandler(x,y) end
+  elseif ev == "drop" then 
+    if dropHandler then dropHandler(x,y) end
   end
 end
 

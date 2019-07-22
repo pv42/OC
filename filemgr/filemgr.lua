@@ -59,6 +59,44 @@ function drawFolderSymbol(gout,x,y)
   gout.gpu().setForeground(0x000000)
 end
 
+function drawStats()
+  local vv = thorns.VerticalView:create()
+  local hv = thorns.HorizontalView:create()
+  
+  for _,f in pairs(stats(pwd)) do
+    local df = function(gout)
+      if f.isDir then 
+        drawFolderSymbol(gout, 1, 1)
+      else
+        drawFileSymbol(gout, 1, 1, f.ext)
+      end
+      gout.setCursor(7, 1)
+      gout.write(f.name)
+      gout.setCursor(7, 2)
+      gout.write(f.size)
+      gout.setCursor(7, 3)
+      local text = f.ext .. "-file"
+      if f.ext == "" then text = "file" end
+      if f.isDir then text = "DIR" end
+      gout.write(text)
+    end
+    local custom = thorns.Custom:create(20, 5, df)
+    if f.isDir then 
+      custom:makeClickable()
+      custom.onClick = function() 
+        prev_wd = pwd
+        pwd = pwd .. "/" .. f.name
+      end
+    end
+    if hv.size.x + custom.size.x > term.gpu().getResolution() then
+      vv:addElement(hv)
+      hv = thorns.HorizontalView:create()
+    end
+    hv:addElement(custom)
+  end
+  return vv
+end
+
 function draw()
   term.gpu().setBackground(0xffffff)
   term.gpu().setForeground(0x000000)
@@ -94,48 +132,23 @@ function draw()
   menu:addElement(thorns.Text:create(1,1," ")) -- placeholder
   menu:addElement(parentBtn)
   vv0:addElement(menu)
-  local hv = thorns.HorizontalView:create()
-  for _,f in pairs(stats(pwd)) do
-    local df = function(gout)
-      if f.isDir then 
-        drawFolderSymbol(gout, 1, 1)
-      else
-        drawFileSymbol(gout, 1, 1, f.ext)
-      end
-      gout.setCursor(7, 1)
-      gout.write(f.name)
-      gout.setCursor(7, 2)
-      gout.write(f.size)
-      gout.setCursor(7, 3)
-      local text = f.ext .. "-file"
-      if f.ext == "" then text = "file" end
-      if f.isDir then text = "DIR" end
-      gout.write(text)
+  local statsView = drawStats()
+  local oldwd = pwd
+  vv0:addElement(statsView)
+  while not stop do
+    if oldwd ~= pwd then  
+        vv0:removeElement(statsView)
+        statsView = drawStats()
+        vv0:addElement(statsView)
+        vv0:draw()
     end
-    local custom = thorns.Custom:create(20, 5, df)
-    if f.isDir then 
-      custom:makeClickable()
-      custom.onClick = function() 
-        prev_wd = pwd
-        pwd = pwd .. "/" .. f.name
-      end
-    end
-    if hv.size.x + custom.size.x > term.gpu().getResolution() then
-      vv0:addElement(hv)
-      hv = thorns.HorizontalView:create()
-    end
-    hv:addElement(custom)
+    oldwd = pwd
+    thorns.handleNextEvent()
   end
-  vv0:addElement(hv)
-  
-  vv0:draw()
-  thorns.handleNextEvent()
 end
 function main()
   thorns.clearClickListeners()
-  while not stop do 
-    draw()
-  end
+  draw()
   thorns.clearClickListeners()
   term.gpu().setBackground(0x000000)
   term.gpu().setForeground(0xffffff)
