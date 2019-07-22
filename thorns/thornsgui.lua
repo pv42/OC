@@ -142,7 +142,9 @@ end
 
 function thornsgui.VerticalView:removeElement(ele)
   checkArg(1, ele, "table")
-  table.remove(self.elements, ele)
+  for i = 1, #(self.elements) do
+    if ele == self.elements[i] then table.remove(self.elements, i) end
+  end
   self.size.y = self.size.y - ele.size.y
 end
 
