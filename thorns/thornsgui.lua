@@ -62,6 +62,11 @@ function thornsgui.Button:create(x_pos,y_pos,x_size,y_size,text)
   return btn
 end
 
+-- reinsert into click sensitive table, don't use it unless you cleared the table
+function thornsgui.Button:readdListener()
+  table.insert(out.clickSensitive, self)
+end
+
 function thornsgui.Button:draw()
     --out.setCursor(1,1) --nessescary ?
     drawFilledBox(

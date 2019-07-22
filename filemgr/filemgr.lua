@@ -139,7 +139,16 @@ function draw()
   while not stop do
     if oldwd ~= pwd then  
         vv0:removeElement(statsView)
+        thorns.clearClickListeners()
+        -- readd staying btns
+        nextBtn:readdListener()
+        prevBtn:readdListener()
+        exitBtn:readdListener()
+        parentBtn:readdListener()
         statsView = drawStats()
+        titletext.text = "FileMgr - " .. pwd .. string.rep(" ", term.gpu().getResolution() - 12 - #pwd)
+        titletext:draw()
+        -- todo clear old gui elements
         vv0:addElement(statsView)
         vv0:draw()
     end
