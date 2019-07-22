@@ -264,38 +264,54 @@ function thornsgui.HorizontalScrollbar:create(xsize)
   hsb._leftbtn = thornsgui.Button:create(hsb.pos.x, hsb.pos.y, 1,1, "<")
   hsb._leftbtn.onClick = function() 
     hsb.value = hsb.value - 1
-    if hsb.value < 0 then hsb.value = 0 end
+    if hsb.value < 0 then 
+      hsb.value = 0 
+    else
+      hsb._scrollpart.pos.x = hsb._scrollpart.pos.x - 1
+    end
     hsb.onScroll(hsb.value)
+    -- draw
+    hsb._scrollbg:draw()
+    hsb._scrollpart:draw()
   end
   hsb._rightbtn = thornsgui.Button:create(hsb.pos.x + hsb.size.x - 1 , hsb.pos.y, 1,1, ">")
   hsb._rightbtn.onClick = function() 
     hsb.value = hsb.value + 1 
-    if hsb.value > hsb.maxvalue then hsb.value = hsb.maxvalue end
+    if hsb.value > hsb.maxvalue then 
+      hsb.value = hsb.maxvalue 
+    else 
+      hsb._scrollpart.pos.x = hsb._scrollpart.pos.x + 1
+    end
     hsb.onScroll(hsb.value)
+    -- draw
+    hsb._scrollbg:draw()
+    hsb._scrollpart:draw()
   end
-  hsb._scrollpart = thornsgui.Button:create(1, hsb.pos.y, 2,1, "  ")
-  hsb._scrollpart.onClick = function(x0,y0) --ignore y 
+  hsb._scrollpart = thornsgui.Button:create(1, 1, 2,1, "  ") -- pos is overwritten anyways
+  hsb._scrollpart.onClick = function(x0,_) --ignore y 
     local v0 = hsb.value
-    dragHandler = function(x,y) 
+    dragHandler = function(x,_) --ignore y
       hsb.value = v0 + (x - x0) * hsb.maxvalue / (hsb.size.x - 4)
       if hsb.value < 0 then hsb.value = 0 end
       if hsb.value > hsb.maxvalue then hsb.value = hsb.maxvalue end
       hsb._scrollbg:draw()
       hsb._scrollpart.pos.x = hsb._scrollpart.pos.x + x - x0 
       hsb._scrollpart:draw()
-    end --ignore y
+    end 
     dropHandler = function() --unregister handlers
-        dragHandler = nil
-        dropHandler = nil
-      end
+      dragHandler = nil
+      dropHandler = nil
+    end
   end
-  hsb._scrollbg = thornsgui.Text:create(hsb.pos.x + 1, hsb.pos.y, string.rep(" ", hsb.size.x - 2))
+  hsb._scrollbg = thornsgui.Text:create(1, 1, string.rep(" ", hsb.size.x - 2)) -- pos is overwritten anyways
   return hsb
 end
 
 function thornsgui.HorizontalScrollbar:draw()
   self._scrollpart.pos.x = self.pos.x + 1 + (self.value / self.maxvalue) * (self.size.x - 4)
   self._scrollpart.pos.y = self.pos.y
+  self._scrollbg.pos.y = self.pos.y
+  self._scrollbg.pos.x = self.pos.x + 1
   self._leftbtn.pos.x = self.pos.x
   self._leftbtn.pos.y = self.pos.y
   self._rightbtn.pos.x = self.pos.x + self.size.x - 1
@@ -542,7 +558,7 @@ local function drawImage(file)
 end
 
 --shows logo
-function showLogo(t)
+function thornsgui.showLogo(t)
     out.gpu().setBackground(out.gpu().getPaletteColor(colors.white))
     out.clear()
     drawImage("/usr/lib/thornslogo")
@@ -550,6 +566,6 @@ function showLogo(t)
     out.gpu().setBackground(out.gpu().getPaletteColor(colors.black))
     out.clear()
 end
-showLogo(0.4)
+thornsgui.showLogo(0.4)
 
 return thornsgui
