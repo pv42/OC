@@ -94,6 +94,7 @@ function drawStats()
     end
     hv:addElement(custom)
   end
+  vv:addElement(hv)
   return vv
 end
 
@@ -104,7 +105,9 @@ function draw()
   thorns.clearClickListeners()
   local vv0 = thorns.VerticalView:create()
   local head = thorns.HorizontalView:create()
-  local titletext = thorns.Text:create(1,1,"FileMgr - " .. pwd .. string.rep(" ", term.gpu().getResolution() - 12 - #pwd))
+  local pwd_v = pwd
+  if pwd_v == "" then pwd_v = "/" end
+  local titletext = thorns.Text:create(1,1,"FileMgr - " .. pwd_v .. string.rep(" ", term.gpu().getResolution() - 12 - #pwd))
   local exitBtn = thorns.Button:create(1,1,2,1," X")
   exitBtn.color.text = 0xffffff -- white
   exitBtn.color.bg = 0xff0000 -- red
@@ -124,7 +127,6 @@ function draw()
   parentBtn.onClick = function()
     prev_wd = pwd
     pwd = fs.realPath(pwd .."/..")
-    if pwd == "" then pwd = "/" end
   end
   local menu = thorns.HorizontalView:create()
   menu:addElement(prevBtn)
@@ -137,7 +139,8 @@ function draw()
   vv0:addElement(statsView)
   vv0:draw()
   while not stop do
-    if oldwd ~= pwd then  
+    if oldwd ~= pwd then
+        statsView:clear()
         vv0:removeElement(statsView)
         thorns.clearClickListeners()
         -- readd staying btns
@@ -146,7 +149,9 @@ function draw()
         exitBtn:readdListener()
         parentBtn:readdListener()
         statsView = drawStats()
-        titletext.text = "FileMgr - " .. pwd .. string.rep(" ", term.gpu().getResolution() - 12 - #pwd)
+        local pwd_v = pwd
+        if pwd_v == "" then pwd_v = "/" end
+        titletext.text = "FileMgr - " .. pwd_v .. string.rep(" ", term.gpu().getResolution() - 12 - #pwd)
         titletext:draw()
         -- todo clear old gui elements
         vv0:addElement(statsView)

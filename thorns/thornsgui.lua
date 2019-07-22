@@ -164,6 +164,11 @@ function thornsgui.VerticalView:draw()
   end
 end
 
+-- clear the views part of the screem  
+function thornsgui.VerticalView:clear()
+  out.gpu().fill(self.pos.x,self.pos.y, self.size.x, self.size.y, " ")
+end
+
 -- elements in a Horizontal view have their x and y position managed by the view
 thornsgui.HorizontalView = {}
 thornsgui.HorizontalView.__index = thornsgui.HorizontalView
