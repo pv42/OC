@@ -84,7 +84,7 @@ end
 -- don't call public
 function thornsgui.Button:handleClick(x,y)
   if x >= self.pos.x and y >= self.pos.y and x < self.pos.x + self.size.x and y < self.pos.y + self.size.y then
-    if(self.onClick ~= nil) then self.onClick() end 
+    if(self.onClick ~= nil) then self.onClick(x,y) end 
     return true
   else 
     return false
@@ -269,7 +269,7 @@ function thornsgui.HorizontalScrollbar:create(xsize)
     end
     hsb.onScroll(hsb.value)
     -- draw
-    hsb._scrollpart.pos.x = self.pos.x + 1 + (self.value / self.maxvalue) * (self.size.x - 4)
+    hsb._scrollpart.pos.x = hsb.pos.x + 1 + (hsb.value / hsb.maxvalue) * (hsb.size.x - 4)
     hsb._scrollbg:draw()
     hsb._scrollpart:draw()
   end
@@ -281,7 +281,7 @@ function thornsgui.HorizontalScrollbar:create(xsize)
     end
     hsb.onScroll(hsb.value)
     -- draw
-    hsb._scrollpart.pos.x = self.pos.x + 1 + (self.value / self.maxvalue) * (self.size.x - 4)
+    hsb._scrollpart.pos.x = hsb.pos.x + 1 + (hsb.value / hsb.maxvalue) * (hsb.size.x - 4)
     hsb._scrollbg:draw()
     hsb._scrollpart:draw()
   end
