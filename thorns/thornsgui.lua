@@ -266,11 +266,10 @@ function thornsgui.HorizontalScrollbar:create(xsize)
     hsb.value = hsb.value - 1
     if hsb.value < 0 then 
       hsb.value = 0 
-    else
-      hsb._scrollpart.pos.x = hsb._scrollpart.pos.x - 1
     end
     hsb.onScroll(hsb.value)
     -- draw
+    hsb._scrollpart.pos.x = self.pos.x + 1 + (self.value / self.maxvalue) * (self.size.x - 4)
     hsb._scrollbg:draw()
     hsb._scrollpart:draw()
   end
@@ -279,23 +278,24 @@ function thornsgui.HorizontalScrollbar:create(xsize)
     hsb.value = hsb.value + 1 
     if hsb.value > hsb.maxvalue then 
       hsb.value = hsb.maxvalue 
-    else 
-      hsb._scrollpart.pos.x = hsb._scrollpart.pos.x + 1
     end
     hsb.onScroll(hsb.value)
     -- draw
+    hsb._scrollpart.pos.x = self.pos.x + 1 + (self.value / self.maxvalue) * (self.size.x - 4)
     hsb._scrollbg:draw()
     hsb._scrollpart:draw()
   end
   hsb._scrollpart = thornsgui.Button:create(1, 1, 2,1, "  ") -- pos is overwritten anyways
   hsb._scrollpart.onClick = function(x0,_) --ignore y 
+    checkArg(1,x0,"number")
     local v0 = hsb.value
+    local x0_ = x0
     dragHandler = function(x,_) --ignore y
-      hsb.value = v0 + (x - x0) * hsb.maxvalue / (hsb.size.x - 4)
+      hsb.value = v0 + (x - x0_) * hsb.maxvalue / (hsb.size.x - 4)
       if hsb.value < 0 then hsb.value = 0 end
       if hsb.value > hsb.maxvalue then hsb.value = hsb.maxvalue end
       hsb._scrollbg:draw()
-      hsb._scrollpart.pos.x = hsb._scrollpart.pos.x + x - x0 
+      hsb._scrollpart.pos.x = hsb._scrollpart.pos.x + x - x0_
       hsb._scrollpart:draw()
     end 
     dropHandler = function() --unregister handlers
