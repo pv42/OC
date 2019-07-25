@@ -1,38 +1,53 @@
-local term = require("term")
+local component = require("component")
 local colors = require("colors")
 local thornsgui = {}
 thornsgui.SCROLLBAR_AUTO = 85 -- the values dont matter
 thornsgui.SCROLLBAR_ALWAYS = 86
 thornsgui.SCROLLBAR_NEVER = 87
-local out = term
+local gpu = component.gpu
 local event = require("event")
 local dragHandler = nil
 local dropHandler = nil
-out.clickSensitive = {}
+gpu.clickSensitive = {}
 
 local function drawFilledBox(x,y,x_size,ysize,color)
-  out.gpu().setBackground(color)
-  out.gpu().fill(x,y,x_size,ysize," ")
+  gpu.setBackground(color)
+  gpu.fill(x,y,x_size,ysize," ")
 end 
 
-local function createTermOffset(ox,oy)
-  local t = {}
-  t.gpu =  function()
-    local g = {}
-    g.setForeground = out.gpu().setForeground
-    g.setBackground = out.gpu().setBackground
+local function createFakeGPU(x_pos,y_pos, x_size, y_size)
+  checkArg(1, x_pos, "number")
+  checkArg(2, y_pos, "number")
+  local g = {}
+  g.pos = {x=x_pos,y=y_pos}
+  g.setForeground = gpu.setForeground
+  g.setBackground = gpu.setBackground
+  g.getPaletteColor = gpu.getPaletteColor
+  g.clickSensitive = {} 
+  if x_size then  -- optional but you need both or none
+    checkArg(3, x_size, "number", "nil") -- nil just for better print
+    checkArg(4, y_size, "number")
     g.fill = function(x,y,xs,ys,c)
-      out.gpu().fill(x+ox,y+oy,xs,ys,c)
+      if x > x_size or y > y_size then return end
+      if x + xs - 1 > x_size then xs = x_size - x + 1 end
+      if y + ys - 1 > y_size then ys = y_size - y + 1 end 
+      gpu.fill(x+x_pos,y+y_pos,xs,ys,c)
     end
-    g.getPaletteColor = out.gpu().getPaletteColor
-    return g
+    g.set = function(x,y,text,flip)
+      if flip then error("flip not supported in limited fake gpus") end
+      if x > x_size or y > y_size then return end 
+      if #text + x - 1 > x_size then text = text:sub(1, x_size - x + 1) end
+      gpu.set(x+x_pos,y+y_pos)
+    end
+  else -- unlimited draw area
+    g.fill = function(x,y,xs,ys,c)
+      gpu.fill(x+x_pos,y+y_pos,xs,ys,c)
+    end
+    g.set = function(x,y,text,flip)
+      gpu.set(x+x_pos,y+y_pos, text, flip)
+    end
   end
-  t.write = out.write
-  t.setCursor = function(x, y)
-    out.setCursor(x + ox, y + oy)
-  end
-  t.clickSensitive = {}
-  return t
+  return g
 end
 
 thornsgui.Button = {}
@@ -54,21 +69,20 @@ function thornsgui.Button:create(x_pos,y_pos,x_size,y_size,text)
   btn.size.x= x_size
   btn.size.y = y_size
   btn.color = {}
-  btn.color.text = out.gpu().getPaletteColor(colors.white)
-  btn.color.bg = out.gpu().getPaletteColor(colors.gray)
+  btn.color.text = gpu.getPaletteColor(colors.white)
+  btn.color.bg = gpu.getPaletteColor(colors.gray)
   btn.text = text 
   btn.onClick = function() end -- should be overwriten 
-  table.insert(out.clickSensitive,btn)
+  table.insert(gpu.clickSensitive,btn)
   return btn
 end
 
 -- reinsert into click sensitive table, don't use it unless you cleared the table
 function thornsgui.Button:readdListener()
-  table.insert(out.clickSensitive, self)
+  table.insert(gpu.clickSensitive, self)
 end
 
 function thornsgui.Button:draw()
-    --out.setCursor(1,1) --nessescary ?
     drawFilledBox(
       self.pos.x,
       self.pos.y,
@@ -76,9 +90,8 @@ function thornsgui.Button:draw()
       self.size.y,
       self.color.bg
     )
-    out.gpu().setForeground(self.color.text)
-    out.setCursor(self.pos.x, self.pos.y)
-    out.write(self.text)
+    gpu.setForeground(self.color.text)
+    gpu.set(self.pos.x, self.pos.y, self.text)
 end
 
 -- don't call public
@@ -109,16 +122,15 @@ function thornsgui.Text:create(x,y,text)
   txt.size.x = string.len(text)
   txt.size.y = 1
   txt.color = {}
-  txt.color.bg = out.gpu().getPaletteColor(colors.white)
-  txt.color.text = out.gpu().getPaletteColor(colors.black)
+  txt.color.bg = gpu.getPaletteColor(colors.white)
+  txt.color.text = gpu.getPaletteColor(colors.black)
   return txt
 end
 
 function thornsgui.Text:draw()
-  out.gpu().setBackground(self.color.bg)
-  out.gpu().setForeground(self.color.text)
-  out.setCursor(self.pos.x, self.pos.y)
-  out.write(self.text)
+  gpu.setBackground(self.color.bg)
+  gpu.setForeground(self.color.text)
+  gpu.set(self.pos.x, self.pos.y, self.text)
 end
 
 -- elements in a Vertical view have their x and y position managed by the view
@@ -166,7 +178,7 @@ end
 
 -- clear the views part of the screem  
 function thornsgui.VerticalView:clear()
-  out.gpu().fill(self.pos.x,self.pos.y, self.size.x, self.size.y, " ")
+  gpu.fill(self.pos.x,self.pos.y, self.size.x, self.size.y, " ")
 end
 
 -- elements in a Horizontal view have their x and y position managed by the view
@@ -227,7 +239,7 @@ function thornsgui.Custom:create(xsize,ysize,drawfunc)
 end
 
 function thornsgui.Custom:draw()
-  self.drawfunc(createTermOffset(self.pos.x, self.pos.y))
+  self.drawfunc(createFakeGPU(self.pos.x, self.pos.y))
 end
 
 function thornsgui.Custom:handleClick(x,y)
@@ -242,7 +254,7 @@ function thornsgui.Custom:handleClick(x,y)
 end
 
 function thornsgui.Custom:makeClickable()
-  table.insert(out.clickSensitive, self)
+  table.insert(gpu.clickSensitive, self)
 end
 
 
@@ -271,7 +283,7 @@ function thornsgui.VerticalScrollbar:create(ysize)
     vsb.onScroll(vsb.value)
     -- draw
     vsb._scrollpart.pos.y = vsb.pos.y + 1 + (vsb.value / vsb.maxvalue) * (vsb.size.y - 4)
-    vsb._scrollbg:draw()
+    gpu.fill(vsb.pos.x, vsb.pos.y + 1, 1, vsb.size.y - 2, " ") -- scroll bg
     vsb._scrollpart:draw()
   end
   vsb._rightbtn = thornsgui.Button:create(vsb.pos.x + vsb.size.x - 1 , vsb.pos.y, 1,1, "v")
@@ -283,7 +295,8 @@ function thornsgui.VerticalScrollbar:create(ysize)
     vsb.onScroll(vsb.value)
     -- draw
     vsb._scrollpart.pos.x = vsb.pos.x + 1 + (vsb.value / vsb.maxvalue) * (vsb.size.x - 4)
-    vsb._scrollbg:draw()
+    
+    gpu.fill(vsb.pos.x, vsb.pos.y + 1, 1, vsb.size.y - 2, " ") -- scroll bg
     vsb._scrollpart:draw()
   end
   vsb._scrollpart = thornsgui.Button:create(1, 1, 2,1, "  ") -- pos is overwritten anyways
@@ -292,34 +305,31 @@ function thornsgui.VerticalScrollbar:create(ysize)
     local v0 = vsb.value
     local y0_ = y0
     dragHandler = function(_,y) --ignore y
-      vsb.value = v0 + (y - y0_) * hsb.maxvalue / (hsb.size.y - 4)
-      if hsb.value < 0 then hsb.value = 0 end
-      if hsb.value > hsb.maxvalue then hsb.value = hsb.maxvalue end
-      hsb._scrollbg:draw()
-      hsb._scrollpart.pos.y = hsb.pos.y + 1 + (vsb.value / vsb.maxvalue) * (hsb.size.y - 4)
-      hsb._scrollpart:draw()
+      vsb.value = v0 + (y - y0_) * vsb.maxvalue / (vsb.size.y - 4)
+      if vsb.value < 0 then vsb.value = 0 end
+      if vsb.value > vsb.maxvalue then vsb.value = vsb.maxvalue end
+      gpu.fill(vsb.pos.x, vsb.pos.y + 1, 1, vsb.size.y - 2, " ") -- scroll bg
+      vsb._scrollpart.pos.y = vsb.pos.y + 1 + (vsb.value / vsb.maxvalue) * (vsb.size.y - 4)
+      vsb._scrollpart:draw()
     end 
     dropHandler = function() --unregister handlers
       dragHandler = nil
       dropHandler = nil
     end
   end
-  vsb._scrollbg = thornsgui.Text:create(1, 1, string.rep(" ", vsb.size.x - 2)) -- pos is overwritten anyways
   return vsb
 end
 
 function thornsgui.VerticalScrollbar:draw()
   self._scrollpart.pos.x = self.pos.x
   self._scrollpart.pos.y = self.pos.y  + 1 + (self.value / self.maxvalue) * (self.size.y - 4)
-  self._scrollbg.pos.x = self.pos.x
-  self._scrollbg.pos.y = self.pos.y  + 1
   self._leftbtn.pos.x = self.pos.x
   self._leftbtn.pos.y = self.pos.y
   self._rightbtn.pos.x = self.pos.x
   self._rightbtn.pos.y = self.pos.y + self.size.y - 1
   self._leftbtn:draw()
   self._rightbtn:draw()
-  self._scrollbg:draw()
+  gpu.fill(self.pos.x, self.pos.y + 1, 1, self.size.y - 2, " ") -- scroll bg
   self._scrollpart:draw()
 end
 
@@ -400,6 +410,20 @@ function thornsgui.HorizontalScrollbar:draw()
   self._scrollbg:draw()
   self._scrollpart:draw()
 end
+
+thornsgui.ScrollContainer = {}
+thornsgui.ScrollContainer.__index = thornsgui.ScrollContainer
+
+function thornsgui.ScrollContainer:create(element,xsize,ysize)
+  local sc = {}
+  setmetatable(sc, thornsgui.ScrollContainer)
+  sc.pos = {x=1,y=1}
+  sc.element = element
+  sc.size = {x=xsize,y=ysize} -- fixed size of the container
+  sc.hsb = thornsgui.HorizontalScrollbar:create(xsize - 1)
+  return sc
+end
+
 
 --[[
 function thornsgui.createTable(dim_x,dim_y,x_pos,y_pos)
@@ -593,19 +617,19 @@ end
 
 -- clears current out-pipes clickSensitive-mem
 function thornsgui.clearClickListeners()
-    out.clickSensitive = {}
+    gpu.clickSensitive = {}
 end
 -- waits for and handels next click event
 function thornsgui.handleNextEvent()
   local ev, _, x, y,  btn = event.pullMultiple("touch","drag","drop")
   -- if in sub window calc offset:
-  if out.getPosition ~= nil then 
-    local ox,oy = out.getPosition()
+  if gpu.pos ~= nil then 
+    local ox,oy = gpu.pos.x, gpu.pos.y
     x = x-ox+1
     y = y-oy+1
   end
   if ev == "touch" then
-    for _,cs in pairs(out.clickSensitive) do
+    for _,cs in pairs(gpu.clickSensitive) do
       if(cs:handleClick(x,y, btn)) then break end
     end
   elseif ev == "drag" then
@@ -621,12 +645,12 @@ local function drawImage(file)
   local cont = f:read("a*")
   for i=1,#cont do 
     local ch = string.sub(cont, i,i)
-    out.gpu().setBackground(out.gpu().getPaletteColor(colors.white)) -- white per default
+    gpu.setBackground(gpu.getPaletteColor(colors.white)) -- white per default
     if string.byte(ch) >= 48 and string.byte(ch) <= 57 then
-      out.gpu().setBackground( out.gpu().getPaletteColor(string.byte(ch) - 48)) -- 0 .. 9
+      gpu.setBackground( gpu.getPaletteColor(string.byte(ch) - 48)) -- 0 .. 9
     end
     if string.byte(ch) >= 97 and string.byte(ch) <= 102 then
-      out.gpu().setBackground( out.gpu().getPaletteColor(string.byte(ch) - 87)) -- a .. f
+      gpu.setBackground( gpu.getPaletteColor(string.byte(ch) - 87)) -- a .. f
     end
     if ch ~= "\n" then 
       io.write(" ") 
@@ -636,14 +660,18 @@ local function drawImage(file)
   end
 end
 
+local function clrScr()
+  local x,y = gpu.getResolution()
+  gpu.fill(1,1,x,y," ")
+end
 --shows logo
 function thornsgui.showLogo(t)
-    out.gpu().setBackground(out.gpu().getPaletteColor(colors.white))
-    out.clear()
+    gpu.setBackground(gpu.getPaletteColor(colors.white))
+    clrScr()
     drawImage("/usr/lib/thornslogo")
     os.sleep(t)
-    out.gpu().setBackground(out.gpu().getPaletteColor(colors.black))
-    out.clear()
+    gpu.setBackground(gpu.getPaletteColor(colors.black))
+    clrScr()
 end
 thornsgui.showLogo(0.4)
 
