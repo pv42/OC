@@ -54,7 +54,7 @@ local function sizeString(size)
   if size < 10240 then return string.format("%.2fkiB", size/1024) end
   if size < 102400 then return string.format("%.1fkiB", size/1024) end
   if size < 1024000 then return string.format("%.0fkiB", size/1024) end
-  return string.format("%.0fMiB", size/1048576) end
+  return string.format("%.0fMiB", size/1048576) 
 end
 
 function drawStats()
@@ -150,7 +150,10 @@ function draw()
         titletext.text = "FileMgr - " .. pwd_v .. string.rep(" ", term.gpu().getResolution() - 12 - #pwd)
         titletext:draw()
         -- todo clear old gui elements
-        vv0:addElement(statsView)
+        local xs,ys = term.gpu().getResolution()
+        ys = ys - 2 -- one line for title and one line for menu
+        local sc = thorns.ScrollContainer:create(statsView,xs,ys)
+        vv0:addElement(sc)
         vv0:draw()
     end
     oldwd = pwd

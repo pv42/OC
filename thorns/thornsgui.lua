@@ -282,7 +282,7 @@ function thornsgui.VerticalScrollbar:create(ysize)
     end
     vsb.onScroll(vsb.value)
     -- draw
-    vsb._scrollpart.pos.y = vsb.pos.y + 1 + (vsb.value / vsb.maxvalue) * (vsb.size.y - 4)
+    vsb._scrollpart.pos.y = vsb.pos.y + 1 + (vsb.value / vsb.maxvalue) * (vsb.size.y - 3)
     gpu.fill(vsb.pos.x, vsb.pos.y + 1, 1, vsb.size.y - 2, " ") -- scroll bg
     vsb._scrollpart:draw()
   end
@@ -294,12 +294,12 @@ function thornsgui.VerticalScrollbar:create(ysize)
     end
     vsb.onScroll(vsb.value)
     -- draw
-    vsb._scrollpart.pos.x = vsb.pos.x + 1 + (vsb.value / vsb.maxvalue) * (vsb.size.x - 4)
+    vsb._scrollpart.pos.x = vsb.pos.x + 1 + (vsb.value / vsb.maxvalue) * (vsb.size.x - 3)
     
     gpu.fill(vsb.pos.x, vsb.pos.y + 1, 1, vsb.size.y - 2, " ") -- scroll bg
     vsb._scrollpart:draw()
   end
-  vsb._scrollpart = thornsgui.Button:create(1, 1, 2,1, "  ") -- pos is overwritten anyways
+  vsb._scrollpart = thornsgui.Button:create(1, 1, 2,1, " ") -- pos is overwritten anyways
   vsb._scrollpart.onClick = function(_,y0) --ignore x
     checkArg(2,y0,"number")
     local v0 = vsb.value
@@ -309,7 +309,7 @@ function thornsgui.VerticalScrollbar:create(ysize)
       if vsb.value < 0 then vsb.value = 0 end
       if vsb.value > vsb.maxvalue then vsb.value = vsb.maxvalue end
       gpu.fill(vsb.pos.x, vsb.pos.y + 1, 1, vsb.size.y - 2, " ") -- scroll bg
-      vsb._scrollpart.pos.y = vsb.pos.y + 1 + (vsb.value / vsb.maxvalue) * (vsb.size.y - 4)
+      vsb._scrollpart.pos.y = vsb.pos.y + 1 + (vsb.value / vsb.maxvalue) * (vsb.size.y - 3)
       vsb._scrollpart:draw()
     end 
     dropHandler = function() --unregister handlers
@@ -322,7 +322,7 @@ end
 
 function thornsgui.VerticalScrollbar:draw()
   self._scrollpart.pos.x = self.pos.x
-  self._scrollpart.pos.y = self.pos.y  + 1 + (self.value / self.maxvalue) * (self.size.y - 4)
+  self._scrollpart.pos.y = self.pos.y  + 1 + (self.value / self.maxvalue) * (self.size.y - 3)
   self._topbtn.pos.x = self.pos.x
   self._topbtn.pos.y = self.pos.y
   self._btmbtn.pos.x = self.pos.x
@@ -413,7 +413,12 @@ end
 
 thornsgui.ScrollContainer = {}
 thornsgui.ScrollContainer.__index = thornsgui.ScrollContainer
-
+--[[
+ draw ^
+ Area |
+ spacev
+ <--->  
+]]
 function thornsgui.ScrollContainer:create(element,xsize,ysize)
   local sc = {}
   setmetatable(sc, thornsgui.ScrollContainer)
@@ -421,9 +426,30 @@ function thornsgui.ScrollContainer:create(element,xsize,ysize)
   sc.element = element
   sc.size = {x=xsize,y=ysize} -- fixed size of the container
   sc.hsb = thornsgui.HorizontalScrollbar:create(xsize - 1)
+  sc.vsb = thornsgui.VerticalScrollbar:create(ysize - 1)
+  sc.hsb.onScroll = function(value) -- todo 
+  end
+  sc.vsb.onScroll = function(value)
+  end
   return sc
 end
 
+function thornsgui.ScrollContainer:draw()
+  local oldgpu = gpu
+  gpu = createFakeGPU(self.pos.x, self.pos.y, self.size.x, self.size.y)
+  self.element:draw()
+  gpu = oldgpu
+  self.vsb.pos.x = self.size.x + self.pos.x - 1
+  self.vsb.pos.y = self.pos.y
+  self.vsb.maxvalue = self.element.size.y - self.size.y + 1
+  if self.vsb.maxvalue < 0 then self.vsb.maxvalue = 0 end
+  self.hsb.pos.x = self.pos.x
+  self.hsb.pos.y = self.size.y + self.pos.y - 1
+  self.hsb.maxvalue = self.element.size.x - self.size.x + 1
+  if self.hsb.maxvalue < 0 then self.hsb.maxvalue = 0 end
+  self.hsb:draw()
+  self.vsb:draw()
+end
 
 --[[
 function thornsgui.createTable(dim_x,dim_y,x_pos,y_pos)
