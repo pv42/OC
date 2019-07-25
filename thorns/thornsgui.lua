@@ -37,7 +37,7 @@ local function createFakeGPU(x_pos,y_pos, x_size, y_size)
       if flip then error("flip not supported in limited fake gpus") end
       if x > x_size or y > y_size then return end 
       if #text + x - 1 > x_size then text = text:sub(1, x_size - x + 1) end
-      gpu.set(x+x_pos,y+y_pos)
+      gpu.set(x+x_pos,y+y_pos, text, false)
     end
   else -- unlimited draw area
     g.fill = function(x,y,xs,ys,c)
@@ -283,7 +283,7 @@ function thornsgui.VerticalScrollbar:create(ysize)
     vsb.onScroll(vsb.value)
     -- draw
     vsb._scrollpart.pos.y = vsb.pos.y + 1 + (vsb.value / vsb.maxvalue) * (vsb.size.y - 3)
-    gpu.fill(vsb.pos.x, vsb.pos.y + 1, 1, vsb.size.y - 2, " ") -- scroll bg
+    drawFilledBox(vsb.pos.x, vsb.pos.y + 1, 1, vsb.size.y - 2, 0xffffff) -- scroll bg
     vsb._scrollpart:draw()
   end
   vsb._btmbtn = thornsgui.Button:create(vsb.pos.x + vsb.size.x - 1 , vsb.pos.y, 1,1, "v")
@@ -296,7 +296,7 @@ function thornsgui.VerticalScrollbar:create(ysize)
     -- draw
     vsb._scrollpart.pos.x = vsb.pos.x + 1 + (vsb.value / vsb.maxvalue) * (vsb.size.x - 3)
     
-    gpu.fill(vsb.pos.x, vsb.pos.y + 1, 1, vsb.size.y - 2, " ") -- scroll bg
+    drawFilledBox(vsb.pos.x, vsb.pos.y + 1, 1, vsb.size.y - 2, 0xffffff) -- scroll bg
     vsb._scrollpart:draw()
   end
   vsb._scrollpart = thornsgui.Button:create(1, 1, 2,1, " ") -- pos is overwritten anyways
@@ -308,7 +308,7 @@ function thornsgui.VerticalScrollbar:create(ysize)
       vsb.value = v0 + (y - y0_) * vsb.maxvalue / (vsb.size.y - 4)
       if vsb.value < 0 then vsb.value = 0 end
       if vsb.value > vsb.maxvalue then vsb.value = vsb.maxvalue end
-      gpu.fill(vsb.pos.x, vsb.pos.y + 1, 1, vsb.size.y - 2, " ") -- scroll bg
+      drawFilledBox(vsb.pos.x, vsb.pos.y + 1, 1, vsb.size.y - 2, 0xffffff) -- scroll bg
       vsb._scrollpart.pos.y = vsb.pos.y + 1 + (vsb.value / vsb.maxvalue) * (vsb.size.y - 3)
       vsb._scrollpart:draw()
     end 
@@ -329,7 +329,7 @@ function thornsgui.VerticalScrollbar:draw()
   self._btmbtn.pos.y = self.pos.y + self.size.y - 1
   self._topbtn:draw()
   self._btmbtn:draw()
-  gpu.fill(self.pos.x, self.pos.y + 1, 1, self.size.y - 2, " ") -- scroll bg
+  drawFilledBox(self.pos.x, self.pos.y + 1, 1, self.size.y - 2, 0xffffff) -- scroll bg
   self._scrollpart:draw()
 end
 

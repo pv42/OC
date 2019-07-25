@@ -132,7 +132,12 @@ function draw()
   vv0:addElement(menu)
   local statsView = drawStats()
   local oldwd = pwd
-  vv0:addElement(statsView)
+  
+  local xs,ys = term.gpu().getResolution()
+  ys = ys - 2 -- one line for title and one line for menu
+  local sc = thorns.ScrollContainer:create(statsView,xs,ys)
+  vv0:addElement(sc)
+        
   vv0:draw()
   while not stop do
     if oldwd ~= pwd then
@@ -149,7 +154,7 @@ function draw()
         if pwd_v == "" then pwd_v = "/" end
         titletext.text = "FileMgr - " .. pwd_v .. string.rep(" ", term.gpu().getResolution() - 12 - #pwd)
         titletext:draw()
-        -- todo clear old gui elements
+        
         local xs,ys = term.gpu().getResolution()
         ys = ys - 2 -- one line for title and one line for menu
         local sc = thorns.ScrollContainer:create(statsView,xs,ys)
