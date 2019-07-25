@@ -49,6 +49,13 @@ function drawFolderSymbol(gpu,x,y)
   gpu.setBackground(0xffffff)
   gpu.setForeground(0x000000)
 end
+local function sizeString(size)
+  if size < 1000 then return string.format("%dB", size) end
+  if size < 10240 then return string.format("%.2fkiB", size/1024) end
+  if size < 102400 then return string.format("%.1fkiB", size/1024) end
+  if size < 1024000 then return string.format("%.0fkiB", size/1024) end
+  return string.format("%.0fMiB", size/1048576) end
+end
 
 function drawStats()
   local vv = thorns.VerticalView:create()
@@ -62,7 +69,7 @@ function drawStats()
         drawFileSymbol(gpu, 1, 1, f.ext)
       end
       gpu.set(7, 1, f.name)
-      gpu.set(7, 2, f.size)
+      gpu.set(7, 2, sizeString(f.size))
     
       local text = f.ext .. "-file"
       if f.ext == "" then text = "file" end

@@ -286,8 +286,8 @@ function thornsgui.VerticalScrollbar:create(ysize)
     gpu.fill(vsb.pos.x, vsb.pos.y + 1, 1, vsb.size.y - 2, " ") -- scroll bg
     vsb._scrollpart:draw()
   end
-  vsb._rightbtn = thornsgui.Button:create(vsb.pos.x + vsb.size.x - 1 , vsb.pos.y, 1,1, "v")
-  vsb._rightbtn.onClick = function() 
+  vsb._btmbtn = thornsgui.Button:create(vsb.pos.x + vsb.size.x - 1 , vsb.pos.y, 1,1, "v")
+  vsb._btmbtn.onClick = function() 
     vsb.value = vsb.value + 1 
     if vsb.value > vsb.maxvalue then 
       vsb.value = vsb.maxvalue 
@@ -323,12 +323,12 @@ end
 function thornsgui.VerticalScrollbar:draw()
   self._scrollpart.pos.x = self.pos.x
   self._scrollpart.pos.y = self.pos.y  + 1 + (self.value / self.maxvalue) * (self.size.y - 4)
-  self._leftbtn.pos.x = self.pos.x
-  self._leftbtn.pos.y = self.pos.y
-  self._rightbtn.pos.x = self.pos.x
-  self._rightbtn.pos.y = self.pos.y + self.size.y - 1
-  self._leftbtn:draw()
-  self._rightbtn:draw()
+  self._topbtn.pos.x = self.pos.x
+  self._topbtn.pos.y = self.pos.y
+  self._btmbtn.pos.x = self.pos.x
+  self._btmbtn.pos.y = self.pos.y + self.size.y - 1
+  self._topbtn:draw()
+  self._btmbtn:draw()
   gpu.fill(self.pos.x, self.pos.y + 1, 1, self.size.y - 2, " ") -- scroll bg
   self._scrollpart:draw()
 end
