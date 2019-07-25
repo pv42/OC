@@ -23,40 +23,31 @@ function stats(base_path)
   return content
 end
 
-function drawFileSymbol(gout,x,y,ext)
+function drawFileSymbol(gpu,x,y,ext)
   if ext == "lua" or ext == "LUA" then 
-    gout.gpu().setBackground(0x3333ff)
+    gpu.setBackground(0x3333ff)
   else
-    gout.gpu().setBackground(0x333333)
+    gpu.setBackground(0x333333)
   end 
-  gout.gpu().setForeground(0xffffff)
-  gout.setCursor(x,  y)
-  gout.write("   " .. unicode.char(0x2819) .. unicode.char(0x28bf))
-  gout.setCursor(x,  y+1)
-  gout.write("     ")
-  gout.setCursor(x,  y+2)
-  gout.write("     ")
-  gout.setCursor(x+1,y+2)
-  gout.write(ext)
-  gout.setCursor(x,  y+3)
-  gout.write("     ")
-  gout.gpu().setBackground(0xffffff)
-  gout.gpu().setForeground(0x000000)
+  gpu.setForeground(0xffffff)
+  gpu.set(x, y,"   " .. unicode.char(0x2819) .. unicode.char(0x28bf))
+  gpu.set(x,  y+1, "     ")
+  gpu.set(x,  y+2, "     ")
+  gpu.set(x+1,y+2, ext)
+  gpu.set(x,  y+3, "     ")
+  gpu.setBackground(0xffffff)
+  gpu.setForeground(0x000000)
 end
 
-function drawFolderSymbol(gout,x,y)
-  gout.gpu().setBackground(0x333333)
-  gout.gpu().setForeground(0xffffff)
-  gout.setCursor(x,  y)
-  gout.write("     ")
-  gout.setCursor(x,  y+1)
-  gout.write("     ")
-  gout.setCursor(x,  y+2)
-  gout.write("     ")
-  gout.setCursor(x,  y+3)
-  gout.write("     ")
-  gout.gpu().setBackground(0xffffff)
-  gout.gpu().setForeground(0x000000)
+function drawFolderSymbol(gpu,x,y)
+  gpu.setBackground(0x333333)
+  gpu.setForeground(0xffffff)
+  gpu.set(x, y, "     ")
+  gpu.set(x, y+1, "     ")
+  gpu.set(x, y+2, "     ")
+  gpu.set(x, y+3, "     ")
+  gpu.setBackground(0xffffff)
+  gpu.setForeground(0x000000)
 end
 
 function drawStats()
@@ -64,21 +55,19 @@ function drawStats()
   local hv = thorns.HorizontalView:create()
   
   for _,f in pairs(stats(pwd)) do
-    local df = function(gout)
+    local df = function(gpu)
       if f.isDir then 
-        drawFolderSymbol(gout, 1, 1)
+        drawFolderSymbol(gpu, 1, 1)
       else
-        drawFileSymbol(gout, 1, 1, f.ext)
+        drawFileSymbol(gpu, 1, 1, f.ext)
       end
-      gout.setCursor(7, 1)
-      gout.write(f.name)
-      gout.setCursor(7, 2)
-      gout.write(f.size)
-      gout.setCursor(7, 3)
+      gpu.set(7, 1, f.name)
+      gpu.set(7, 2, f.size)
+    
       local text = f.ext .. "-file"
       if f.ext == "" then text = "file" end
       if f.isDir then text = "DIR" end
-      gout.write(text)
+      gpu.set(7, 3, text)
     end
     local custom = thorns.Custom:create(20, 5, df)
     if f.isDir then 
