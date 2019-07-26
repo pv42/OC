@@ -129,8 +129,8 @@ function thornsgui.Text:create(x,y,text)
   txt.size.x = string.len(text)
   txt.size.y = 1
   txt.color = {}
-  txt.color.bg = gpu.getPaletteColor(colors.white)
-  txt.color.text = gpu.getPaletteColor(colors.black)
+  txt.color.bg = 0xffffff -- white
+  txt.color.text = 0x000000 -- black
   return txt
 end
 
@@ -301,8 +301,7 @@ function thornsgui.VerticalScrollbar:create(ysize)
     end
     vsb.onScroll(vsb.value)
     -- draw
-    vsb._scrollpart.pos.x = vsb.pos.x + 1 + (vsb.value / vsb.maxvalue) * (vsb.size.x - 3)
-    
+    vsb._scrollpart.pos.y = vsb.pos.y + 1 + (vsb.value / vsb.maxvalue) * (vsb.size.y - 3)
     drawFilledBox(vsb.pos.x, vsb.pos.y + 1, 1, vsb.size.y - 2, 0xffffff) -- scroll bg
     vsb._scrollpart:draw()
   end
@@ -427,6 +426,9 @@ thornsgui.ScrollContainer.__index = thornsgui.ScrollContainer
  <--->  
 ]]
 function thornsgui.ScrollContainer:create(element,xsize,ysize)
+  checkArg(1, element, "table")
+  checkArg(2, xsize, "number")
+  checkArg(3, ysize, "number)
   local sc = {}
   setmetatable(sc, thornsgui.ScrollContainer)
   sc.pos = {x=1,y=1}
@@ -443,7 +445,7 @@ end
 
 function thornsgui.ScrollContainer:draw()
   local oldgpu = gpu
-  gpu = createFakeGPU(self.pos.x, self.pos.y, self.vsb.value+1, select.hsb.value +1,self.size.x, self.size.y)
+  gpu = createFakeGPU(self.pos.x, self.pos.y, self.vsb.value+1, self.hsb.value +1,self.size.x, self.size.y)
   self.element:draw()
   gpu = oldgpu
   self.vsb.pos.x = self.size.x + self.pos.x - 1
