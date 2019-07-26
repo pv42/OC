@@ -15,7 +15,10 @@ local function drawFilledBox(x,y,x_size,ysize,color)
   gpu.fill(x,y,x_size,ysize," ")
 end 
 
-local function createFakeGPU(x_pos,y_pos, x_size, y_size)
+
+-- creates a fake gpu with a draw area offset by x/y_pos, the draw areas top left has the coords x/y_start for inner purpusess, the draw areas size is limited to x/y_size 
+-- the the last 4 args may all be nil
+local function createFakeGPU(x_pos,y_pos, x_start, y_start, x_size, y_size)
   checkArg(1, x_pos, "number")
   checkArg(2, y_pos, "number")
   local g = {}
@@ -24,19 +27,23 @@ local function createFakeGPU(x_pos,y_pos, x_size, y_size)
   g.setBackground = gpu.setBackground
   g.getPaletteColor = gpu.getPaletteColor
   g.clickSensitive = {} 
-  if x_size then  -- optional but you need both or none
-    checkArg(3, x_size, "number", "nil") -- nil just for better print
-    checkArg(4, y_size, "number")
+  if x_start then  -- optional but you need both or none
+    checkArg(3, x_start, "number", "nil") -- nil just for better print
+    checkArg(4, y_start, "number")
+    checkArg(5, x_size, "number") 
+    checkArg(6, y_size, "number")
     g.fill = function(x,y,xs,ys,c)
-      if x > x_size or y > y_size then return end
-      if x + xs - 1 > x_size then xs = x_size - x + 1 end
+      if x > x_start + x_size - 1 or y > y_start + y_size - 1 then return end -- if lwr limit is oob discart
+      if x + xs - 1 > x_size then xs = x_size - x + 1 end -- upr clipping 
       if y + ys - 1 > y_size then ys = y_size - y + 1 end 
+      if x < x_start then x = x_start end -- lwr clipping
+      if y < y_start then y = y_start end
       gpu.fill(x+x_pos,y+y_pos,xs,ys,c)
     end
     g.set = function(x,y,text,flip)
       if flip then error("flip not supported in limited fake gpus") end
-      if x > x_size or y > y_size then return end 
-      if #text + x - 1 > x_size then text = text:sub(1, x_size - x + 1) end
+      if x > x_start + x_size - 1 or y > y_start + y_size - 1 then return end -- if lwr limit is oob discart
+      -- todo x clipping (y clipping is not importatant) 
       gpu.set(x+x_pos,y+y_pos, text, false)
     end
   else -- unlimited draw area
@@ -436,7 +443,7 @@ end
 
 function thornsgui.ScrollContainer:draw()
   local oldgpu = gpu
-  gpu = createFakeGPU(self.pos.x, self.pos.y, self.size.x, self.size.y)
+  gpu = createFakeGPU(self.pos.x, self.pos.y, self.vsb.value+1, select.hsb.value +1,self.size.x, self.size.y)
   self.element:draw()
   gpu = oldgpu
   self.vsb.pos.x = self.size.x + self.pos.x - 1
