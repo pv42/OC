@@ -9,6 +9,12 @@ local event = require("event")
 local dragHandler = nil
 local dropHandler = nil
 gpu.clickSensitive = {}
+--
+local white = 0xffffff
+local light_gray = 0xcccccc
+local dark_gray = 0x333333
+local black = 0x000000
+
 
 local function drawFilledBox(x,y,x_size,ysize,color)
   gpu.setBackground(color)
@@ -38,20 +44,20 @@ local function createFakeGPU(x_pos,y_pos, x_start, y_start, x_size, y_size)
       if y + ys - 1 > y_size then ys = y_size - y + 1 end 
       if x < x_start then x = x_start end -- lwr clipping
       if y < y_start then y = y_start end
-      gpu.fill(x+x_pos,y+y_pos,xs,ys,c)
+      gpu.fill(x+x_pos - 1, y+y_pos - 1,xs,ys,c)
     end
     g.set = function(x,y,text,flip)
       if flip then error("flip not supported in limited fake gpus") end
       if x > x_start + x_size - 1 or y > y_start + y_size - 1 then return end -- if lwr limit is oob discart
       -- todo x clipping (y clipping is not importatant) 
-      gpu.set(x+x_pos,y+y_pos, text, false)
+      gpu.set(x+x_pos-1,y+y_pos-1, text, false)
     end
   else -- unlimited draw area
     g.fill = function(x,y,xs,ys,c)
-      gpu.fill(x+x_pos,y+y_pos,xs,ys,c)
+      gpu.fill(x+x_pos - 1,y+y_pos - 1,xs,ys,c)
     end
     g.set = function(x,y,text,flip)
-      gpu.set(x+x_pos,y+y_pos, text, flip)
+      gpu.set(x+x_pos-1,y+y_pos-1, text, flip)
     end
   end
   return g
@@ -76,8 +82,8 @@ function thornsgui.Button:create(x_pos,y_pos,x_size,y_size,text)
   btn.size.x= x_size
   btn.size.y = y_size
   btn.color = {}
-  btn.color.text = gpu.getPaletteColor(colors.white)
-  btn.color.bg = gpu.getPaletteColor(colors.gray)
+  btn.color.text = white
+  btn.color.bg = light_gray
   btn.text = text 
   btn.onClick = function() end -- should be overwriten 
   table.insert(gpu.clickSensitive,btn)
@@ -129,8 +135,8 @@ function thornsgui.Text:create(x,y,text)
   txt.size.x = string.len(text)
   txt.size.y = 1
   txt.color = {}
-  txt.color.bg = 0xffffff -- white
-  txt.color.text = 0x000000 -- black
+  txt.color.bg = white
+  txt.color.text = black
   return txt
 end
 
@@ -284,58 +290,61 @@ function thornsgui.VerticalScrollbar:create(ysize)
   vsb._topbtn = thornsgui.Button:create(vsb.pos.x, vsb.pos.y, 1,1, "^")
   vsb._topbtn.onClick = function() 
     vsb.value = vsb.value - 1
-    if vsb.value < 0 then 
-      vsb.value = 0 
-    end
-    vsb.onScroll(vsb.value)
-    -- draw
-    vsb._scrollpart.pos.y = vsb.pos.y + 1 + (vsb.value / vsb.maxvalue) * (vsb.size.y - 3)
-    drawFilledBox(vsb.pos.x, vsb.pos.y + 1, 1, vsb.size.y - 2, 0xffffff) -- scroll bg
-    vsb._scrollpart:draw()
+    vsb:_mOnScroll()
   end
   vsb._btmbtn = thornsgui.Button:create(vsb.pos.x + vsb.size.x - 1 , vsb.pos.y, 1,1, "v")
   vsb._btmbtn.onClick = function() 
     vsb.value = vsb.value + 1 
-    if vsb.value > vsb.maxvalue then 
-      vsb.value = vsb.maxvalue 
-    end
-    vsb.onScroll(vsb.value)
-    -- draw
-    vsb._scrollpart.pos.y = vsb.pos.y + 1 + (vsb.value / vsb.maxvalue) * (vsb.size.y - 3)
-    drawFilledBox(vsb.pos.x, vsb.pos.y + 1, 1, vsb.size.y - 2, 0xffffff) -- scroll bg
-    vsb._scrollpart:draw()
+    vsb:_mOnScroll()
   end
-  vsb._scrollpart = thornsgui.Button:create(1, 1, 2,1, " ") -- pos is overwritten anyways
+  vsb._scrollpart = thornsgui.Button:create(1, 1, 1,1, " ") -- pos is overwritten anyways
   vsb._scrollpart.onClick = function(_,y0) --ignore x
     checkArg(2,y0,"number")
     local v0 = vsb.value
     local y0_ = y0
+    vsb._scrollpart.color.bg = dark_gray
     dragHandler = function(_,y) --ignore y
       vsb.value = v0 + (y - y0_) * vsb.maxvalue / (vsb.size.y - 4)
-      if vsb.value < 0 then vsb.value = 0 end
-      if vsb.value > vsb.maxvalue then vsb.value = vsb.maxvalue end
-      drawFilledBox(vsb.pos.x, vsb.pos.y + 1, 1, vsb.size.y - 2, 0xffffff) -- scroll bg
-      vsb._scrollpart.pos.y = vsb.pos.y + 1 + (vsb.value / vsb.maxvalue) * (vsb.size.y - 3)
-      vsb._scrollpart:draw()
+      vsb:_mOnScroll()
     end 
     dropHandler = function() --unregister handlers
       dragHandler = nil
       dropHandler = nil
+      vsb._scrollpart.color.bg = light_gray
     end
   end
   return vsb
 end
 
+-- private
+function thornsgui.VerticalScrollbar:_mOnScroll(dontOS)
+  if vsb.value < 0 then vsb.value = 0 end
+  if vsb.value > vsb.maxvalue then vsb.value = vsb.maxvalue end
+  if not dontOS then self.onScroll(self.value) end
+  -- draw
+  if self.maxvalue == 0 then 
+    self._scrollpart.pos.y = self.pos.y + 1 
+  else
+    self._scrollpart.pos.y = self.pos.y + 1 + (self.value / self.maxvalue) * (self.size.y - 3)
+  end
+  drawFilledBox(self.pos.x, self.pos.y + 1, 1, self.size.y - 2, white) -- scroll bg
+  self._scrollpart:draw()
+end
+
 function thornsgui.VerticalScrollbar:draw()
   self._scrollpart.pos.x = self.pos.x
-  self._scrollpart.pos.y = self.pos.y  + 1 + (self.value / self.maxvalue) * (self.size.y - 3)
+  if self.maxvalue == 0 then 
+    self._scrollpart.pos.y = self.pos.y + 1 
+  else
+    self._scrollpart.pos.y = self.pos.y + 1 + (self.value / self.maxvalue) * (self.size.y - 3)
+  end
   self._topbtn.pos.x = self.pos.x
   self._topbtn.pos.y = self.pos.y
   self._btmbtn.pos.x = self.pos.x
   self._btmbtn.pos.y = self.pos.y + self.size.y - 1
   self._topbtn:draw()
   self._btmbtn:draw()
-  drawFilledBox(self.pos.x, self.pos.y + 1, 1, self.size.y - 2, 0xffffff) -- scroll bg
+  drawFilledBox(self.pos.x, self.pos.y + 1, 1, self.size.y - 2, white) -- scroll bg
   self._scrollpart:draw()
 end
 
@@ -428,7 +437,7 @@ thornsgui.ScrollContainer.__index = thornsgui.ScrollContainer
 function thornsgui.ScrollContainer:create(element,xsize,ysize)
   checkArg(1, element, "table")
   checkArg(2, xsize, "number")
-  checkArg(3, ysize, "number)
+  checkArg(3, ysize, "number")
   local sc = {}
   setmetatable(sc, thornsgui.ScrollContainer)
   sc.pos = {x=1,y=1}
