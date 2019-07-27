@@ -29,6 +29,7 @@ local function createFakeGPU(x_pos,y_pos, x_start, y_start, x_size, y_size)
   checkArg(2, y_pos, "number")
   local g = {}
   g.pos = {x=x_pos,y=y_pos}
+  g.start = {x=x_start,y=y_start}
   g.setForeground = gpu.setForeground
   g.setBackground = gpu.setBackground
   g.getPaletteColor = gpu.getPaletteColor
@@ -318,8 +319,8 @@ end
 
 -- private
 function thornsgui.VerticalScrollbar:_mOnScroll(dontOS)
-  if vsb.value < 0 then vsb.value = 0 end
-  if vsb.value > vsb.maxvalue then vsb.value = vsb.maxvalue end
+  if self.value < 0 then self.value = 0 end
+  if self.value > self.maxvalue then self.value = self.maxvalue end
   if not dontOS then self.onScroll(self.value) end
   -- draw
   if self.maxvalue == 0 then 
@@ -456,6 +457,13 @@ function thornsgui.ScrollContainer:draw()
   local oldgpu = gpu
   gpu = createFakeGPU(self.pos.x, self.pos.y, self.vsb.value+1, self.hsb.value +1,self.size.x, self.size.y)
   self.element:draw()
+  for _,v in gpu.clickSensitive do -- register listeners properly
+    local fe = {}
+    fe.onClick = function(x,y,b)
+      v.onClick(x - gpu.pos.x + gpu.start.x, y- gpu.pos.y + gpu.start.y,b)
+    end
+    table.insert(oldgpu.clickSensitive, fe)
+  end
   gpu = oldgpu
   self.vsb.pos.x = self.size.x + self.pos.x - 1
   self.vsb.pos.y = self.pos.y
