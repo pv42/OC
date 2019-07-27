@@ -304,14 +304,16 @@ function thornsgui.VerticalScrollbar:create(ysize)
     local v0 = vsb.value
     local y0_ = y0
     vsb._scrollpart.color.bg = dark_gray
+    vsb._scrollpart:draw()
     dragHandler = function(_,y) --ignore y
       vsb.value = v0 + (y - y0_) * vsb.maxvalue / (vsb.size.y - 4)
       vsb:_mOnScroll()
     end 
     dropHandler = function() --unregister handlers
+      vsb._scrollpart.color.bg = light_gray
+      vsb._scrollpart:draw()
       dragHandler = nil
       dropHandler = nil
-      vsb._scrollpart.color.bg = light_gray
     end
   end
   return vsb
@@ -457,7 +459,7 @@ function thornsgui.ScrollContainer:draw()
   local oldgpu = gpu
   gpu = createFakeGPU(self.pos.x, self.pos.y, self.vsb.value+1, self.hsb.value +1,self.size.x, self.size.y)
   self.element:draw()
-  for _,v in gpu.clickSensitive do -- register listeners properly
+  for _,v in pairs(gpu.clickSensitive) do -- register listeners properly
     local fe = {}
     fe.onClick = function(x,y,b)
       v.onClick(x - gpu.pos.x + gpu.start.x, y- gpu.pos.y + gpu.start.y,b)
@@ -473,7 +475,7 @@ function thornsgui.ScrollContainer:draw()
   self.hsb.pos.y = self.size.y + self.pos.y - 1
   self.hsb.maxvalue = self.element.size.x - self.size.x + 1
   if self.hsb.maxvalue < 0 then self.hsb.maxvalue = 0 end
-  self.hsb:draw()
+  --self.hsb:draw() todo reenable
   self.vsb:draw()
 end
 
