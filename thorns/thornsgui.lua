@@ -53,6 +53,9 @@ local function createFakeGPU(x_pos,y_pos, x_start, y_start, x_size, y_size)
       -- todo x clipping (y clipping is not importatant) 
       gpu.set(x+x_pos-1,y+y_pos-1, text, false)
     end
+    g.getResolution = function()
+      retunr x_size - s_start + 1, y_size - y_start + 1
+    end
   else -- unlimited draw area
     g.fill = function(x,y,xs,ys,c)
       gpu.fill(x+x_pos - 1,y+y_pos - 1,xs,ys,c)
@@ -457,7 +460,7 @@ end
 
 function thornsgui.ScrollContainer:draw()
   local oldgpu = gpu
-  gpu = createFakeGPU(self.pos.x, self.pos.y, self.vsb.value+1, self.hsb.value +1,self.size.x, self.size.y)
+  gpu = createFakeGPU(self.pos.x, self.pos.y, self.vsb.value+1, self.hsb.value +1,self.size.x-1, self.size.y-1)
   self.element:draw()
   for _,v in pairs(gpu.clickSensitive) do -- register listeners properly
     local fe = {}
