@@ -84,7 +84,7 @@ function drawStats()
         pwd = pwd .. "/" .. f.name
       end
     end
-    if hv.size.x + custom.size.x > term.gpu().getResolution() then
+    if hv.size.x + custom.size.x > term.gpu().getResolution() - 1 then
       vv:addElement(hv)
       hv = thorns.HorizontalView:create()
     end

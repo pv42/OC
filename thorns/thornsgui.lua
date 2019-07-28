@@ -259,11 +259,11 @@ function thornsgui.Custom:draw()
   self.drawfunc(createFakeGPU(self.pos.x, self.pos.y))
 end
 
-function thornsgui.Custom:handleClick(x,y)
+function thornsgui.Custom:handleClick(x,y,btn)
   checkArg(1, x, "number")
   checkArg(2, y, "number")
   if x >= self.pos.x and y >= self.pos.y and x < self.pos.x + self.size.x and y < self.pos.y + self.size.y then
-    if(self.onClick ~= nil) then self.onClick() end 
+    if(self.onClick ~= nil) then self.onClick(x,y,btn) end 
     return true
   else 
     return false
@@ -323,10 +323,10 @@ function thornsgui.VerticalScrollbar:create(ysize)
 end
 
 -- private
-function thornsgui.VerticalScrollbar:_mOnScroll(dontOS)
+function thornsgui.VerticalScrollbar:_mOnScroll()
   if self.value < 0 then self.value = 0 end
   if self.value > self.maxvalue then self.value = self.maxvalue end
-  if not dontOS then self.onScroll(self.value) end
+  self.onScroll(self.value)
   -- draw
   if self.maxvalue == 0 then 
     self._scrollpart.pos.y = self.pos.y + 1 
@@ -374,61 +374,60 @@ function thornsgui.HorizontalScrollbar:create(xsize)
   hsb._leftbtn = thornsgui.Button:create(hsb.pos.x, hsb.pos.y, 1,1, "<")
   hsb._leftbtn.onClick = function() 
     hsb.value = hsb.value - 1
-    if hsb.value < 0 then 
-      hsb.value = 0 
-    end
-    hsb.onScroll(hsb.value)
-    -- draw
-    hsb._scrollpart.pos.x = hsb.pos.x + 1 + (hsb.value / hsb.maxvalue) * (hsb.size.x - 4)
-    hsb._scrollbg:draw()
-    hsb._scrollpart:draw()
+    hsb:_mOnScroll()
   end
   hsb._rightbtn = thornsgui.Button:create(hsb.pos.x + hsb.size.x - 1 , hsb.pos.y, 1,1, ">")
   hsb._rightbtn.onClick = function() 
     hsb.value = hsb.value + 1 
-    if hsb.value > hsb.maxvalue then 
-      hsb.value = hsb.maxvalue 
-    end
-    hsb.onScroll(hsb.value)
-    -- draw
-    hsb._scrollpart.pos.x = hsb.pos.x + 1 + (hsb.value / hsb.maxvalue) * (hsb.size.x - 4)
-    hsb._scrollbg:draw()
-    hsb._scrollpart:draw()
+    hsb:_mOnScroll()
   end
   hsb._scrollpart = thornsgui.Button:create(1, 1, 2,1, "  ") -- pos is overwritten anyways
   hsb._scrollpart.onClick = function(x0,_) --ignore y 
     checkArg(1,x0,"number")
     local v0 = hsb.value
     local x0_ = x0
+    hsb._scrollpart.color.bg = dark_gray
     dragHandler = function(x,_) --ignore y
       hsb.value = v0 + (x - x0_) * hsb.maxvalue / (hsb.size.x - 4)
-      if hsb.value < 0 then hsb.value = 0 end
-      if hsb.value > hsb.maxvalue then hsb.value = hsb.maxvalue end
-      hsb._scrollbg:draw()
-      hsb._scrollpart.pos.x = hsb.pos.x + 1 + (hsb.value / hsb.maxvalue) * (hsb.size.x - 4)
-      hsb._scrollpart:draw()
+      hsb:_mOnScroll()
     end 
     dropHandler = function() --unregister handlers
+      hsb._scrollpart.color.bg = light_gray
       dragHandler = nil
       dropHandler = nil
     end
   end
-  hsb._scrollbg = thornsgui.Text:create(1, 1, string.rep(" ", hsb.size.x - 2)) -- pos is overwritten anyways
+  --hsb._scrollbg = thornsgui.Text:create(1, 1, string.rep(" ", hsb.size.x - 2)) -- pos is overwritten anyways
   return hsb
 end
+
+-- private
+function thornsgui.HorizontalScrollbar:_mOnScroll()
+  if self.value < 0 then self.value = 0 end
+  if self.value > self.maxvalue then self.value = self.maxvalue end
+  self.onScroll(self.value)
+  -- draw
+  if self.maxvalue == 0 then 
+    self._scrollpart.pos.x = self.pos.x + 1 
+  else
+    self._scrollpart.pos.x = self.pos.x + 1 + (self.value / self.maxvalue) * (self.size.y - 4)
+  end
+  drawFilledBox(self.pos.x +1, self.pos.y, self.size.x - 2,1, white) -- scroll bg
+  self._scrollpart:draw()
+end
+
+
 
 function thornsgui.HorizontalScrollbar:draw()
   self._scrollpart.pos.x = self.pos.x + 1 + (self.value / self.maxvalue) * (self.size.x - 4)
   self._scrollpart.pos.y = self.pos.y
-  self._scrollbg.pos.y = self.pos.y
-  self._scrollbg.pos.x = self.pos.x + 1
   self._leftbtn.pos.x = self.pos.x
   self._leftbtn.pos.y = self.pos.y
   self._rightbtn.pos.x = self.pos.x + self.size.x - 1
   self._rightbtn.pos.y = self.pos.y
   self._leftbtn:draw()
   self._rightbtn:draw()
-  self._scrollbg:draw()
+  drawFilledBox(self.pos.x +1, self.pos.y, self.size.x - 2,1, white) -- scroll bg
   self._scrollpart:draw()
 end
 
