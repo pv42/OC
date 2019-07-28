@@ -11,8 +11,9 @@ local dropHandler = nil
 gpu.clickSensitive = {}
 --
 local white = 0xffffff
-local light_gray = 0xcccccc
-local dark_gray = 0x333333
+local light_gray = 0xbfbfbf
+local gray = 0x7f7f7f
+local dark_gray = 0x3f3f3f
 local black = 0x000000
 
 local function drawFilledBox(x,y,x_size,ysize,color)
@@ -41,13 +42,25 @@ local function createFakeGPU(x_pos,y_pos, x_start, y_start, x_size, y_size)
       if x > x_start + x_size - 1 or y > y_start + y_size - 1 then return end -- if lwr limit is oob discart
       if x + xs - 1 > x_size then xs = x_size - x + 1 end -- upr clipping 
       if y + ys - 1 > y_size then ys = y_size - y + 1 end 
-      if x < x_start then x = x_start end -- lwr clipping
-      if y < y_start then y = y_start end
+      if x < x_start then -- lwr clipping 
+        x = x_start
+        xs = xs + x_start - x
+      end
+      if y < y_start then 
+        y = y_start
+        ys = ys + y_start - y
+      end
       gpu.fill(x+x_pos - 1, y+y_pos - 1,xs,ys,c)
     end
     g.set = function(x,y,text,flip)
       if flip then error("flip not supported in limited fake gpus") end
       if x > x_start + x_size - 1 or y > y_start + y_size - 1 then return end -- if lwr limit is oob discart
+      if x < x_start then -- x lwr clipping
+        text = text:sub(1 + x_start - x)
+      end
+      if x + #text > x_start + x_size - 1 then
+        text = text:sub(1, x_start + x_size - x)
+      end
       -- todo x clipping (y clipping is not importatant) 
       gpu.set(x+x_pos-1,y+y_pos-1, text, false)
     end
