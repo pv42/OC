@@ -15,12 +15,10 @@ local light_gray = 0xcccccc
 local dark_gray = 0x333333
 local black = 0x000000
 
-
 local function drawFilledBox(x,y,x_size,ysize,color)
   gpu.setBackground(color)
   gpu.fill(x,y,x_size,ysize," ")
 end 
-
 
 -- creates a fake gpu with a draw area offset by x/y_pos, the draw areas top left has the coords x/y_start for inner purpusess, the draw areas size is limited to x/y_size 
 -- the the last 4 args may all be nil
@@ -54,7 +52,7 @@ local function createFakeGPU(x_pos,y_pos, x_start, y_start, x_size, y_size)
       gpu.set(x+x_pos-1,y+y_pos-1, text, false)
     end
     g.getResolution = function()
-      retunr x_size - s_start + 1, y_size - y_start + 1
+      return x_size - x_start + 1, y_size - y_start + 1
     end
   else -- unlimited draw area
     g.fill = function(x,y,xs,ys,c)
@@ -233,8 +231,6 @@ function thornsgui.HorizontalView:draw()
   end
 end
 
-
-
 thornsgui.Custom = {}
 thornsgui.Custom.__index = thornsgui.Custom
 
@@ -273,7 +269,6 @@ end
 function thornsgui.Custom:makeClickable()
   table.insert(gpu.clickSensitive, self)
 end
-
 
 thornsgui.VerticalScrollbar = {}
 thornsgui.VerticalScrollbar.__index = thornsgui.VerticalScrollbar
@@ -354,7 +349,6 @@ function thornsgui.VerticalScrollbar:draw()
   self._scrollpart:draw()
 end
 
-
 thornsgui.HorizontalScrollbar = {}
 thornsgui.HorizontalScrollbar.__index = thornsgui.HorizontalScrollbar
 
@@ -415,8 +409,6 @@ function thornsgui.HorizontalScrollbar:_mOnScroll()
   drawFilledBox(self.pos.x +1, self.pos.y, self.size.x - 2,1, white) -- scroll bg
   self._scrollpart:draw()
 end
-
-
 
 function thornsgui.HorizontalScrollbar:draw()
   self._scrollpart.pos.x = self.pos.x + 1 + (self.value / self.maxvalue) * (self.size.x - 4)
