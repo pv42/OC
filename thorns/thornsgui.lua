@@ -57,7 +57,7 @@ local function createFakeGPU(x_pos,y_pos, x_start, y_start, x_size, y_size)
       if x > x_start + x_size - 1 or y > y_start + y_size - 1 then return end -- if lwr limit is oob discart
       if x < x_start then -- x lwr clipping
         text = text:sub(1 + x_start - x)
-      end
+      end -- upr x clipping 
       if x + #text > x_start + x_size - 1 then
         text = text:sub(1, x_start + x_size - x)
       end
