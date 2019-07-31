@@ -60,36 +60,36 @@ end
 function drawStats()
   local vv = thorns.VerticalView:create()
   local hv = thorns.HorizontalView:create()
-  
-  for _,f in pairs(stats(pwd)) do
-    local df = function(gpu)
-      if f.isDir then 
-        drawFolderSymbol(gpu, 1, 1)
-      else
-        drawFileSymbol(gpu, 1, 1, f.ext)
-      end
-      gpu.set(7, 1, f.name)
-      gpu.set(7, 2, sizeString(f.size))
-    
-      local text = f.ext .. "-file"
-      if f.ext == "" then text = "file" end
-      if f.isDir then text = "DIR" end
-      gpu.set(7, 3, text)
+
+    for _,f in pairs(stats(pwd)) do
+        local df = function(gpu)
+            if f.isDir then
+                drawFolderSymbol(gpu, 1, 1)
+            else
+                drawFileSymbol(gpu, 1, 1, f.ext)
+            end
+            gpu.set(7, 1, f.name)
+            gpu.set(7, 2, sizeString(f.size))
+
+            local text = f.ext .. "-file"
+            if f.ext == "" then text = "file" end
+            if f.isDir then text = "DIR" end
+            gpu.set(7, 3, text)
+        end
+        local custom = thorns.Custom:create(20, 5, df)
+        if f.isDir then
+            custom:makeClickable()
+            custom.onClick = function()
+                prev_wd = pwd
+                pwd = pwd .. "/" .. f.name
+            end
+        end
+        if hv.size.x + custom.size.x > term.gpu().getResolution() - 1 then
+            vv:addElement(hv)
+            hv = thorns.HorizontalView:create()
+        end
+        hv:addElement(custom)
     end
-    local custom = thorns.Custom:create(20, 5, df)
-    if f.isDir then 
-      custom:makeClickable()
-      custom.onClick = function() 
-        prev_wd = pwd
-        pwd = pwd .. "/" .. f.name
-      end
-    end
-    if hv.size.x + custom.size.x > term.gpu().getResolution() - 1 then
-      vv:addElement(hv)
-      hv = thorns.HorizontalView:create()
-    end
-    hv:addElement(custom)
-  end
   vv:addElement(hv)
   return vv
 end

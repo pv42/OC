@@ -27,6 +27,9 @@ local function createFakeGPU(x_pos,y_pos, x_start, y_start, x_size, y_size)
   checkArg(1, x_pos, "number")
   checkArg(2, y_pos, "number")
   local g = {}
+  g.z = gpu.z or 0
+  g.z = g.z + 1
+  if g.z > 10 then error("to gpu stack limit reached") end
   g.pos = {x=x_pos,y=y_pos}
   g.start = {x=x_start,y=y_start}
   g.setForeground = gpu.setForeground
@@ -50,7 +53,7 @@ local function createFakeGPU(x_pos,y_pos, x_start, y_start, x_size, y_size)
         y = y_start
         ys = ys + y_start - y
       end
-      gpu.fill(x+x_pos - 1, y+y_pos - 1,xs,ys,c)
+      gpu.fill(x+x_pos - x_start, y + y_pos - y_start,xs,ys,c)
     end
     g.set = function(x,y,text,flip)
       if flip then error("flip not supported in limited fake gpus") end
@@ -463,7 +466,7 @@ function thornsgui.ScrollContainer:create(element,xsize,ysize)
 end
 
 function thornsgui.ScrollContainer:draw()
-  local oldgpu = gpu
+  local old_gpu = gpu
   gpu = createFakeGPU(self.pos.x, self.pos.y, self.vsb.value+1, self.hsb.value +1,self.size.x-1, self.size.y-1)
   self.element:draw()
   for _,v in pairs(gpu.clickSensitive) do -- register listeners properly
@@ -471,9 +474,9 @@ function thornsgui.ScrollContainer:draw()
     fe.onClick = function(x,y,b)
       v.onClick(x - gpu.pos.x + gpu.start.x, y- gpu.pos.y + gpu.start.y,b)
     end
-    table.insert(oldgpu.clickSensitive, fe)
+    table.insert(old_gpu.clickSensitive, fe)
   end
-  gpu = oldgpu
+  gpu = old_gpu
   self.vsb.pos.x = self.size.x + self.pos.x - 1
   self.vsb.pos.y = self.pos.y
   self.vsb.maxvalue = self.element.size.y - self.size.y + 1
@@ -482,7 +485,7 @@ function thornsgui.ScrollContainer:draw()
   self.hsb.pos.y = self.size.y + self.pos.y - 1
   self.hsb.maxvalue = self.element.size.x - self.size.x + 1
   if self.hsb.maxvalue < 0 then self.hsb.maxvalue = 0 end
-  --self.hsb:draw() todo reenable
+  self.hsb:draw()
   self.vsb:draw()
 end
 
