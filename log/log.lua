@@ -2,9 +2,20 @@ local log = {}
 local tty = require("tty")
 local gpu = tty.gpu()
 local interactive = io.output().tty
+local f = io.output()
 --local color, isPal
 if interactive then
   local color, isPal = gpu.getForeground()
+end
+
+function log.connectFile(path)
+  f = io.open(path,"a+")
+end
+
+function log.closeFile(path)
+  f:flush()
+  f:close()
+  f = io.output()
 end
 
 local function save_color()
@@ -24,7 +35,8 @@ function log.e(msg)
   if interactive then
     gpu.setForeground(0xFF0000) -- red
   end
-  io.write("[ERR] " .. msg .. "\n")
+  f:write("[ERR] " .. msg .. "\n")
+  f:flush()
   restore_color()
 end
 
@@ -33,7 +45,8 @@ function log.w(msg)
   if interactive then
     gpu.setForeground(0xFFFF00) -- yellow
   end
-  io.write("[WRN] " .. msg .. "\n")
+  f:write("[WRN] " .. msg .. "\n")
+  f:flush()
   restore_color()
 end
 
@@ -42,7 +55,8 @@ function log.i(msg)
   if interactive then
     gpu.setForeground(0xFFFFFF) -- white
   end
-  io.write("[INF] " .. msg .. "\n")
+  f:write("[INF] " .. msg .. "\n")
+  f:flush()
   restore_color()
 end
 

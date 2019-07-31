@@ -1,5 +1,7 @@
 local component = require("component")
 local colors = require("colors")
+local log = require("log")
+log.connectFile("/usr/lib/thorns_log")
 local thornsgui = {}
 thornsgui.SCROLLBAR_AUTO = 85 -- the values dont matter
 thornsgui.SCROLLBAR_ALWAYS = 86
@@ -24,6 +26,7 @@ end
 -- creates a fake gpu with a draw area offset by x/y_pos, the draw areas top left has the coords x/y_start for inner purpusess, the draw areas size is limited to x/y_size 
 -- the the last 4 args may all be nil
 local function createFakeGPU(x_pos,y_pos, x_start, y_start, x_size, y_size)
+  log.i("creating fake GPU")
   checkArg(1, x_pos, "number")
   checkArg(2, y_pos, "number")
   local g = {}
@@ -57,14 +60,16 @@ local function createFakeGPU(x_pos,y_pos, x_start, y_start, x_size, y_size)
     end
     g.set = function(x,y,text,flip)
       if flip then error("flip not supported in limited fake gpus") end
+      checkArg(1, x, "number")
+      checkArg(1, x, "number")
+      checkArg(1, x, "number")
       if x > x_start + x_size - 1 or y > y_start + y_size - 1 then return end -- if lwr limit is oob discart
       if x < x_start then -- x lwr clipping
         text = text:sub(1 + x_start - x)
       end -- upr x clipping 
-      if x + #text > x_start + x_size - 1 then
+      if #text > x_size - 1 +  x_start - x then
         text = text:sub(1, x_start + x_size - x)
       end
-      -- todo x clipping (y clipping is not importatant) 
       gpu.set(x+x_pos-1,y+y_pos-1, text, false)
     end
     g.getResolution = function()
@@ -462,6 +467,7 @@ function thornsgui.ScrollContainer:create(element,xsize,ysize)
   end
   sc.vsb.onScroll = function(value)
   end
+  log.i("scrollContainer created")
   return sc
 end
 
@@ -722,6 +728,10 @@ local function drawImage(file)
       io.write("\n")
     end 
   end
+end
+
+function thornsgui.resetGPU()
+    gpu = component.gpu
 end
 
 local function clrScr()
