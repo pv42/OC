@@ -29,6 +29,7 @@ local function createFakeGPU(x_pos,y_pos, x_start, y_start, x_size, y_size)
   checkArg(1, x_pos, "number")
   checkArg(2, y_pos, "number")
   local g = {}
+  g.parent = gpu
   g.z = gpu.z or 0
   g.z = g.z + 1
   if g.z > 10 then error("to gpu stack limit reached") end
@@ -56,7 +57,7 @@ local function createFakeGPU(x_pos,y_pos, x_start, y_start, x_size, y_size)
         y = y_start
         ys = ys + y_start - y
       end
-      gpu.fill(x+x_pos - x_start, y + y_pos - y_start,xs,ys,c)
+      g.parent.fill(x+x_pos - x_start, y + y_pos - y_start,xs,ys,c)
     end
     g.set = function(x,y,text,flip)
 
@@ -72,17 +73,17 @@ local function createFakeGPU(x_pos,y_pos, x_start, y_start, x_size, y_size)
       if #text > x_size - 1 +  x_start - x then
         text = text:sub(1, x_start + x_size - x)
       end
-      gpu.set(x+x_pos-1,y+y_pos-1, text, false)
+      g.parent.set(x+x_pos-1,y+y_pos-1, text, false)
     end
     g.getResolution = function()
       return x_size - x_start + 1, y_size - y_start + 1
     end
   else -- unlimited draw area
     g.fill = function(x,y,xs,ys,c)
-      gpu.fill(x+x_pos - 1,y+y_pos - 1,xs,ys,c)
+      g.parent.fill(x+x_pos - 1,y+y_pos - 1,xs,ys,c)
     end
     g.set = function(x,y,text,flip)
-      gpu.set(x+x_pos-1,y+y_pos-1, text, flip)
+      g.parent.set(x+x_pos-1,y+y_pos-1, text, flip)
     end
   end
   return g
