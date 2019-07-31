@@ -20,7 +20,7 @@ local computer = require("computer")
 local math = require("math")
 local inv = component.inventory_controller
 local geo = component.geolyzer
-local msg, libwdb = pcall(require,"libwdb")
+local suc, libwdb = pcall(require,"libwdb")
 local msg, libgps 
 
 local gx,gy,gz
@@ -275,8 +275,8 @@ end
 if not libwdb then 
   print("libwdb could not be loaded, disabling: " .. msg)
 else
-  msg, libgps = pcall(require,"libgps")
-  if not libgps then
+  suc, libgps = pcall(require,"libgps")
+  if not suc then
     print("libgps could not be loaded, disabling: " .. msg)
     libwdb = nil
   else

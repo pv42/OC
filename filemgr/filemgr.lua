@@ -5,8 +5,8 @@ local term = require("term")
 local unicode = require("unicode")
 
 local pwd = os.getenv().PWD
-local prev_wd = nil
-local next_wd = nil
+local prev_wd
+local next_wd
 local stop = false
 
 function stats(base_path)

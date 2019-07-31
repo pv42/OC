@@ -6,8 +6,8 @@ thornsgui.SCROLLBAR_ALWAYS = 86
 thornsgui.SCROLLBAR_NEVER = 87
 local gpu = component.gpu
 local event = require("event")
-local dragHandler = nil
-local dropHandler = nil
+local dragHandler
+local dropHandler
 gpu.clickSensitive = {}
 --
 local white = 0xffffff
