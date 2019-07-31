@@ -1,6 +1,5 @@
 local component = require("component")
 
-
 local ENABLE_LOG = false
 if ENABLE_LOG then
   local log = require("log")
@@ -28,8 +27,14 @@ local function drawFilledBox(x, y, x_size, ysize, color)
   gpu.fill(x, y, x_size, ysize, " ")
 end
 
--- creates a fake gpu with a draw area offset by x/y_pos, the draw areas top left has the coords x/y_start for inner purpusess, the draw areas size is limited to x/y_size 
--- the the last 4 args may all be nil
+---creates a fake gpu with a draw area offset by x/y_pos, the draw areas top left has the coords x/y_start for inner purpusess, the draw areas size is limited to x/y_size
+---the the last 4 args may all be nil
+---@param x_pos number draw area x offset
+---@param y_pos number draw area y offset
+---@param x_start number draw area's (inner) left coordinate, may be nil
+---@param y_start number draw area's (inner) top coordinate, may be nil
+---@param x_size number draw area's x size, may be nil
+---@param y_size number draw area's y size, may be nil
 local function createFakeGPU(x_pos, y_pos, x_start, y_start, x_size, y_size)
   checkArg(1, x_pos, "number")
   checkArg(2, y_pos, "number")
@@ -117,6 +122,12 @@ end
 thornsgui.Button = {}
 thornsgui.Button.__index = thornsgui.Button
 
+---creates a Button with text
+---@param x_pos number x position
+---@param y_pos number y position
+---@param x_size number x size
+---@param y_size number y size
+---@param text string buttons text
 function thornsgui.Button:create(x_pos, y_pos, x_size, y_size, text)
   checkArg(1, x_pos, "number")
   checkArg(2, y_pos, "number")
@@ -351,7 +362,7 @@ function thornsgui.VerticalScrollbar:create(ysize)
   vsb.pos = {}
   vsb.pos.x = 1
   vsb.pos.y = 1
-  vsb.onScroll = function(value)
+  vsb.onScroll = function()
   end -- change this; value is float
   vsb.value = 0
   vsb.maxvalue = 1
@@ -442,9 +453,9 @@ function thornsgui.HorizontalScrollbar:create(xsize)
   hsb.pos = {}
   hsb.pos.x = 1
   hsb.pos.y = 1
-  hsb.onScroll = function(value)
+  hsb.onScroll = function()
   end -- change this; value is float
-  hsb.value = 0
+  hsb.value = 0 -- float
   hsb.maxvalue = 1
   hsb._leftbtn = thornsgui.Button:create(hsb.pos.x, hsb.pos.y, 1, 1, "<")
   hsb._leftbtn.onClick = function()
