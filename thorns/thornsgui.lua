@@ -26,13 +26,13 @@ end
 -- creates a fake gpu with a draw area offset by x/y_pos, the draw areas top left has the coords x/y_start for inner purpusess, the draw areas size is limited to x/y_size 
 -- the the last 4 args may all be nil
 local function createFakeGPU(x_pos,y_pos, x_start, y_start, x_size, y_size)
-  log.i("creating fake GPU")
   checkArg(1, x_pos, "number")
   checkArg(2, y_pos, "number")
   local g = {}
   g.z = gpu.z or 0
   g.z = g.z + 1
   if g.z > 10 then error("to gpu stack limit reached") end
+  log.i("creating fake GPU at z=" .. g.z)
   g.pos = {x=x_pos,y=y_pos}
   g.start = {x=x_start,y=y_start}
   g.setForeground = gpu.setForeground
@@ -59,6 +59,8 @@ local function createFakeGPU(x_pos,y_pos, x_start, y_start, x_size, y_size)
       gpu.fill(x+x_pos - x_start, y + y_pos - y_start,xs,ys,c)
     end
     g.set = function(x,y,text,flip)
+
+      log.i("fakegpu:set " .. x .. "," .. y .. " #=" .. #text)
       if flip then error("flip not supported in limited fake gpus") end
       checkArg(1, x, "number")
       checkArg(1, x, "number")
@@ -164,6 +166,7 @@ function thornsgui.Text:create(x,y,text)
 end
 
 function thornsgui.Text:draw()
+  log.i("drawing text")
   gpu.setBackground(self.color.bg)
   gpu.setForeground(self.color.text)
   gpu.set(self.pos.x, self.pos.y, self.text)
@@ -273,6 +276,7 @@ function thornsgui.Custom:create(xsize,ysize,drawfunc)
 end
 
 function thornsgui.Custom:draw()
+  log.i("drawing hsb")
   self.drawfunc(createFakeGPU(self.pos.x, self.pos.y))
 end
 
@@ -293,7 +297,7 @@ end
 
 thornsgui.VerticalScrollbar = {}
 thornsgui.VerticalScrollbar.__index = thornsgui.VerticalScrollbar
--- TODO
+
 function thornsgui.VerticalScrollbar:create(ysize)
   checkArg(1, ysize, "number")
   local vsb = {}
@@ -354,6 +358,8 @@ function thornsgui.VerticalScrollbar:_mOnScroll()
 end
 
 function thornsgui.VerticalScrollbar:draw()
+  log.i("drawing vsb")
+
   self._scrollpart.pos.x = self.pos.x
   if self.maxvalue == 0 then 
     self._scrollpart.pos.y = self.pos.y + 1 
@@ -432,6 +438,7 @@ function thornsgui.HorizontalScrollbar:_mOnScroll()
 end
 
 function thornsgui.HorizontalScrollbar:draw()
+  log.i("drawing hsb")
   self._scrollpart.pos.x = self.pos.x + 1 + (self.value / self.maxvalue) * (self.size.x - 4)
   self._scrollpart.pos.y = self.pos.y
   self._leftbtn.pos.x = self.pos.x
@@ -472,6 +479,7 @@ function thornsgui.ScrollContainer:create(element,xsize,ysize)
 end
 
 function thornsgui.ScrollContainer:draw()
+  log.i("drawing scroll container")
   local old_gpu = gpu
   gpu = createFakeGPU(self.pos.x, self.pos.y, self.vsb.value+1, self.hsb.value +1,self.size.x-1, self.size.y-1)
   self.element:draw()
@@ -687,6 +695,7 @@ end
 
 -- clears current out-pipes clickSensitive-mem
 function thornsgui.clearClickListeners()
+    log.i("click listeners cleared")
     gpu.clickSensitive = {}
 end
 -- waits for and handels next click event
@@ -749,4 +758,5 @@ function thornsgui.showLogo(t)
 end
 thornsgui.showLogo(0.4)
 
+log.i("ThornsGUI loaded")
 return thornsgui

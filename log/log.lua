@@ -9,7 +9,7 @@ if interactive then
 end
 
 function log.connectFile(path)
-  f = io.open(path,"a+")
+  f = io.open(path,"a")
 end
 
 function log.closeFile(path)
