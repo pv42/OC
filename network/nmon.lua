@@ -43,7 +43,7 @@ end
 
 io.write("NMon 1.0.06  (C) 2019 pv42\n")
 io.write("Press 'Ctrl-C' to exit\n")
-pcall(function()
+local suc,pcall_ret = pcall(function()
   repeat
     if #args > 0 then
       evt = table.pack(event.pullMultiple("interrupted", table.unpack(args)))
@@ -78,6 +78,7 @@ pcall(function()
     end
   until evt[1] == "interrupted"
 end)
+print(pcall_ret)
 if interactive then
   gpu.setForeground(color, isPal)
 end

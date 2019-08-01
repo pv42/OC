@@ -1,8 +1,8 @@
 local component = require("component")
-
 local ENABLE_LOG = false
+local log
 if ENABLE_LOG then
-  local log = require("log")
+  log = require("log")
   log.connectFile("/tmp/thorns_log")
 end
 
@@ -35,6 +35,7 @@ end
 ---@param y_start number draw area's (inner) top coordinate, may be nil
 ---@param x_size number draw area's x size, may be nil
 ---@param y_size number draw area's y size, may be nil
+---@return table fake gpu table
 local function createFakeGPU(x_pos, y_pos, x_start, y_start, x_size, y_size)
   checkArg(1, x_pos, "number")
   checkArg(2, y_pos, "number")
@@ -128,6 +129,7 @@ thornsgui.Button.__index = thornsgui.Button
 ---@param x_size number x size
 ---@param y_size number y size
 ---@param text string buttons text
+---@public
 function thornsgui.Button:create(x_pos, y_pos, x_size, y_size, text)
   checkArg(1, x_pos, "number")
   checkArg(2, y_pos, "number")
@@ -185,6 +187,10 @@ end
 thornsgui.Text = {}
 thornsgui.Text.__index = thornsgui.Text
 
+---create
+---@param x number
+---@param y number
+---@param text string
 function thornsgui.Text:create(x, y, text)
   checkArg(1, x, "number")
   checkArg(2, y, "number")
@@ -546,7 +552,7 @@ function thornsgui.ScrollContainer:create(element, xsize, ysize)
   sc.vsb = thornsgui.VerticalScrollbar:create(ysize - 1)
   sc.hsb.onScroll = function(value)
     -- redraw element
-    gpu.fill(sc.pos.x, sc.pos.y, sc.size.x - 1, sc.size.y - 1) -- clear element area
+    gpu.fill(sc.pos.x, sc.pos.y, sc.size.x - 1, sc.size.y - 1, " ") -- clear element area
     local old_gpu = gpu
     gpu = createFakeGPU(sc.pos.x, sc.pos.y, sc.vsb.value + 1, value + 1, sc.size.x - 1, sc.size.y - 1)
     sc.element:draw()
@@ -561,7 +567,7 @@ function thornsgui.ScrollContainer:create(element, xsize, ysize)
     gpu = old_gpu
   end
   sc.vsb.onScroll = function(value)
-    gpu.fill(sc.pos.x, sc.pos.y, sc.size.x - 1, sc.size.y - 1) -- clear element area
+    gpu.fill(sc.pos.x, sc.pos.y, sc.size.x - 1, sc.size.y - 1, " ") -- clear element area
     local old_gpu = gpu
     gpu = createFakeGPU(sc.pos.x, sc.pos.y, value + 1, sc.hsb.value + 1, sc.size.x - 1, sc.size.y - 1)
     sc.element:draw()
@@ -843,7 +849,10 @@ end
 local function drawImage(file)
   local f, msg = io.open(file)
   if not f then
-    error(msg)
+    if ENABLE_LOG then
+      log.e(msg)
+    end
+    return
   end
   local cont = f:read("a*")
   for i = 1, #cont do
@@ -876,7 +885,7 @@ function thornsgui.showLogo(t)
   gpu.setBackground(white)
   clrScr()
   drawImage("/usr/lib/thornslogo")
-  os.sleep(t)
+  if os.sleep then os.sleep(t) end -- for venv
   gpu.setBackground(black)
   clrScr()
 end

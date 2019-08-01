@@ -4,7 +4,11 @@ local fs = require("filesystem")
 local term = require("term")
 local unicode = require("unicode")
 
-local pwd = os.getenv().PWD
+local _,env = pcall(os.getenv)
+if  type(env) ~= "table" then
+  env = {PWD="/home/pv42"}
+end
+local pwd = env.PWD
 local prev_wd
 local next_wd
 local stop = false
@@ -147,9 +151,9 @@ function draw()
   local statsView = drawStats()
   local oldwd = pwd
 
-  local xs, ys = term.gpu().getResolution()
-  ys = ys - 2 -- one line for title and one line for menu
-  local sc = thorns.ScrollContainer:create(statsView, xs, ys)
+  local x_size, y_size = term.gpu().getResolution()
+  y_size = y_size - 2 -- one line for title and one line for menu
+  local sc = thorns.ScrollContainer:create(statsView, x_size, y_size)
   vv0:addElement(sc)
 
   vv0:draw()
@@ -164,16 +168,16 @@ function draw()
       exitBtn:readdListener()
       parentBtn:readdListener()
       statsView = drawStats()
-      local pwd_v = pwd
+      pwd_v = pwd
       if pwd_v == "" then
         pwd_v = "/"
       end
       titletext.text = "FileMgr - " .. pwd_v .. string.rep(" ", term.gpu().getResolution() - 12 - #pwd)
       titletext:draw()
 
-      local xs, ys = term.gpu().getResolution()
-      ys = ys - 2 -- one line for title and one line for menu
-      local sc = thorns.ScrollContainer:create(statsView, xs, ys)
+      x_size, y_size = term.gpu().getResolution()
+      y_size = y_size - 2 -- one line for title and one line for menu
+      sc = thorns.ScrollContainer:create(statsView, x_size, y_size)
       vv0:addElement(sc)
       vv0:draw()
     end
