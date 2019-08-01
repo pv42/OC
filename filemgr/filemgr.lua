@@ -4,9 +4,9 @@ local fs = require("filesystem")
 local term = require("term")
 local unicode = require("unicode")
 
-local _,env = pcall(os.getenv)
-if  type(env) ~= "table" then
-  env = {PWD="/home/pv42"}
+local _, env = pcall(os.getenv)
+if type(env) ~= "table" then
+  env = { PWD = "/home/pv42" }
 end
 local pwd = env.PWD
 local prev_wd
@@ -21,7 +21,12 @@ local function stats(base_path)
     info.name = f:gsub("/+$", "")
     info.isDir = fs.isDirectory(full_path)
     info.size = fs.size(full_path)
-    info.ext = (info.name:match("(%.[^.]+)$") or ""):sub(2) -- regex for .xyz and then remove .
+    info.ext = (info.name:match("(%.[^.]+)$") or "") -- regex for .xyz and
+    if info.name == info.ext then -- exclude files like .bash_history
+      info.ext = ""
+    else
+      info.ext = info.ext:sub(2) -- remove .
+    end
     table.insert(content, info)
   end
   return content
@@ -160,7 +165,7 @@ function draw()
   while not stop do
     if oldwd ~= pwd then
       statsView:clear()
-      vv0:removeElement(statsView)
+      vv0:removeElement(sc)
       thorns.clearClickListeners()
       -- readd staying btns
       nextBtn:readdListener()
