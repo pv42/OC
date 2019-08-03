@@ -9,6 +9,9 @@ if type(env) ~= "table" then
   env = { PWD = "/home/pv42" }
 end
 local pwd = env.PWD
+local DISPLAY_LIST = 2
+local DISPLAY_TILE = 1
+local display = DISPLAY_TILE
 local prev_wd
 local next_wd
 local stop = false
@@ -74,7 +77,29 @@ local function sizeString(size)
   return string.format("%.0fMiB", size / 1048576)
 end
 
-local function drawStats()
+local function drawStatsList()
+  local tbl = thorns.createTable()
+
+  local l = 2
+  tbl:setElement(1,1,"Name")
+  tbl:setElement(1,2,"Type")
+  tbl:setElement(1,3,"Size")
+  for _, f in pairs(stats(pwd)) do
+    tbl:setElement(l,1,f.name)
+    local type = f.ext .. "-file"
+    if f.ext == "" then
+      type = "file"
+    end
+    if f.isDir then
+      type = "DIR"
+    end
+    tbl:setElement(l,2,type)
+    tbl:setElement(l,3, sizeString(f.size))
+  end
+  return tbl
+end
+
+local function drawStatsTile()
   local vv = thorns.VerticalView:create()
   local hv = thorns.HorizontalView:create()
 
@@ -113,6 +138,14 @@ local function drawStats()
   end
   vv:addElement(hv)
   return vv
+end
+
+local function drawStats()
+  if display == DISPLAY_TILE then
+    drawStatsTile()
+  elseif display == DISPLAY_LIST then
+    drawStatsList()
+  end
 end
 
 function draw()

@@ -619,279 +619,301 @@ function thornsgui.ScrollContainer:draw()
   self.vsb:draw()
 end
 
+thornsgui.Table = {}
+thornsgui.Table.__index = thornsgui.Table
+
+function thornsgui.Table:create(dim_x, dim_y, x_pos, y_pos)
+  local tbl = {}
+  tbl.type = "table"
+  tbl.dim = { dim_x, dim_y }
+  tbl.pos = {}
+  tbl.pos.x = x_pos
+  tbl.pos.y = y_pos
+  tbl.elements = {}
+  for i = 1, dim_x do
+    tbl.elements[i] = {}
+  end
+  tbl.setColors = function(txtc, backc, type)
+    -- optional:type(string) only color a type of subelements
+    for i = 1, tbl.dim[1] do
+      for j = 1, tbl.dim[2] do
+        if (tbl.elements[i][j] ~= nil) then
+          if (type == nil or tbl.elements[i][j].type == type) then
+            tbl.elements[i][j].setColors(txtc, backc)
+          end
+        end
+      end
+    end
+  end
+  tbl.size = function()
+    error("//TODO")
+  end
+  return tbl
+end
+
+function thornsgui.Table:draw()
+  local cx = self.pos.x
+  local mx = {}
+  local my = {}
+  for i = 1, self.dim[1] do
+    for j = 1, self.dim[2] do
+      if (self.elements[i][j] ~= nil) then
+        if mx[i] == nil then
+          mx[i] = self.elements[i][j].size.x
+        else
+          mx[i] = math.max(mx[i], self.elements[i][j].size.x)
+        end
+        if my[j] == nil then
+          my[j] = self.elements[i][j].size.y
+        else
+          my[j] = math.max(my[j], self.elements[i][j].size.y)
+        end
+      end
+      if (i == self.dim[1] and my[j] == nil) then
+        my[j] = 0
+      end --empty
+    end
+    if (mx[i] == nil) then
+      mx[i] = 0
+    end --empty
+  end
+  for i = 1, self.dim[1] do
+    local cy = self.pos.y
+    for j = 1, self.dim[2] do
+      if (self.elements[i][j] ~= nil) then
+        self.elements[i][j].pos.x=cx
+        self.elements[i][j].pos.y=cy
+        self.elements[i][j]:draw()
+      end
+      cy = cy + my[j]
+    end
+    cx = cx + mx[i]
+  end
+end
+
+function thornsgui.Table:setElement(x, y, element)
+  if (x > self.dim[1] or x < 1 or y > self.dim[2] or y < 1) then
+    error("Index(" .. x .. "," .. y .. ") out of boundaries: " .. self.dim[1] .. "," .. self.dim[2])
+  end
+  self.elements[x][y] = element
+end
+
 --[[
-function thornsgui.createTable(dim_x,dim_y,x_pos,y_pos)
-    local tbl = {}
-    tbl.type = "table"
-    tbl.dim = {dim_x, dim_y}
-    tbl.pos = {}
-    tbl.pos.x = x_pos
-    tbl.pos.y = y_pos
-    tbl.elements = {}
-    for i=1,dim_x do
-        tbl.elements[i] = {}
+function thornsgui.createDropdownSelector(x, y)
+  dds = {}
+  dds.type = "dropdownselector"
+  dds.pos = {}
+  dds.pos.x = x
+  dds.pos.y = y
+  dds.size = {}
+  dds.size.x = 1
+  dds.size.y = 1
+  dds.options = {}
+  dds.selected = 1
+  dds.addOption = function(text)
+    opt = createButton(1, 1, string.len(text), 1, text)
+    opt.setColors(colors.black, colors.white)
+    opt.setPos(dds.pos.x, dds.pos.y)
+    table.insert(dds.options, opt)
+    dds.size.x = math.max(dds.size.x, opt.size.x + 1)
+    dds.size.y = math.max(dds.size.y, opt.size.y)
+  end
+  dds.draw = function()
+    if (#(dds.options) == 0) then
+      error("At least one option required")
     end
-    tbl.draw = function()
-        local cx = tbl.pos.x
-        local mx = {}
-        local my = {}
-        for i=1,tbl.dim[1] do
-            for j=1,tbl.dim[2] do
-                if(tbl.elements[i][j]~=nil) then 
-                    if mx[i] == nil then 
-                        mx[i] = tbl.elements[i][j].size.x 
-                    else
-                        mx[i] = math.max(mx[i],tbl.elements[i][j].size.x)
-                    end
-                    if my[j] == nil then 
-                        my[j] = tbl.elements[i][j].size.y 
-                    else
-                        my[j] = math.max(my[j],tbl.elements[i][j].size.y) 
-                    end
-                end
-                if(i == tbl.dim[1] and my[j] == nil ) then my[j] = 0 end --empty
-            end
-            if(mx[i] == nil) then mx[i] = 0 end --empty
+    if (dds.selectBtn == nil) then
+      --init selectButton
+      -- +dds.size.x-1
+      dds.selectBtn = createButton(dds.pos.x + dds.size.x - 1, dds.pos.y, 1, 1, "v")
+      local fx = function()
+        if dds.ddw == nil then
+          offset_x, offset_y = 0, 0
+          if out.getPosition ~= nil then
+            offset_x, offset_y = out.getPosition()
+            offset_x = offset_x - 1
+            offset_y = offset_y - 1
+          end
+          dds.ddw = window.create(term_c, dds.pos.x + offset_x, dds.pos.y + 1 + offset_y, dds.size.x - 1, #(dds.options), false)
+          dds.ddw.setBackgroundColor(colors.white)
+          dds.ddw.clear()
+          dds.ddw.visible = false
+
         end
-        for i=1,tbl.dim[1] do
-            local cy=tbl.pos.y
-            for j=1,tbl.dim[2] do
-                if(tbl.elements[i][j]~=nil) then 
-                    tbl.elements[i][j].setPos(cx,cy)
-                    tbl.elements[i][j].draw() 
-                end
-                cy = cy + my[j]
-            end
-            cx = cx + mx[i]
+        dds.ddw.visible = not dds.ddw.visible
+        dds.ddw.setVisible(dds.ddw.visible)
+        if (dds.ddw.visible) then
+          dds.ddw.parent = out
+          setOutput(dds.ddw)
+          for i = 1, #(dds.options) do
+            dds.options[i].setPos(1, i)
+            dds.options[i].setOnClick(function()
+              dds.selected = i
+              dds.ddw.visible = not dds.ddw.visible
+              dds.ddw.setVisible(dds.ddw.visible)
+              setOutput(dds.ddw.parent)
+              drawFilledBox(dds.pos.x, dds.pos.y, dds.pos.x + dds.size.x - 2, dds.pos.y + dds.size.y - 1, colors.white)--clear space
+              dds.options[dds.selected].setPos(dds.pos.x, dds.pos.y)
+              dds.options[dds.selected].draw()
+              out.redraw()
+              if (dds.onChange ~= nil) then
+                dds.onChange(i, dds.options[i].text)
+              end
+            end)
+            dds.options[i].registerEventListener()
+            dds.options[i].draw()
+          end
+          dds.ddw.redraw() --?
+        else
+          setOutput(dds.ddw.parent)
+          out.redraw()
+          dds.ddw.redraw()
         end
+      end
+      dds.selectBtn.setOnClick(fx)
+      dds.selectBtn.registerEventListener()
     end
-    tbl.setElement = function(x,y,element)
-        if(x>tbl.dim[1] or x<1 or y>tbl.dim[2] or y<1) then error("Index("..x..","..y..") out of boundaries: " .. tbl.dim[1] .. "," .. tbl.dim[2]) end
-       
-        tbl.elements[x][y] = element
-    end
-    tbl.setColors = function(txtc,backc,type) -- optional:type(string) only color a type of subelements
-        for i = 1,tbl.dim[1] do
-            for j = 1,tbl.dim[2] do
-                if(tbl.elements[i][j]~=nil ) then 
-                    if(type == nil or tbl.elements[i][j].type == type) then tbl.elements[i][j].setColors(txtc,backc) end
-                end
-            end
+    drawFilledBox(dds.pos.x, dds.pos.y, dds.pos.x + dds.size.x - 2, dds.pos.y + dds.size.y - 1, colors.white)--clear space
+    dds.options[dds.selected].draw()
+    dds.selectBtn.draw()
+  end
+  dds.setOnChange = function(f)
+    dds.onChange = f
+  end
+  dds.setSelected = function(s)
+    if (type(s) == "string") then
+      for i = 1, #(dds.options) do
+        if (dds.options[i].text == s) then
+          s = i
+          break
         end
+      end
+      if type(s) == string then
+        error("no valid option given")
+        return
+      end
     end
-    tbl.size = function() 
-        error("//TODO")
+    if (s > #(dds.options) or s < 1) then
+      error("out of range")
     end
-    return tbl
+    dds.selected = s
+  end
+  return dds
 end
 
-
-function thornsgui.createDropdownSelector(x,y)
-    dds = {}
-    dds.type="dropdownselector"
-    dds.pos  = {}
-    dds.pos.x = x
-    dds.pos.y = y
-    dds.size = {}
-    dds.size.x = 1
-    dds.size.y = 1
-    dds.options = {}
-    dds.selected = 1
-    dds.addOption = function(text)
-        opt = createButton(1,1,string.len(text),1,text)
-        opt.setColors(colors.black,colors.white)
-        opt.setPos(dds.pos.x,dds.pos.y)
-        table.insert(dds.options,opt)
-        dds.size.x = math.max(dds.size.x,opt.size.x+1)
-        dds.size.y = math.max(dds.size.y,opt.size.y)
-    end
-    dds.draw = function()
-        if(#(dds.options) == 0) then error("At least one option required") end
-        if(dds.selectBtn == nil) then --init selectButton 
-            -- +dds.size.x-1
-            dds.selectBtn = createButton(dds.pos.x+dds.size.x-1,dds.pos.y,1,1,"v")
-            local fx = function()
-                if dds.ddw == nil then 
-                    offset_x,offset_y = 0,0
-                    if out.getPosition ~= nil then 
-                        offset_x,offset_y = out.getPosition() 
-                        offset_x = offset_x - 1
-                        offset_y = offset_y -1
-                    end
-                    dds.ddw = window.create(term_c,dds.pos.x + offset_x, dds.pos.y+1 + offset_y,dds.size.x-1, #(dds.options),false)
-                    dds.ddw.setBackgroundColor(colors.white)
-                    dds.ddw.clear()
-                    dds.ddw.visible = false
-                    
-                end
-                dds.ddw.visible = not dds.ddw.visible
-                dds.ddw.setVisible(dds.ddw.visible)
-                if (dds.ddw.visible) then
-                    dds.ddw.parent = out
-                    setOutput(dds.ddw)
-                    for i =1,#(dds.options) do
-                        dds.options[i].setPos(1,i)
-                        dds.options[i].setOnClick(function()
-                            dds.selected = i
-                            dds.ddw.visible = not dds.ddw.visible
-                            dds.ddw.setVisible(dds.ddw.visible)
-                            setOutput(dds.ddw.parent)
-                            drawFilledBox(dds.pos.x,dds.pos.y,dds.pos.x+dds.size.x-2,dds.pos.y+dds.size.y-1,colors.white)--clear space
-                            dds.options[dds.selected].setPos(dds.pos.x,dds.pos.y)
-                            dds.options[dds.selected].draw()
-                            out.redraw()
-                            if (dds.onChange ~= nil) then dds.onChange(i,dds.options[i].text) end
-                        end)
-                        dds.options[i].registerEventListener()
-                        dds.options[i].draw()
-                    end
-                    dds.ddw.redraw() --?
-                else
-                    setOutput(dds.ddw.parent)
-                    out.redraw()
-                    dds.ddw.redraw()
-                end
-            end
-            dds.selectBtn.setOnClick(fx)
-            dds.selectBtn.registerEventListener()
-        end
-        drawFilledBox(dds.pos.x,dds.pos.y,dds.pos.x+dds.size.x-2,dds.pos.y+dds.size.y-1,colors.white)--clear space
-        dds.options[dds.selected].draw()
-        dds.selectBtn.draw()
-    end
-    dds.setOnChange = function(f)
-        dds.onChange = f
-    end
-    dds.setSelected = function(s)
-        if(type(s)=="string") then
-            for i=1,#(dds.options) do
-                if(dds.options[i].text == s) then 
-                    s = i 
-                    break
-                end
-            end
-            if type(s)==string then
-                error("no valid option given")
-                return 
-            end
-        end
-        if(s>#(dds.options) or s < 1) then error("out of range") end
-        dds.selected = s
-    end
-    return dds
-end
-
-function thornsgui.createTextBox(x_pos,y_pos,x_size,y_size)
-    tb = {}
-    tb.pos = {}
-    tb.pos.x = x_pos
-    tb.pos.y = y_pos
-    tb.size = {}
-    tb.size.x = x_size
-    tb.size.y = y_size
-    tb.color = {}
-    tb.hint = {}
-    tb.hint.text = "<hint>"
-    tb.hint.color = out.gpu().getPaletteColor(colors.lightGray)
-    tb.draw = function()
-        drawFilledBox(tb.pos.x,tb.pos.y,tb.pos.x + tb.size.x - 1,tb.pos.y + tb.size.y - 1,out.gpu().getPaletteColor(colors.black))
-        out.setCursor(tb.pos.x,tb.pos.y)
-        out.setForeground(tb.hint.color)
-        io.write()
-        out.setCursorBlink(true)
-    end
-    tb.setHintText = function(txt)
-        tb.hint.text = txt
-    end
-    tb.setHintColor = function(color)
-        tb.hint.color = color
-    end
+function thornsgui.createTextBox(x_pos, y_pos, x_size, y_size)
+  tb = {}
+  tb.pos = {}
+  tb.pos.x = x_pos
+  tb.pos.y = y_pos
+  tb.size = {}
+  tb.size.x = x_size
+  tb.size.y = y_size
+  tb.color = {}
+  tb.hint = {}
+  tb.hint.text = "<hint>"
+  tb.hint.color = out.gpu().getPaletteColor(colors.lightGray)
+  tb.draw = function()
+    drawFilledBox(tb.pos.x, tb.pos.y, tb.pos.x + tb.size.x - 1, tb.pos.y + tb.size.y - 1, out.gpu().getPaletteColor(colors.black))
+    out.setCursor(tb.pos.x, tb.pos.y)
+    out.setForeground(tb.hint.color)
+    io.write()
+    out.setCursorBlink(true)
+  end
+  tb.setHintText = function(txt)
+    tb.hint.text = txt
+  end
+  tb.setHintColor = function(color)
+    tb.hint.color = color
+  end
 end
 ]]--
 
 -- clears current out-pipes clickSensitive-mem
 function thornsgui.clearClickListeners()
-  local g = gpu
-  while g do
-    g.clickSensitive = {}
-    g = g.parent
-  end
-  if ENABLE_LOG then
-    log.i("click listeners cleared")
-  end
+local g = gpu
+while g do
+g.clickSensitive = {}
+g = g.parent
+end
+if ENABLE_LOG then
+log.i("click listeners cleared")
+end
 end
 -- waits for and handels next click event
 function thornsgui.handleNextEvent()
-  local ev, _, x, y, btn = event.pullMultiple("touch", "drag", "drop")
-  -- if in sub window calc offset:
-  if gpu.pos ~= nil then
-    local ox, oy = gpu.pos.x, gpu.pos.y
-    x = x - ox + 1
-    y = y - oy + 1
-  end
-  if ev == "touch" then
-    for _, cs in pairs(gpu.clickSensitive) do
-      if (cs:handleClick(x, y, btn)) then
-        break
-      end
-    end
-  elseif ev == "drag" then
-    if dragHandler then
-      dragHandler(x, y)
-    end
-  elseif ev == "drop" then
-    if dropHandler then
-      dropHandler(x, y)
-    end
-  end
+local ev, _, x, y, btn = event.pullMultiple("touch", "drag", "drop")
+-- if in sub window calc offset:
+if gpu.pos ~= nil then
+local ox, oy = gpu.pos.x, gpu.pos.y
+x = x - ox + 1
+y = y - oy + 1
+end
+if ev == "touch" then
+for _, cs in pairs(gpu.clickSensitive) do
+if (cs:handleClick(x, y, btn)) then
+break
+end
+end
+elseif ev == "drag" then
+if dragHandler then
+dragHandler(x, y)
+end
+elseif ev == "drop" then
+if dropHandler then
+dropHandler(x, y)
+end
+end
 end
 
 local function drawImage(file)
-  local f, msg = io.open(file)
-  if not f then
-    if ENABLE_LOG then
-      log.e(msg)
-    end
-    return
-  end
-  local cont = f:read("a*")
-  for i = 1, #cont do
-    local ch = string.sub(cont, i, i)
-    gpu.setBackground(white) -- white per default
-    if string.byte(ch) >= 48 and string.byte(ch) <= 57 then
-      gpu.setBackground(gpu.getPaletteColor(string.byte(ch) - 48)) -- 0 .. 9
-    end
-    if string.byte(ch) >= 97 and string.byte(ch) <= 102 then
-      gpu.setBackground(gpu.getPaletteColor(string.byte(ch) - 87)) -- a .. f
-    end
-    if ch ~= "\n" then
-      io.write(" ")
-    else
-      io.write("\n")
-    end
-  end
+local f, msg = io.open(file)
+if not f then
+if ENABLE_LOG then
+log.e(msg)
+end
+return
+end
+local cont = f:read("a*")
+for i = 1, #cont do
+local ch = string.sub(cont, i, i)
+gpu.setBackground(white) -- white per default
+if string.byte(ch) >= 48 and string.byte(ch) <= 57 then
+gpu.setBackground(gpu.getPaletteColor(string.byte(ch) - 48)) -- 0 .. 9
+end
+if string.byte(ch) >= 97 and string.byte(ch) <= 102 then
+gpu.setBackground(gpu.getPaletteColor(string.byte(ch) - 87)) -- a .. f
+end
+if ch ~= "\n" then
+io.write(" ")
+else
+io.write("\n")
+end
+end
 end
 
 function thornsgui.resetGPU()
-  gpu = component.gpu
+gpu = component.gpu
 end
 
 local function clrScr()
-  local x, y = gpu.getResolution()
-  gpu.fill(1, 1, x, y, " ")
+local x, y = gpu.getResolution()
+gpu.fill(1, 1, x, y, " ")
 end
 --shows logo
 function thornsgui.showLogo(t)
-  gpu.setBackground(white)
-  clrScr()
-  drawImage("/usr/lib/thornslogo")
-  if os.sleep then os.sleep(t) end -- for venv
-  gpu.setBackground(black)
-  clrScr()
+gpu.setBackground(white)
+clrScr()
+drawImage("/usr/lib/thornslogo")
+if os.sleep then
+os.sleep(t)
+end -- for venv
+gpu.setBackground(black)
+clrScr()
 end
 thornsgui.showLogo(0.4)
 
 if ENABLE_LOG then
-  log.i("ThornsGUI loaded")
+log.i("ThornsGUI loaded")
 end
 return thornsgui
