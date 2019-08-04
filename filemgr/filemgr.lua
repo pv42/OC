@@ -142,9 +142,9 @@ end
 
 local function drawStats()
   if display == DISPLAY_TILE then
-    drawStatsTile()
+    return drawStatsTile()
   elseif display == DISPLAY_LIST then
-    drawStatsList()
+    return drawStatsList()
   end
 end
 
