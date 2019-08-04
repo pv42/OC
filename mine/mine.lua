@@ -5,9 +5,9 @@ local MAX_depth = 58
 local MAX_X = 50
 local BATTERY_LOW = 20000
 local DURABILITY_LOW = 0.1
-local MINE_BLACKLIST = {"minecraft:stone", "minecraft:cobblestone", "minecraft:torch", "minecraft:air", "minecraft:water", "minecraft:flowing_water", "minecraft:lava", "minecraft:flowing_lava"}
+local MINE_BLACKLIST = { "minecraft:stone", "minecraft:cobblestone", "minecraft:torch", "minecraft:air", "minecraft:water", "minecraft:flowing_water", "minecraft:lava", "minecraft:flowing_lava" }
 -- dont change 
-local x,y,depth -- relative to start
+local x, y, depth -- relative to start
 
 depth = 0
 x = 0
@@ -20,39 +20,52 @@ local computer = require("computer")
 local math = require("math")
 local inv = component.inventory_controller
 local geo = component.geolyzer
-local suc, libwdb = pcall(require,"libwdb")
-local msg, libgps 
+local suc, libwdb = pcall(require, "libwdb")
+local msg, libgps
 
-local gx,gy,gz
+local gx, gy, gz
 local grot
 
-local function getGX(x,z) 
-  if grot == 0 then return gx + x
-  elseif grot == 1 then return gx + z 
-  elseif grot == 2 then return gx - x 
-  elseif grot == 3 then return gx - z 
-  else error("grot is invalid") 
+local function getGX(x, z)
+  if grot == 0 then
+    return gx + x
+  elseif grot == 1 then
+    return gx + z
+  elseif grot == 2 then
+    return gx - x
+  elseif grot == 3 then
+    return gx - z
+  else
+    error("grot is invalid")
   end
 end
 
-local function getGZ(x,z) 
-  if grot == 0 then return gz + z
-  elseif grot == 1 then return gz - x 
-  elseif grot == 2 then return gz - z
-  elseif grot == 3 then return gz + x end
+local function getGZ(x, z)
+  if grot == 0 then
+    return gz + z
+  elseif grot == 1 then
+    return gz - x
+  elseif grot == 2 then
+    return gz - z
+  elseif grot == 3 then
+    return gz + x
+  end
 end
-
 
 local angel = false
 local args = shell.parse(...)
 
 function sendAir(z)
- if not libwdb then return end
- if not z then z = 0 end
- libwdb.sendBlock(getGX(x,z),y,getGZ(x,z),"minecraft:air") 
+  if not libwdb then
+    return
+  end
+  if not z then
+    z = 0
+  end
+  libwdb.sendBlock(getGX(x, z), y, getGZ(x, z), "minecraft:air")
 end
 
-function hasAngel( ... )
+function hasAngel(...)
   local angelDetected = false
   for addr, info in pairs(computer.getDeviceInfo()) do
     if info.class == "generic" and info.description == "Angel upgrade" then
@@ -63,27 +76,43 @@ function hasAngel( ... )
 end
 
 function main()
-  print("Mine v1.2.26")
+  print("Mine v1.2.27")
   angel = hasAngel()
   local tx = 0
-  local ty = 0  
+  local ty = 0
   if #args > 1 then
     tx = tonumber(args[1])
     ty = tonumber(args[2])
   end
   print("Starting @ " .. tx .. ", " .. ty)
   os.sleep(2)
-  if libwdb then libwdb.connect() end
-  goTo(tx,ty)
+  if libwdb then
+    libwdb.connect()
+  end
+  goTo(tx, ty)
   mine()
-  if libwdb then libwdb.disconnect() end
+  if libwdb then
+    libwdb.disconnect()
+  end
+end
+
+function isInventoryFull()
+  local free_slots = robot.inventorySize()
+  for slot = 1, robot.inventorySize() do
+    if inv.getStackInInternalSlot(slot) ~= nil then
+      free_slots = free_slots - 1
+    end
+  end
+  return free_slots == 0
 end
 
 function mine()
   print("Starting mining")
   while robot.durability() > DURABILITY_LOW do
     hole()
-    if computer.energy() <= BATTERY_LOW then chargeAndEmpty() end
+    if computer.energy() <= BATTERY_LOW or isInventoryFull() then
+      chargeAndEmpty()
+    end
     goToNextHole()
   end
   goToStart()
@@ -91,22 +120,22 @@ function mine()
 end
 
 function goToNextHole()
-  if x >= MAX_X - 1 then 
-    floor = math.floor(y/3) + 1
-    goTo(floor % 3, 3 * floor) 
-  else 
-    robot.turnLeft() 
+  if x >= MAX_X - 1 then
+    floor = math.floor(y / 3) + 1
+    goTo(floor % 3, 3 * floor)
+  else
+    robot.turnLeft()
     mv_fw()
-    x = x+1
+    x = x + 1
     sendAir()
-    if (y%3)>1 then 
+    if (y % 3) > 1 then
       mv_dwn()
       sendAir()
       mv_dwn()
       sendAir()
-    else 
+    else
       mv_fw()
-      x = x+1
+      x = x + 1
       sendAir()
       mv_up()
       sendAir()
@@ -116,14 +145,16 @@ function goToNextHole()
 end
 
 function shouldMine(blockName)
-  for i,name in ipairs(MINE_BLACKLIST) do 
-    if blockName == name then return false end
-  end 
+  for i, name in ipairs(MINE_BLACKLIST) do
+    if blockName == name then
+      return false
+    end
+  end
   return true
 end
 
 function hole()
-  print("Hole @ x=" .. x .. " y="  .. y)
+  print("Hole @ x=" .. x .. " y=" .. y)
   while depth < MAX_depth do
     depth = depth + 1
     mv_fw()
@@ -133,7 +164,7 @@ function hole()
   end
   print("Hole:returning")
   robot.turnAround()
-  while depth>0 do
+  while depth > 0 do
     mv_fw()
     sendAir(depth)
     depth = depth - 1
@@ -147,39 +178,55 @@ function checkSurroundings(depth)
   local l = geo.analyze(sides.left).name
   local r = geo.analyze(sides.right).name
   if shouldMine(u) then
-    robot.swingUp() 
-    if libwdb then libwdb.sendBlock(getGX(x,depth), y+1, getGZ(x,depth), "air") end
+    robot.swingUp()
+    if libwdb then
+      libwdb.sendBlock(getGX(x, depth), y + 1, getGZ(x, depth), "air")
+    end
   else
-    if libwdb then libwdb.sendBlock(getGX(x,depth), y+1, getGZ(x,depth), u) end
+    if libwdb then
+      libwdb.sendBlock(getGX(x, depth), y + 1, getGZ(x, depth), u)
+    end
   end
   if shouldMine(d) then
-    robot.swingDown() 
-    if libwdb then libwdb.sendBlock(getGX(x,depth), y-1, getGZ(x,depth), "air") end
+    robot.swingDown()
+    if libwdb then
+      libwdb.sendBlock(getGX(x, depth), y - 1, getGZ(x, depth), "air")
+    end
   else
-    if libwdb then libwdb.sendBlock(getGX(x,depth), y-1, getGZ(x,depth), d) end
+    if libwdb then
+      libwdb.sendBlock(getGX(x, depth), y - 1, getGZ(x, depth), d)
+    end
   end
-  if shouldMine(l) then 
+  if shouldMine(l) then
     robot.turnLeft()
     robot.swing()
     robot.turnRight()
-    if libwdb then libwdb.sendBlock(getGX(x+1,depth), y, getGZ(x+1,depth), "air") end
+    if libwdb then
+      libwdb.sendBlock(getGX(x + 1, depth), y, getGZ(x + 1, depth), "air")
+    end
   else
-    if libwdb then libwdb.sendBlock(getGX(x+1,depth), y, getGZ(x+1,depth), l) end
+    if libwdb then
+      libwdb.sendBlock(getGX(x + 1, depth), y, getGZ(x + 1, depth), l)
+    end
   end
   if shouldMine(r) then
     robot.turnRight()
     robot.swing()
     robot.turnLeft()
-    if libwdb then libwdb.sendBlock(getGX(x-1,depth), y, getGZ(x-1,depth), "air") end
+    if libwdb then
+      libwdb.sendBlock(getGX(x - 1, depth), y, getGZ(x - 1, depth), "air")
+    end
   else
-    if libwdb then libwdb.sendBlock(getGX(x-1,depth), y, getGZ(x-1,depth), r) end
+    if libwdb then
+      libwdb.sendBlock(getGX(x - 1, depth), y, getGZ(x - 1, depth), r)
+    end
   end
 end
 
 function empty()
   print("emptying")
   robot.turnRight()
-  for slot = 1,robot.inventorySize() do
+  for slot = 1, robot.inventorySize() do
     robot.select(slot)
     robot.drop()
   end
@@ -197,11 +244,11 @@ function chargeAndEmpty()
     os.sleep(3)
   end
   print("fully charged")
-  goTo(ox,oy)
+  goTo(ox, oy)
 end
 
 function goToStart()
-  goTo(0,-1)
+  goTo(0, -1)
   print("went to start")
 end
 
@@ -211,8 +258,8 @@ function goTo(tx, ty)
     sendAir()
   end
   robot.turnRight()
-  while x>tx do
-    x = x-1
+  while x > tx do
+    x = x - 1
     mv_fw()
     sendAir()
   end
@@ -220,7 +267,7 @@ function goTo(tx, ty)
   robot.turnLeft()
   while x < tx do
     mv_fw()
-    x = x+1
+    x = x + 1
     sendAir()
   end
   robot.turnRight()
@@ -243,11 +290,11 @@ end
 
 function mv_up()
   local sucses, reason = robot.up()
-  while not sucses do 
+  while not sucses do
     robot.swingUp()
     sucses, reason = robot.up()
   end
-  y = y+1
+  y = y + 1
 end
 
 function mv_dwn()
@@ -256,45 +303,50 @@ function mv_dwn()
     sucses, reason = robot.down()
     robot.swingDown()
   end
-  y = y-1
+  y = y - 1
 end
 
 function placeDown()
-  for slot = 1,robot.inventorySize() do
+  for slot = 1, robot.inventorySize() do
     if inv.getStackInInternalSlot(slot) ~= nil then
       name = inv.getStackInInternalSlot(slot).name
-      if name == "minecraft:stone" or name == "minecraft:cobblestone" then 
+      if name == "minecraft:stone" or name == "minecraft:cobblestone" then
         robot.select(slot)
         break
       end
-    end  
+    end
   end
   robot.placeDown()
 end
 
-if not libwdb then 
+if not libwdb then
   print("libwdb could not be loaded, disabling: " .. msg)
 else
-  suc, libgps = pcall(require,"libgps")
+  suc, libgps = pcall(require, "libgps")
   if not suc then
     print("libgps could not be loaded, disabling: " .. msg)
     libwdb = nil
   else
-    gx,gy,gz = libgps.locate()
+    gx, gy, gz = libgps.locate()
     if not gx then
-      print("can't determine position") 
+      print("can't determine position")
       libwdb = nil
-    else 
+    else
       gy = gy + 1 -- bc mine starts at y = -1
       -- determine rotation
       mv_fw() -- z++
       robot.turnLeft()
       robot.turnLeft()
-      dx,dy,dz = libgps.locate()
-      if dz > gz then grot = 0 -- z+ -> gz +
-      elseif dx > gx then grot = 1 -- z+ -> gx +
-      elseif dz < gz then grot = 2 -- z+ -> gz-
-      elseif dz < gz then grot = 3 end -- z+ -> gx -
+      dx, dy, dz = libgps.locate()
+      if dz > gz then
+        grot = 0 -- z+ -> gz +
+      elseif dx > gx then
+        grot = 1 -- z+ -> gx +
+      elseif dz < gz then
+        grot = 2 -- z+ -> gz-
+      elseif dz < gz then
+        grot = 3
+      end -- z+ -> gx -
       mv_fw()
       robot.turnLeft()
       robot.turnLeft()
