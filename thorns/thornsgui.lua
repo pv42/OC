@@ -592,7 +592,7 @@ function thornsgui.ScrollContainer:draw()
     log.i("drawing scroll container")
   end
   local old_gpu = gpu
-  gpu = createFakeGPU(self.pos.x, self.pos.y, self.vsb.value + 1, self.hsb.value + 1, self.size.x - 1, self.size.y - 1)
+  gpu = createFakeGPU(self.pos.x, self.pos.y, self.hsb.value + 1, self.vsb.value + 1, self.size.x - 1, self.size.y - 1)
   self.element:draw()
   for _, v in pairs(gpu.clickSensitive) do
     -- register listeners properly
