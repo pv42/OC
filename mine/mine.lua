@@ -1,5 +1,5 @@
 -- Mine by pv42 
--- version 1.2.26
+-- version 1.2.27
 -- config
 local MAX_depth = 58
 local MAX_X = 50
@@ -324,7 +324,7 @@ if not libwdb then
 else
   suc, libgps = pcall(require, "libgps")
   if not suc then
-    print("libgps could not be loaded, disabling: " .. msg)
+    print("libgps could not be loaded, disabling: " .. libgps)
     libwdb = nil
   else
     gx, gy, gz = libgps.locate()
