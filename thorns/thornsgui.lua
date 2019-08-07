@@ -624,6 +624,7 @@ thornsgui.Table.__index = thornsgui.Table
 
 function thornsgui.Table:create(dim_x, dim_y, x_pos, y_pos)
   local tbl = {}
+  setmetatable(tbl, thornsgui.Table)
   tbl.type = "table"
   tbl.dim = { dim_x, dim_y }
   tbl.pos = {}

@@ -10,7 +10,6 @@ local function gettputcolor(rgb)
   end
 end
 
-
 return { gpu = {
   setBackground = function(color)
     os.execute("tput setab " .. gettputcolor(color))
@@ -66,4 +65,15 @@ return { gpu = {
            else
              return false
            end
-         end }
+         end,
+         me_interface = {
+           getItemsInNetwork = function()
+             return {
+               { damage = 0, hasTag = false, isCraftable = false, label = "Stone", name = "minecraft:stone", maxDamage = 0, maxSize = 64, size = 106572 }
+             }
+           end,
+           getCraftables = function ()
+             return {}
+           end
+         }
+}
