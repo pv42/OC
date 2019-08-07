@@ -67,7 +67,7 @@ end
 
 function hasAngel(...)
   local angelDetected = false
-  for addr, info in pairs(computer.getDeviceInfo()) do
+  for _, info in pairs(computer.getDeviceInfo()) do
     if info.class == "generic" and info.description == "Angel upgrade" then
       angelDetected = true
       break
@@ -145,7 +145,7 @@ function goToNextHole()
 end
 
 function shouldMine(blockName)
-  for i, name in ipairs(MINE_BLACKLIST) do
+  for _, name in ipairs(MINE_BLACKLIST) do
     if blockName == name then
       return false
     end
