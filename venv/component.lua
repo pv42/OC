@@ -73,7 +73,11 @@ return { gpu = {
              }
            end,
            getCraftables = function ()
-             return {}
+             return {
+               {getItemStack = function()
+                 return { damage = 0, hasTag = false, isCraftable = false, label = "Sand", name = "minecraft:sand", maxDamage = 0, maxSize = 64, size = 1}
+               end }
+             }
            end
          }
 }

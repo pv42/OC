@@ -57,13 +57,6 @@ local function getAllItems()
   end
   return list
 end
-local function boolToString(b)
-  if b then
-    return "true"
-  else
-    return "false"
-  end
-end
 
 local function isStoredItem(item)
   if item.isFluid then
