@@ -99,7 +99,7 @@ local function sortItems(compf, rev)
 end
 
 local function saveExportConfig()
-  f = io.open(CONFIG_PATH .. EXPORT_CONFIG_FILE, "w")
+  local f = io.open(CONFIG_PATH .. EXPORT_CONFIG_FILE, "w")
   for i = 1, #items do
     if items[i].export ~= nil then
       local ilabel = ""
@@ -117,7 +117,7 @@ local function loadExportConfig()
   if not fs.exists(CONFIG_PATH .. EXPORT_CONFIG_FILE) then
     return -- nothing to load
   end
-  f = fs.open(CONFIG_PATH .. EXPORT_CONFIG_FILE, "r")
+  local f = fs.open(CONFIG_PATH .. EXPORT_CONFIG_FILE, "r")
   local line = f.readLine()
   while (line ~= nil) do
     break ; -- todo
