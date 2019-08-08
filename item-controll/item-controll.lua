@@ -47,10 +47,13 @@ local items
 local function getAllItems()
   -- heavy with a lot of craftable items
   local list = int.getItemsInNetwork()
-  for _, item in pairs(int.getCraftables()) do
-    local stack = item.getItemStack()
-    stack.is_craftable = true
-    table.insert(list, stack)
+  for key, item in pairs(int.getCraftables()) do
+    if key ~= "n" then
+      local stack = item.getItemStack()
+      stack.isCraftable = true
+      table.insert(list, stack)
+      if key % LOOP_RUN_UNTIL_YIELD == 0 and os.sleep then os.sleep(0.05) end -- prevent too long without yielding
+    end
   end
   return list
 end
@@ -63,13 +66,13 @@ local function boolToString(b)
 end
 
 local function isStoredItem(item)
-  if item.is_fluid then
+  if item.isFluid then
     return false
   end
-  if item.is_craftable then
+  if item.isCraftable then
     return false
   end
-  return item.is_item
+  return true
 end
 local function str_splitChar(str, c)
   local s = {}
