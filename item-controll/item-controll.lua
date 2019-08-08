@@ -1,6 +1,7 @@
 local thorns = require("thornsgui")
 local component = require("component")
 local fs = require("filesystem")
+local term = require("term")
 
 local CONFIG_PATH = "/etc/item-control/"
 local EXPORT_CONFIG_FILE = "export_rules"
@@ -307,11 +308,17 @@ exb.color.text = 0xffffff
 function drawHolePage()
   --mainWindow.setBackgroundColor(colors.white)
   --mainWindow.clear()
+  component.gpu.setBackground(0xffffff)
+  term.clear()
   thorns.clearClickListeners()
   pb:draw()
+  pb:readdListener()
   nb:draw()
+  nb:readdListener()
   cb:draw()
+  cb:readdListener()
   exb:draw()
+  exb:readdListener()
   printPage(page)
   --todo pb.registerEventListener()
   --nb.registerEventListener()
