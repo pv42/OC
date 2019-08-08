@@ -47,14 +47,14 @@ local items
 local function getAllItems()
   -- heavy with a lot of craftable items
   local list = int.getItemsInNetwork()
-  for key, item in pairs(int.getCraftables()) do
+  --[[for key, item in pairs(int.getCraftables()) do
     if key ~= "n" then
       local stack = item.getItemStack()
       stack.isCraftable = true
       table.insert(list, stack)
       if key % LOOP_RUN_UNTIL_YIELD == 0 and os.sleep then os.sleep(0.05) end -- prevent too long without yielding
     end
-  end
+  end]]--
   return list
 end
 
@@ -298,7 +298,11 @@ local nb = thorns.Button:create(xr - 7, 1, 6, 1, "  ->  ")
 local cb = thorns.Button:create(xr - 1, 1, 2, 1, " X")
 local exb = thorns.Button:create(7, 1, 6, 1, "Export")
 --local stbx = thorns.TextBox:create(1, 2, 10, 1)
--- todo cb.setColors(colors.white,colors.red)
+cb.color.bg = 0xff0000
+cb.color.text = 0xffffff
+exb.color.bg = 0xbfbfbf
+exb.color.text = 0xffffff
+
 -- todo exb.setColors(colors.white,colors.lightGray)
 function drawHolePage()
   --mainWindow.setBackgroundColor(colors.white)
