@@ -59,15 +59,6 @@ local function getAllItems()
   return list
 end
 
-local function isStoredItem(item)
-  if item.isFluid then
-    return false
-  end
-  if item.isCraftable then
-    return false
-  end
-  return true
-end
 local function str_splitChar(str, c)
   local s = {}
   local last = 1
@@ -184,8 +175,8 @@ local function printPage(page)
   local nameHBtn = thorns.Button:create(1, 1, 6, 1, "Name")
   local amountHBtn = thorns.Button:create(1, 1, 6, 1, "Amount")
   local compf_name = function(i1, i2)
-    local n1 = i1.name
-    local n2 = i2.name
+    local n1 = i1.label
+    local n2 = i2.label
     for i = 1, math.min(string.len(n1), string.len(n2)) do
       if (string.byte(n1, i) > string.byte(n2, i)) then
         return true
@@ -207,8 +198,8 @@ local function printPage(page)
     sortItems(compf_amount)
     drawHolePage()
   end
-  --nameHBtn.registerEventListener()
-  --amountHBtn.registerEventListener()
+  nameHBtn:readdListener()
+  amountHBtn:readdListener()
   itemTbl:setElement(1, 1, nameHBtn)
   itemTbl:setElement(2, 1, amountHBtn)
   for i = 0, yr - 4 do
@@ -282,7 +273,7 @@ local function printPage(page)
         --closeBtn.registerEventListener()
       end
       detailBtn.onClick = f_d
-      --detailBtn.registerEventListener()
+      detailBtn:readdListener()
       itemTbl:setElement(1, i + 2, nameTxt)
       itemTbl:setElement(2, i + 2, amTxt)
       itemTbl:setElement(3, i + 2, detailBtn)
