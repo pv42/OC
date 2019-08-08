@@ -183,8 +183,8 @@ local function printPage(page)
   local nameHBtn = thorns.Button:create(1, 1, 6, 1, "Name")
   local amountHBtn = thorns.Button:create(1, 1, 6, 1, "Amount")
   local compf_name = function(i1, i2)
-    local n1 = getItemName(i1.fingerprint)
-    local n2 = getItemName(i2.fingerprint)
+    local n1 = i1.name
+    local n2 = i2.name
     for i = 1, math.min(string.len(n1), string.len(n2)) do
       if (string.byte(n1, i) > string.byte(n2, i)) then
         return true
