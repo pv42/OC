@@ -106,19 +106,19 @@ local function saveExportConfig()
       if items[i].label ~= nil then
         ilabel = items[i].label
       end
-      f.writeLine(items[i].name .. "," .. items[i].damage .. "," .. items[i].export .. "," .. ilabel)
-      f.flush()
+      f:writeLine(items[i].name .. "," .. items[i].damage .. "," .. items[i].export .. "," .. ilabel)
+      f:flush()
     end
   end
-  f.close()
+  f:close()
 end
 
 local function loadExportConfig()
   if not fs.exists(CONFIG_PATH .. EXPORT_CONFIG_FILE) then
     return -- nothing to load
   end
-  local f = fs.open(CONFIG_PATH .. EXPORT_CONFIG_FILE, "r")
-  local line = f.readLine()
+  local f = io.open(CONFIG_PATH .. EXPORT_CONFIG_FILE, "r")
+  local line = f:readLine()
   while (line ~= nil) do
     break ; -- todo
     local p = str_splitChar(line, ",")
@@ -147,7 +147,7 @@ local function loadExportConfig()
       end
       table.insert(items, e)
     end
-    line = f.readLine()
+    line = f:readLine()
   end
   f.close()
 end
