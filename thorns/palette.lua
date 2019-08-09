@@ -7,5 +7,5 @@ for i = 0, 15 do
   else
     gpu.setForeground(0xffffff)
   end
-  print(string.format("%02d: 0x%x", i, color))
+  print(string.format("%02d: 0x%06x  ", i, color))
 end
