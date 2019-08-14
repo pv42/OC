@@ -7,6 +7,7 @@ while true do
   print("connected")
   while true do
     local __data = conn.receive()
+    if __data == "exit" then break end
     local __code, msg = load(__data)
     if not __code then
       __conn:send("{nil," .. msg .. "}")
@@ -15,4 +16,5 @@ while true do
       __conn:send(serialization.serialize(ret))
     end
   end
+  conn:close()
 end

@@ -42,6 +42,7 @@ local function run()
 	os.sleep(0.05) -- to force a yield
 	-- process.findProcess().name = "networkdeamon" -- why doesn't this work
 	libip.run()
+	libtcp.sendStep()
 end 
 
 t = thread.create(run):detach()

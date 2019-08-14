@@ -73,23 +73,23 @@ end
 libtcp.Connection = {}
 libtcp.Connection.__index = libtcp.Connection
 
-function libtcp.Connection:open(target_adress_, target_port_, local_port_)
-  if local_port_ == nil then local_port_ = get_free_port() end
+function libtcp.Connection:open(target_address, target_port, local_port)
+  if local_port == nil then local_port = get_free_port() end
   if ports[port] ~= nil then error("port is already used") end
-  ports[local_port_] = conn -- marks port as used
-  local conn = {packageBuffer_r={}, packageBuffer_s={},
-    local_port = local_port_, remote_port = target_port_,
-    remote_adress = target_adress_ ,seq = random(), ack = 0, state = C_CLOSED}
+  ports[local_port] = conn -- marks port as used
+  local conn = { packageBuffer_r={}, packageBuffer_s={},
+                 local_port = local_port, remote_port = target_port,
+                 remote_address = target_address, seq = random(), ack = 0, state = C_CLOSED}
   setmetatable(conn,libtcp.Connection)
   -- syn
-  conn:sendPackage(nil, syn_flags())
+  conn:send(nil, syn_flags())
   conn.state = C_SYN_SENT
   -- wait for syn ack
-  tcpp = conn:recivePackage(10, true)
+  tcpp = conn:m_receivePackage(10, true)
   if tcpp.flags.SYN and tcpp.flags.ACK then
-    conn:sendPackage(nil, flags(true))  
+    conn:send(nil, flags(true))
     conn.state = C_ESTABLISHED
-    print("connection to " .. target_adress_ .. ":" .. target_port_ .. " opened")
+    print("connection to " .. target_address .. ":" .. target_port .. " opened")
   else 
     error("connection refused")
   end
@@ -113,7 +113,11 @@ function libtcp.Connection:getNextSeq()
   return self.seq
 end
 
-function libtcp.Connection:recivePackage(timeout, isSyn)
+function libtcp.Connection:receive(timeout)
+  return self:m_receivePackage(timeout).data
+end
+
+function libtcp.Connection:m_receivePackage(timeout, isSyn)
   if isSyn then
     local i = 0
     while #self.packageBuffer_r == 0 do
@@ -138,7 +142,7 @@ function libtcp.Connection:send(data, _flags)
   if _ack == nil then _ack = 0 end
   local package = { source_port = self.local_port, destination_port = self.remote_port, seq = self:getNextSeq(),
    ack = _ack, data_offset = TCP_DATA_OFFSET, reserved = TCP_RESERVED, flags = _flags, window = TCP_WINDOW,
-   checksum = TCP_CHECKSUM, urget_pointer = TCP_URGENT_POINTER
+   checksum = TCP_CHECKSUM, urget_pointer = TCP_URGENT_POINTER, data = data
   }
   self.packageBuffer_s[package.seq] = {package=package, send_try=0, time=os.time()}
 end
