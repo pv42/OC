@@ -86,6 +86,9 @@ function libtcp.Connection:open(target_address, target_port, local_port)
   conn.state = C_SYN_SENT
   -- wait for syn ack
   tcpp = conn:m_receivePackage(10, true)
+  if tcpp == nil then
+    error("Connection could not be opened: Server did not respond")
+  end
   if tcpp.flags.SYN and tcpp.flags.ACK then
     conn:send(nil, flags(true))
     conn.state = C_ESTABLISHED
@@ -105,6 +108,8 @@ function libtcp.Connection:listen(port)
     seq = random(), ack = 0}
   setmetatable(conn,libtcp.Connection)
   ports[port] = conn
+  conn:m_receivePackage(10,true)
+  conn:send(nil, syn_flags(true))
   return conn
 end
 

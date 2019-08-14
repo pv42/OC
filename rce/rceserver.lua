@@ -6,7 +6,7 @@ while true do
   local __conn = tcp.Connection:listen(PORT)
   print("connected")
   while true do
-    local __data = conn.receive()
+    local __data = __conn:receive()
     if __data == "exit" then break end
     local __code, msg = load(__data)
     if not __code then
