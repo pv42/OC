@@ -134,13 +134,16 @@ function libtcp.Connection:receive(timeout)
   return self:m_receivePackage(timeout).data
 end
 
+---m_receivePackage wait for the receiving of a package and returns it
+---@param timeout number or nil timeout to establish a connection or 0 if no timeout
+---@param isSyn boolean if true waits for a syn package
 function libtcp.Connection:m_receivePackage(timeout, isSyn)
   if isSyn then
     local i = 0
     while #self.packageBuffer_r == 0 do
       os.sleep(0.05)
       i = i + 1
-      if i >= timeout * 20 then
+      if timeout > 0 and i >= timeout * 20 then
         return
       end -- timeout
     end
