@@ -45,7 +45,7 @@ end
 
 local function runtcp()
 	os.sleep(0.05) -- to force a yield
-	-- process.findProcess().name = "networkdeamon" -- why doesn't this work
+	process.findProcess().command = "tcpDaemon" -- why doesn't this work
 	libtcp.run()
 end
 

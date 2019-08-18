@@ -146,11 +146,11 @@ function libtcp.Connection:open(target_address, target_port, local_port)
   if ports[local_port] ~= nil then
     error("port is already used")
   end
-  ports[local_port] = { port = local_port, connections = { conn }, isOpen = true } -- marks port as used
   local conn = { packageBuffer_r = {}, packageBuffer_s = {},
                  local_port = local_port, remote_port = target_port,
                  remote_address = target_address, seq = random(), ack = 0, state = C_CLOSED }
   setmetatable(conn, libtcp.Connection)
+  ports[local_port] = { port = local_port, connections = { conn }, isOpen = true } -- marks port as used
   -- syn
   conn:send(nil, syn_flags())
   conn.state = C_SYN_SENT
