@@ -1,7 +1,6 @@
 local log = require("log")
 local libip = require("libip")
 local libtcp = require("libtcp")
-local libtcp = require("libdhcp")
 local modem = require("component").modem
 local thread = require("thread")
 local fs = require("filesystem")
