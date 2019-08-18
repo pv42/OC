@@ -82,7 +82,7 @@ end
 libtcp.Socket = {}
 libtcp.Socket.__index = libtcp.Socket
 
-function litcp.Socket:open(port)
+function libtcp.Socket:open(port)
   checkArg(1, port, "number")
   if ports[port] ~= nil then
     error("port is already used")
