@@ -136,6 +136,12 @@ function libtcp.Socket:listen()
   return conn
 end
 
+---open
+---@param target_address number
+---@param target_port number
+---@param local_port number|nil
+---@return table
+---@public
 function libtcp.Connection:open(target_address, target_port, local_port)
   checkArg(1, target_address, "number")
   checkArg(2, target_port, "number")
