@@ -149,10 +149,10 @@ log.i("STEP 3 loading IP (2)")
  
 --public
 function libip.sendIpPackage(target_ip, transport_protocol, _data)
-    if type(target_ip) ~= "number" then error("ip must be a number") end
+    checkArg(1,target_ip,"number")
+    checkArg(2,transport_protocol,"number")
     local target_mac = resolveIP(target_ip)
     if target_mac == nil then return false end
-    if type(transport_protocol) ~= "number" then error("protocol must be a number") end
     local package = {version = 4, ihl = 0, tos = IPP_TOS, totalLenght = 0, identification = IPP_IDENTIFICATION,
         flags = IPP_FLAGS, fragmentOffet = IPP_FRAGMENT_OFFSET, ttl = IPP_TTL, protocol = transport_protocol,
         header_checksum = 0, source_address = libip.getOwnIp(), target_address = target_ip, data = _data}

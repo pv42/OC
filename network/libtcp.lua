@@ -163,12 +163,14 @@ function libtcp.Connection:open(target_address, target_port, local_port)
   -- wait for syn ack
   tcpp = conn:mReceivePackage(10, true)
   if tcpp == nil then
+    ports[local_port] = nil
     error("Connection could not be opened: Server did not respond")
   end
   if tcpp.flags.SYN and tcpp.flags.ACK then
     conn.state = C_ESTABLISHED
     print("connection to " .. target_address .. ":" .. target_port .. " opened")
   else
+    ports[local_port] = nil
     error("connection refused")
   end
   return conn
@@ -283,7 +285,7 @@ local function sendStep()
               conn.state = C_CLOSED -- too many timeouts
               log.e("connection closed due too many timeouts")
             else
-              lipip.sendIpPackage(conn.remote_adress, TOS_TCP, data.package)
+              libip.sendIpPackage(conn.remote_address, TOS_TCP, data.package)
               log.i("sending  try:" .. data.send_try)
               data.send_try = data.send_try + 1 -- might not work
             end
