@@ -291,7 +291,7 @@ end
 function libtcp.run()
   log.i("tcp deamon running")
   while true do
-    libtcp.sendStep()
+    sendStep()
     os.sleep(0.05)
   end
 end
