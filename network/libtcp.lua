@@ -107,7 +107,6 @@ end
 libtcp.Connection = {}
 libtcp.Connection.__index = libtcp.Connection
 
-
 ---listen waits for a connection
 ---@return table metatable: Connection
 ---@public
@@ -116,6 +115,7 @@ function libtcp.Socket:listen()
                  local_port = port, remote_port = nil, remote_address = nil, -- not set yet
                  seq = random(), ack = 0, state = C_LISTEN }
   setmetatable(conn, libtcp.Connection)
+  local seq0 = conn.seq
   table.insert(self.connections, conn)
   local package, address = conn:mReceivePackage(0, true)
   if not package then
@@ -124,6 +124,12 @@ function libtcp.Socket:listen()
   conn.remote_port = package.destination_port
   conn.remote_address = address
   conn:send(nil, syn_flags(true))
+  conn.state = C_SYN_RCV
+  while conn.packageBuffer_s[seq0 + 1] ~= nil do
+    -- wait for ack
+    os.sleep(0.05)
+  end
+  conn.state = C_ESTABLISHED
   print("TCP:established")
   return conn
 end
@@ -135,7 +141,7 @@ function libtcp.Connection:open(target_address, target_port, local_port)
   if ports[local_port] ~= nil then
     error("port is already used")
   end
-  ports[local_port] = conn -- marks port as used
+  ports[local_port] = { port = local_port, connections = { conn }, isOpen = true } -- marks port as used
   local conn = { packageBuffer_r = {}, packageBuffer_s = {},
                  local_port = local_port, remote_port = target_port,
                  remote_address = target_address, seq = random(), ack = 0, state = C_CLOSED }
@@ -149,13 +155,11 @@ function libtcp.Connection:open(target_address, target_port, local_port)
     error("Connection could not be opened: Server did not respond")
   end
   if tcpp.flags.SYN and tcpp.flags.ACK then
-    conn:send(nil, flags(true))
     conn.state = C_ESTABLISHED
     print("connection to " .. target_address .. ":" .. target_port .. " opened")
   else
     error("connection refused")
   end
-  table.insert(connections, conn)
   return conn
 end
 
@@ -248,7 +252,7 @@ function libtcp.handleTCPPackeage(tcpp, senderAddress)
     if not tcpp.flags.ACK or tcpp.flags.SYN then
       --syn/ack or normal
       conn.packageBuffer_r[tcpp.seq] = tcpp -- put in rec buffer and acknoledge
-      conn:send(nil,ack_flags(), tcpp.seq)
+      conn:send(nil, ack_flags(), tcpp.seq)
       --libtcp.sendTCPPackage(conn, nil, ack_flags(), tcpp.seq)
     end
   end
