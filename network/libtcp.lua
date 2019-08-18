@@ -278,12 +278,13 @@ local function sendStep()
     for _, conn in pairs(socket.connections) do
       if conn.state ~= C_CLOSED then
         for seq, data in pairs(conn.packageBuffer_s) do
-          if data.time - os.time() > TCP_ACK_TIMEOUT then
+          if os.time() - data.time > TCP_ACK_TIMEOUT then
             if data.send_try >= TCP_MAX_SEND_TRIES then
               conn.state = C_CLOSED -- too many timeouts
               log.e("connection closed due too many timeouts")
             else
               lipip.sendIpPackage(conn.remote_adress, TOS_TCP, data.package)
+              log.i("sending  try:" .. data.send_try)
               data.send_try = data.send_try + 1 -- might not work
             end
           end
