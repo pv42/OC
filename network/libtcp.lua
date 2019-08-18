@@ -30,6 +30,13 @@ local C_ESTABLISHED = 4
 local TOS_TCP = 6
 --locals
 local ports = {}
+--[[
+ ports -> list of Sockets (tables with metatable Socket)
+  socket -> port (numerical id)
+         -> isOpen (boolean)
+         -> list of connections (tables with metatable Connection)
+]]
+
 
 local function get_free_port()
   port = 512
@@ -48,7 +55,7 @@ local function flags(ack)
   fl = {
     ECE = false, -- no collision
     CWR = false, -- no collision reaction
-    URG = false, -- not supported 
+    URG = false, -- not supported
     ACK = ack, -- no ack
     PSH = false, -- ???
     RST = false, -- no reset
@@ -73,14 +80,60 @@ end
 --class connection
 
 
+libtcp.Socket = {}
+libtcp.Socket.__index = libtcp.Socket
+
+function litcp.Socket:open(port)
+  checkArg(1, port, "number")
+  if ports[port] ~= nil then
+    error("port is already used")
+  end
+  local sock = { port = port, isOpen = true, connections = {} }
+  ports[port] = sock
+  setmetatable(sock, libtcp.Socket)
+  return sock
+end
+
+function libtcp.Socket:close()
+  if ports[self.port] ~= self then
+    error("port list mismatch")
+  end
+  if not self.isOpen then
+    error("port already closed")
+  end
+  ports[self.port] = nil
+  self.isOpen = false
+end
+
 libtcp.Connection = {}
 libtcp.Connection.__index = libtcp.Connection
+
+
+---listen waits for a connection
+---@return table metatable: Connection
+---@public
+function libtcp.Socket:listen()
+  local conn = { packageBuffer_r = {}, packageBuffer_s = {}, packageSendTimeStep = {},
+                 local_port = port, remote_port = nil, remote_address = nil, -- not set yet
+                 seq = random(), ack = 0, state = C_LISTEN }
+  setmetatable(conn, libtcp.Connection)
+  table.insert(self.connections, conn)
+  local package, address = conn:mReceivePackage(0, true)
+  if not package then
+    error("could not establish connection")
+  end
+  conn.remote_port = package.destination_port
+  conn.remote_address = address
+  conn:send(nil, syn_flags(true))
+  print("TCP:established")
+  return conn
+end
 
 function libtcp.Connection:open(target_address, target_port, local_port)
   if local_port == nil then
     local_port = get_free_port()
   end
-  if ports[port] ~= nil then
+  if ports[local_port] ~= nil then
     error("port is already used")
   end
   ports[local_port] = conn -- marks port as used
@@ -92,7 +145,7 @@ function libtcp.Connection:open(target_address, target_port, local_port)
   conn:send(nil, syn_flags())
   conn.state = C_SYN_SENT
   -- wait for syn ack
-  tcpp = conn:m_receivePackage(10, true)
+  tcpp = conn:mReceivePackage(10, true)
   if tcpp == nil then
     error("Connection could not be opened: Server did not respond")
   end
@@ -107,37 +160,25 @@ function libtcp.Connection:open(target_address, target_port, local_port)
   return conn
 end
 
-function libtcp.Connection:listen(port)
-  if ports[port] ~= nil then
-    error("port is already used")
-  end
-  local conn = { packageBuffer_r = {}, packageBuffer_s = {}, packageSendTimeStep = {},
-                 local_port = port, remote_port = nil, remote_adress = nil, -- not set yet
-                 seq = random(), ack = 0 }
-  setmetatable(conn, libtcp.Connection)
-  ports[port] = conn
-  p = conn:m_receivePackage(0, true)
-  if not p then
-    error("could not establish connection")
-  end
-  conn:send(nil, syn_flags(true))
-  print("TCP:established")
-  return conn
-end
-
-function libtcp.Connection:getNextSeq()
+---@private
+function libtcp.Connection:mGetNextSeq()
   self.seq = self.seq + 1
   return self.seq
 end
 
+---receive waits for receiving of a package
+---@param timeout number timeout to receive a package or 0 if no timeout
+---@return table tcp package's received content
+---@public
 function libtcp.Connection:receive(timeout)
-  return self:m_receivePackage(timeout).data
+  return self:mReceivePackage(timeout).data
 end
 
----m_receivePackage wait for the receiving of a package and returns it
----@param timeout number or nil timeout to establish a connection or 0 if no timeout
+---mReceivePackage waits for the receiving of a package and returns it
+---@param timeout number timeout to receive a package or 0 if no timeout
 ---@param isSyn boolean if true waits for a syn package
-function libtcp.Connection:m_receivePackage(timeout, isSyn)
+---@private
+function libtcp.Connection:mReceivePackage(timeout, isSyn)
   if isSyn then
     local i = 0
     while #self.packageBuffer_r == 0 do
@@ -145,11 +186,11 @@ function libtcp.Connection:m_receivePackage(timeout, isSyn)
       i = i + 1
       if timeout > 0 and i >= timeout * 20 then
         return
-      end -- timeout
+      end
     end
-    for k, v in pairs(packageBuffer) do
-      self.ack = k
-      return v
+    for ack, package in pairs(self.packageBuffer_r) do
+      self.ack = ack
+      return package
     end
   else
     while self.packageBuffer_r[self.ack + 1] == nil do
@@ -166,7 +207,7 @@ function libtcp.Connection:send(data, _flags)
   if _ack == nil then
     _ack = 0
   end
-  local package = { source_port = self.local_port, destination_port = self.remote_port, seq = self:getNextSeq(),
+  local package = { source_port = self.local_port, destination_port = self.remote_port, seq = self:mGetNextSeq(),
                     ack = _ack, data_offset = TCP_DATA_OFFSET, reserved = TCP_RESERVED, flags = _flags, window = TCP_WINDOW,
                     checksum = TCP_CHECKSUM, urget_pointer = TCP_URGENT_POINTER, data = data
   }
@@ -183,15 +224,23 @@ end
 
 -- end class
 
-function libtcp.handleTCPPackeage(tcpp, senderIP)
-  if ports[tcpp.destination_port] == nil then
+function libtcp.handleTCPPackeage(tcpp, senderAddress)
+  if ports[tcpp.destination_port] == nil or not ports[tcpp.destination_port].isOpen then
     error("recived tcpp on closed port " .. tcpp.destination_port)
   else
-    conn = ports[tcpp.destination_port]
+    local conns = ports[tcpp.destination_port].connections
+    local conn
+    for _, c in pairs(conns) do
+      if (c.remote_address == senderAddress and c.remote_port == tcpp.source_port) or (c.remote_address == nil and c.remote_port == nil and c.state == C_LISTEN) then
+        conn = c
+        break
+      end
+    end
     if tcpp.flags.ACK then
       conn.packageBuffer_s[tcpp.ack] = nil -- package acknowleged, must not be send again
     end
     if not tcpp.flags.ACK or tcpp.flags.SYN then
+      --syn/ack or normal
       conn.packageBuffer_r[tcpp.seq] = tcpp -- put in rec buffer and acknoledge
       lib.sendTCPPackage(conn, nil, ack_flags(), tcpp.seq)
     end
