@@ -9,7 +9,7 @@ log.i("loading tcp libary")
 if libip == nil then
   error("no valid internet protocol active")
 end
-libtcp = {}
+local libtcp = {}
 
 -- const
 local TCP_DATA_OFFSET = 0
@@ -37,6 +37,7 @@ local ports = {}
 ]]
 
 
+---@return "number"
 local function get_free_port()
   port = 512
   while ports[port] ~= nil do
@@ -50,8 +51,9 @@ local function random()
 end
 
 --flags
+---@return 'table'
 local function flags(ack)
-  fl = {
+  local fl = {
     ECE = false, -- no collision
     CWR = false, -- no collision reaction
     URG = false, -- not supported
@@ -65,13 +67,13 @@ local function flags(ack)
 end
 
 local function syn_flags(ack)
-  fl = flags(ack)
+  local fl = flags(ack)
   fl.SYN = true
   return fl
 end
 
 local function fin_flags(ack)
-  fl = flags(ack)
+  local fl = flags(ack)
   fl.FIN = true
   return fl
 end
@@ -108,7 +110,7 @@ libtcp.Connection = {}
 libtcp.Connection.__index = libtcp.Connection
 
 ---listen waits for a connection
----@return table metatable: Connection
+---@return 'table' metatable: Connection
 ---@public
 function libtcp.Socket:listen()
   local conn = { packageBuffer_r = {}, packageBuffer_s = {}, packageSendTimeStep = {},
@@ -135,6 +137,9 @@ function libtcp.Socket:listen()
 end
 
 function libtcp.Connection:open(target_address, target_port, local_port)
+  checkArg(1, target_address, "number")
+  checkArg(2, target_port, "number")
+  checkArg(3, local_port, "nil", "number")
   if local_port == nil then
     local_port = get_free_port()
   end
@@ -170,16 +175,16 @@ function libtcp.Connection:mGetNextSeq()
 end
 
 ---receive waits for receiving of a package
----@param timeout number timeout to receive a package or 0 if no timeout
----@return table tcp package's received content
+---@param timeout 'number' timeout to receive a package or 0 if no timeout
+---@return 'table' tcp package's received content
 ---@public
 function libtcp.Connection:receive(timeout)
   return self:mReceivePackage(timeout).data
 end
 
 ---mReceivePackage waits for the receiving of a package and returns it
----@param timeout number timeout to receive a package or 0 if no timeout
----@param isSyn boolean if true waits for a syn package
+---@param timeout 'number' timeout to receive a package or 0 if no timeout
+---@param isSyn 'boolean' if true waits for a syn package
 ---@private
 function libtcp.Connection:mReceivePackage(timeout, isSyn)
   if isSyn then
@@ -209,6 +214,10 @@ function libtcp.Connection:mReceivePackage(timeout, isSyn)
   end
 end
 
+---send
+---@param data "table"
+---@param _flags "table"|"nil"
+---@param _ack "number"|"nil" ack value to send in ack packages, use 0 if set to nil
 function libtcp.Connection:send(data, _flags, _ack)
   if _flags == nil then
     _flags = flags()
@@ -258,22 +267,32 @@ function libtcp.handleTCPPackeage(tcpp, senderAddress)
   end
 end
 
---called by the network deamon
-function libtcp.sendStep()
-  for _, conn in pairs(connections) do
-    if conn.state ~= C_CLOSED then
-      for seq, data in pairs(conn.packageBuffer_s) do
-        if data.time - os.time() > TCP_ACK_TIMEOUT then
-          if data.send_try >= TCP_MAX_SEND_TRIES then
-            conn.state = C_CLOSED -- too many timeouts
-            log.e("connection closed due too many timeouts")
-          else
-            lipip.sendIpPackage(conn.remote_adress, TOS_TCP, data.package)
-            data.send_try = data.send_try + 1 -- might not work
+local function sendStep()
+  for port, socket in pairs(ports) do
+    for _, conn in pairs(socket.connections) do
+      if conn.state ~= C_CLOSED then
+        for seq, data in pairs(conn.packageBuffer_s) do
+          if data.time - os.time() > TCP_ACK_TIMEOUT then
+            if data.send_try >= TCP_MAX_SEND_TRIES then
+              conn.state = C_CLOSED -- too many timeouts
+              log.e("connection closed due too many timeouts")
+            else
+              lipip.sendIpPackage(conn.remote_adress, TOS_TCP, data.package)
+              data.send_try = data.send_try + 1 -- might not work
+            end
           end
         end
       end
     end
+  end
+end
+
+--called by networkdeamon
+function libtcp.run()
+  log.i("tcp deamon running")
+  while true do
+    libtcp.sendStep()
+    os.sleep(0.05)
   end
 end
 

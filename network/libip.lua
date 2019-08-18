@@ -215,7 +215,7 @@ local function ipreceivedeamon()
 end
  
 function libip.run()
-    log.i("network deamon running")
+    log.i("ip deamon running")
     while true do
         ipreceivedeamon()
     end

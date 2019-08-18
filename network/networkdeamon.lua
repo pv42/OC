@@ -38,14 +38,21 @@ else
 	end
 end
 
-local function run()
+local function runip()
 	os.sleep(0.05) -- to force a yield
 	-- process.findProcess().name = "networkdeamon" -- why doesn't this work
 	libip.run()
-	libtcp.sendStep()
-end 
+end
 
-t = thread.create(run):detach()
+local function runtcp()
+	os.sleep(0.05) -- to force a yield
+	-- process.findProcess().name = "networkdeamon" -- why doesn't this work
+	libtcp.run()
+end
+
+t = thread.create(runtcp):detach()
+
+t = thread.create(runip):detach()
 
 if config_good then
 	if cfg.dhcp then libdhcp.requestIP() end
