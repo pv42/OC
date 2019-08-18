@@ -3,7 +3,6 @@
 --imports
 local log = require("log")
 local libip = require("libip")
-local serialization = require("serialization")
 local math = require("math")
 
 log.i("loading tcp libary")
