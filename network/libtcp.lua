@@ -305,4 +305,6 @@ function libtcp.run()
   end
 end
 
+libip.addReceiveHandler(TCP_PROTOCOL_ID,handleTCPPackeage)
+
 return libtcp
