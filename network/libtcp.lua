@@ -192,14 +192,20 @@ function libtcp.Connection:mReceivePackage(timeout, isSyn)
       return package
     end
   else
+    local i = 0
+
     while self.packageBuffer_r[self.ack + 1] == nil do
       os.sleep(0.05)
+      i = i + 1
+      if timeout > 0 and i >= timeout * 20 then
+        return
+      end
     end
     return conn.packageBuffer[self.ack + 1]
   end
 end
 
-function libtcp.Connection:send(data, _flags)
+function libtcp.Connection:send(data, _flags, _ack)
   if _flags == nil then
     _flags = flags()
   end
@@ -216,8 +222,9 @@ end
 function libtcp.Connection:close()
 
   -- todo teardown
-  ports[self.local_port] = nil
-  connections.remove(self)
+  --ports[self.local_port] = nil
+  --connections.remove(self)
+  self.state = C_CLOSED
 end
 
 
@@ -241,7 +248,8 @@ function libtcp.handleTCPPackeage(tcpp, senderAddress)
     if not tcpp.flags.ACK or tcpp.flags.SYN then
       --syn/ack or normal
       conn.packageBuffer_r[tcpp.seq] = tcpp -- put in rec buffer and acknoledge
-      lib.sendTCPPackage(conn, nil, ack_flags(), tcpp.seq)
+      conn:send(nil,ack_flags(), tcpp.seq)
+      --libtcp.sendTCPPackage(conn, nil, ack_flags(), tcpp.seq)
     end
   end
 end
