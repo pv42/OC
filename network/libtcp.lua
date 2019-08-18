@@ -251,7 +251,7 @@ end
 
 -- end class
 
-function libtcp.handleTCPPackeage(tcpp, senderAddress)
+local function handleTCPPackeage(tcpp, senderAddress)
   if ports[tcpp.destination_port] == nil or not ports[tcpp.destination_port].isOpen then
     error("recived tcpp on closed port " .. tcpp.destination_port)
   else
@@ -305,6 +305,6 @@ function libtcp.run()
   end
 end
 
-libip.addReceiveHandler(TCP_PROTOCOL_ID,handleTCPPackeage)
+libip.addReceiveHandler(TOS_TCP,handleTCPPackeage)
 
 return libtcp
