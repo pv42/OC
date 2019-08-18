@@ -3,6 +3,7 @@ local libip = require("libip")
 local libtcp = require("libtcp")
 local modem = require("component").modem
 local thread = require("thread")
+local process = require("process")
 local fs = require("filesystem")
 local serialization = require("serialization")
 local libdhcp = require("libdhcp")
@@ -39,22 +40,21 @@ end
 
 local function runip()
 	os.sleep(0.05) -- to force a yield
-	-- process.findProcess().name = "networkdeamon" -- why doesn't this work
+	process.findProcess().command = "ipDaemon"
 	libip.run()
 end
 
 local function runtcp()
 	os.sleep(0.05) -- to force a yield
-	process.findProcess().command = "tcpDaemon" -- why doesn't this work
+	process.findProcess().command = "tcpDaemon"
 	libtcp.run()
 end
 
-t = thread.create(runtcp):detach()
-
-t = thread.create(runip):detach()
+thread.create(runtcp):detach()
+thread.create(runip):detach()
 
 if config_good then
 	if cfg.dhcp then libdhcp.requestIP() end
 end
 
-log.i("network deamon started")
+log.i("network started")
