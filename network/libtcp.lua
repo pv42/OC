@@ -127,7 +127,7 @@ function libtcp.Socket:listen(timeout)
   setmetatable(conn, libtcp.Connection)
   local seq0 = conn.seq
   table.insert(self.connections, conn)
-  local package, address = conn:mReceivePackage(0, true) -- wait for syn
+  local package, address = conn:mReceivePackage(timeout, true) -- wait for syn
   if not package then
     error("could not establish connection")
   end
