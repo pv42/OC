@@ -114,13 +114,13 @@ local function saveExportConfig()
 end
 
 local function countString(count)
-  if size < 1000 then
+  if count < 1000 then
     return string.format(" x%d", count)
-  elseif size < 10000 then
+  elseif count < 10000 then
     return string.format(" x%.2fk", count / 1000)
-  elseif size < 100000 then
+  elseif count < 100000 then
     return string.format(" x%.1fk", count / 1000)
-  elseif size < 1000000 then
+  elseif count < 1000000 then
     return string.format(" x%.0fk", count / 1000)
   else
     return string.format(" x%.2fM", count / 1000000)
