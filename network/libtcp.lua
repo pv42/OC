@@ -282,7 +282,7 @@ local function handleTCPPackage(tcpp, senderAddress)
     if not tcpp.flags.ACK or tcpp.flags.SYN then
       --syn/ack or normal
       conn.packageBuffer_r[tcpp.seq] = tcpp -- put in rec buffer and acknoledge
-      log.i("tcp/" .. tcpp.destination_port .. " recv new pack")
+      log.i("tcp/" .. tcpp.destination_port .. " recv new pack seq=" .. tcpp.seq)
       conn:send(nil, ack_flags(), tcpp.seq)
       --libtcp.sendTCPPackage(conn, nil, ack_flags(), tcpp.seq)
     end
@@ -295,6 +295,7 @@ local function sendStep()
       if conn.state ~= C_CLOSED then
         for seq, data in pairs(conn.packageBuffer_s) do
           if os.time() - data.time > TCP_ACK_TIMEOUT then
+            data.time = os.time()
             if data.send_try >= TCP_MAX_SEND_TRIES then
               conn.state = C_CLOSED -- too many timeouts
               log.e("connection closed due too many timeouts")
