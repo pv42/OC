@@ -115,15 +115,15 @@ end
 
 local function countString(count)
   if size < 1000 then
-    return string.format(" x%d", size)
+    return string.format(" x%d", count)
   elseif size < 10000 then
-    return string.format(" x%.2fk", size / 1000)
+    return string.format(" x%.2fk", count / 1000)
   elseif size < 100000 then
-    return string.format(" x%.1fk", size / 1000)
+    return string.format(" x%.1fk", count / 1000)
   elseif size < 1000000 then
-    return string.format(" x%.0fk", size / 1000)
+    return string.format(" x%.0fk", count / 1000)
   else
-    return string.format(" x%.2fM", size / 1000000)
+    return string.format(" x%.2fM", count / 1000000)
   end
 end
 
