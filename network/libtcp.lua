@@ -36,6 +36,12 @@ local ports = {}
          -> list of connections (tables with metatable Connection)
 ]]
 
+--- returns number of entries in the table
+local function tableLength(T)
+  local count = 0
+  for _ in pairs(T) do count = count + 1 end
+  return count
+end
 
 ---@return "number"
 local function get_free_port()
@@ -110,16 +116,18 @@ libtcp.Connection = {}
 libtcp.Connection.__index = libtcp.Connection
 
 ---listen waits for a connection
+---@param timeout 'number' timeout if nil or 0 no timeout
 ---@return 'table' metatable: Connection
 ---@public
-function libtcp.Socket:listen()
+function libtcp.Socket:listen(timeout)
+  if timeout == nil then timeout = 0 end
   local conn = { packageBuffer_r = {}, packageBuffer_s = {}, packageSendTimeStep = {},
                  local_port = port, remote_port = nil, remote_address = nil, -- not set yet
                  seq = random(), ack = 0, state = C_LISTEN }
   setmetatable(conn, libtcp.Connection)
   local seq0 = conn.seq
   table.insert(self.connections, conn)
-  local package, address = conn:mReceivePackage(0, true)
+  local package, address = conn:mReceivePackage(0, true) -- wait for syn
   if not package then
     error("could not establish connection")
   end
@@ -197,7 +205,7 @@ end
 function libtcp.Connection:mReceivePackage(timeout, isSyn)
   if isSyn then
     local i = 0
-    while #self.packageBuffer_r == 0 do
+    while tableLength(self.packageBuffer_r) == 0 do
       os.sleep(0.05)
       i = i + 1
       if timeout > 0 and i >= timeout * 20 then
