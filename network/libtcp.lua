@@ -39,7 +39,9 @@ local ports = {}
 --- returns number of entries in the table
 local function tableLength(T)
   local count = 0
-  for _ in pairs(T) do count = count + 1 end
+  for _ in pairs(T) do
+    count = count + 1
+  end
   return count
 end
 
@@ -120,7 +122,9 @@ libtcp.Connection.__index = libtcp.Connection
 ---@return 'table' metatable: Connection
 ---@public
 function libtcp.Socket:listen(timeout)
-  if timeout == nil then timeout = 0 end
+  if timeout == nil then
+    timeout = 0
+  end
   local conn = { packageBuffer_r = {}, packageBuffer_s = {}, packageSendTimeStep = {},
                  local_port = port, remote_port = nil, remote_address = nil, -- not set yet
                  seq = random(), ack = 0, state = C_LISTEN }
@@ -259,9 +263,9 @@ end
 
 -- end class
 
-local function handleTCPPackeage(tcpp, senderAddress)
+local function handleTCPPackage(tcpp, senderAddress)
   if ports[tcpp.destination_port] == nil or not ports[tcpp.destination_port].isOpen then
-    error("recived tcpp on closed port " .. tcpp.destination_port)
+    log.e("recived tcpp on closed port " .. tcpp.destination_port)
   else
     local conns = ports[tcpp.destination_port].connections
     local conn
@@ -273,10 +277,12 @@ local function handleTCPPackeage(tcpp, senderAddress)
     end
     if tcpp.flags.ACK then
       conn.packageBuffer_s[tcpp.ack] = nil -- package acknowleged, must not be send again
+      log.i("tcp/" .. tcpp.destination_port .. " acknowledged")
     end
     if not tcpp.flags.ACK or tcpp.flags.SYN then
       --syn/ack or normal
       conn.packageBuffer_r[tcpp.seq] = tcpp -- put in rec buffer and acknoledge
+      log.i("tcp/" .. tcpp.destination_port .. " recv new pack")
       conn:send(nil, ack_flags(), tcpp.seq)
       --libtcp.sendTCPPackage(conn, nil, ack_flags(), tcpp.seq)
     end
@@ -313,6 +319,6 @@ function libtcp.run()
   end
 end
 
-libip.addReceiveHandler(TOS_TCP,handleTCPPackeage)
+libip.addReceiveHandler(TOS_TCP, handleTCPPackage)
 
 return libtcp
