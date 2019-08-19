@@ -263,14 +263,42 @@ end
 
 -- end class
 
+local function handleSynPackage(tcpp, senderAddress)
+  local conns = ports[tcpp.destination_port].connections
+  local conn
+  for _, c in pairs(conns) do
+    if (c.remote_address == senderAddress and c.remote_port == tcpp.source_port and c.state == C_SYN_SENT) or -- syn/ack
+        (c.remote_address == nil and c.remote_port == nil and c.state == C_LISTEN and not tcpp.flags.ACK) then -- syn
+      conn = c
+      break
+    end
+  end
+  if conn == nil then
+    log.e("no conn in conns port:" .. tcpp.destination_port)
+  end
+  if tcpp.flags.ACK then --syn/ack
+    conn.packageBuffer_s[tcpp.ack] = nil -- package acknowleged, must not be send again
+    log.i("tcp/" .. tcpp.destination_port .. " acknowledged")
+  else -- syn
+    --syn/ack or normal
+    conn.packageBuffer_r[tcpp.seq] = tcpp -- put in rec buffer and acknoledge
+    log.i("tcp/" .. tcpp.destination_port .. " recv new pack seq=" .. tcpp.seq)
+    conn:send(nil, flags(true), tcpp.seq)
+    --libtcp.sendTCPPackage(conn, nil, ack_flags(), tcpp.seq)
+  end
+end
+
 local function handleTCPPackage(tcpp, senderAddress)
   if ports[tcpp.destination_port] == nil or not ports[tcpp.destination_port].isOpen then
     log.e("recived tcpp on closed port " .. tcpp.destination_port)
   else
+    if tcpp.flags.SYN then
+      return handleSynPackage(tcpp, senderAddress)
+    end
     local conns = ports[tcpp.destination_port].connections
     local conn
     for _, c in pairs(conns) do
-      if (c.remote_address == senderAddress and c.remote_port == tcpp.source_port) or (c.remote_address == nil and c.remote_port == nil and c.state == C_LISTEN) then
+      if c.remote_address == senderAddress and c.remote_port == tcpp.source_port and (c.state == C_ESTABLISHED or c.state == C_SYN_RCV) then
         conn = c
         break
       end
@@ -282,7 +310,7 @@ local function handleTCPPackage(tcpp, senderAddress)
       conn.packageBuffer_s[tcpp.ack] = nil -- package acknowleged, must not be send again
       log.i("tcp/" .. tcpp.destination_port .. " acknowledged")
     end
-    if not tcpp.flags.ACK or tcpp.flags.SYN then
+    if not tcpp.flags.ACK then
       --syn/ack or normal
       conn.packageBuffer_r[tcpp.seq] = tcpp -- put in rec buffer and acknoledge
       log.i("tcp/" .. tcpp.destination_port .. " recv new pack seq=" .. tcpp.seq)
