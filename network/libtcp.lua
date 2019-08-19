@@ -17,7 +17,7 @@ local TCP_RESERVED = 0
 local TCP_WINDOW = 0
 local TCP_CHECKSUM = 35498
 local TCP_URGENT_POINTER = 0
-local TCP_ACK_TIMEOUT = 10
+local TCP_ACK_TIMEOUT = 72 -- 1s~72
 local TCP_MAX_SEND_TRIES = 3
 -- connection states
 local C_CLOSED = 0
