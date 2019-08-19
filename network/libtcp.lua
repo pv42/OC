@@ -275,6 +275,9 @@ local function handleTCPPackage(tcpp, senderAddress)
         break
       end
     end
+    if conn == nil then
+      log.e("no conn in conns port:" .. tcpp.destination_port)
+    end
     if tcpp.flags.ACK then
       conn.packageBuffer_s[tcpp.ack] = nil -- package acknowleged, must not be send again
       log.i("tcp/" .. tcpp.destination_port .. " acknowledged")
@@ -283,7 +286,7 @@ local function handleTCPPackage(tcpp, senderAddress)
       --syn/ack or normal
       conn.packageBuffer_r[tcpp.seq] = tcpp -- put in rec buffer and acknoledge
       log.i("tcp/" .. tcpp.destination_port .. " recv new pack seq=" .. tcpp.seq)
-      conn:send(nil, ack_flags(), tcpp.seq)
+      conn:send(nil, flags(true), tcpp.seq)
       --libtcp.sendTCPPackage(conn, nil, ack_flags(), tcpp.seq)
     end
   end
