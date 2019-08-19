@@ -113,6 +113,20 @@ local function saveExportConfig()
   f:close()
 end
 
+local function countString(count)
+  if size < 1000 then
+    return string.format(" x%d", size)
+  elseif size < 10000 then
+    return string.format(" x%.2fk", size / 1000)
+  elseif size < 100000 then
+    return string.format(" x%.1fk", size / 1000)
+  elseif size < 1000000 then
+    return string.format(" x%.0fk", size / 1000)
+  else
+    return string.format(" x%.2fM", size / 1000000)
+  end
+end
+
 local function loadExportConfig()
   if not fs.exists(CONFIG_PATH .. EXPORT_CONFIG_FILE) then
     return -- nothing to load
@@ -149,7 +163,7 @@ local function loadExportConfig()
     end
     line = f:readLine()
   end
-  f.close()
+  f:close()
 end
 
 local function runExportRules()
@@ -206,7 +220,7 @@ local function printPage(page)
     local ind = i + 1 + (yr - 3) * page
     if ind > 0 and ind <= #items then
       local nameTxt = thorns.Text:create(1, 1, items[ind].label)
-      local amTxt = thorns.Text:create(1, 1, " x" .. items[ind].size)
+      local amTxt = thorns.Text:create(1, 1, countString(items[ind].size))
       local detailBtn = thorns.Button:create(1, 1, 7, 1, "Details")
       local f_d = function()
         -- TODO
@@ -339,7 +353,9 @@ exb.onClick = runExportRules
 drawHolePage()
 while not stop do
   thorns.handleNextEvent()
-  if os.sleep then os.sleep(0.05) end
+  if os.sleep then
+    os.sleep(0.05)
+  end
   --term.setCursorPos(1,1)
   --term.write(os.time())
 end
