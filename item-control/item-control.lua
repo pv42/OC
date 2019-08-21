@@ -116,14 +116,28 @@ end
 local function countString(count)
   if count < 1000 then
     return string.format(" x%d", count)
-  elseif count < 10000 then
-    return string.format(" x%.2fk", count / 1000)
-  elseif count < 100000 then
-    return string.format(" x%.1fk", count / 1000)
-  elseif count < 1000000 then
-    return string.format(" x%.0fk", count / 1000)
+  elseif count < 1e4 then
+    return string.format(" x%.2fk", count / 1e3)
+  elseif count < 1e5 then
+    return string.format(" x%.1fk", count / 1e3)
+  elseif count < 1e6 then
+    return string.format(" x%.0fk", count / 1e3)
+  elseif count < 1e7 then
+    return string.format(" x%.2fM", count / 1e6)
+  elseif count < 1e8 then
+    return string.format(" x%.1fM", count / 1e6)
+  elseif count < 1e9 then
+    return string.format(" x%.0fM", count / 1e6)
+  elseif count < 1e10 then
+    return string.format(" x%.2fG", count / 1e9)
+  elseif count < 1e11 then
+    return string.format(" x%.1fG", count / 1e9)
+  elseif count < 1e12 then
+    return string.format(" x%.0fG", count / 1e9)
+  elseif count < 1e13 then
+    return string.format(" x%.2fT", count / 1e12)
   else
-    return string.format(" x%.2fM", count / 1000000)
+    return string.format(" x%.1fT", count / 1e12)
   end
 end
 

@@ -69,7 +69,10 @@ return { gpu = {
          me_interface = {
            getItemsInNetwork = function()
              return {
-               { damage = 0, hasTag = false, isCraftable = false, label = "Stone", name = "minecraft:stone", maxDamage = 0, maxSize = 64, size = 106572 }
+               { damage = 0, hasTag = false, isCraftable = false, label = "Diamandblock", name = "minecraft:diamond_block", maxDamage = 0, maxSize = 64, size = 7146328549120 },
+               { damage = 0, hasTag = false, isCraftable = false, label = "Stone", name = "minecraft:stone", maxDamage = 0, maxSize = 64, size = 942319749 },
+               { damage = 1, hasTag = false, isCraftable = false, label = "Diorite", name = "minecraft:stone", maxDamage = 0, maxSize = 64, size = 106572 },
+               { damage = 2, hasTag = false, isCraftable = false, label = "Granite", name = "minecraft:stone", maxDamage = 0, maxSize = 64, size = 884 },
              }
            end,
            getCraftables = function ()
