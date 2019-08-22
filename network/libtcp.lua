@@ -135,7 +135,7 @@ function libtcp.Socket:listen(timeout)
   if not package then
     error("could not establish connection")
   end
-  conn.remote_port = package.destination_port
+  conn.remote_port = package.source_port
   conn.remote_address = address
   conn:send(nil, syn_flags(true))
   conn.state = C_SYN_RCV
