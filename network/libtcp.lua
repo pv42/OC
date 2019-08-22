@@ -126,7 +126,7 @@ function libtcp.Socket:listen(timeout)
     timeout = 0
   end
   local conn = { packageBuffer_r = {}, packageBuffer_s = {}, packageSendTimeStep = {},
-                 local_port = port, remote_port = nil, remote_address = nil, -- not set yet
+                 local_port = self.port, remote_port = nil, remote_address = nil, -- not set yet
                  seq = random(), ack = 0, state = C_LISTEN }
   setmetatable(conn, libtcp.Connection)
   local seq0 = conn.seq
@@ -274,7 +274,7 @@ local function handleSynPackage(tcpp, senderAddress)
     end
   end
   if conn == nil then
-    log.e("no conn in conns port:" .. tcpp.destination_port)
+    log.e("no conn in conns (SYN) port:" .. tcpp.destination_port)
   end
   if tcpp.flags.ACK then --syn/ack
     conn.packageBuffer_s[tcpp.ack] = nil -- package acknowleged, must not be send again
