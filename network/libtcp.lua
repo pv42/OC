@@ -281,9 +281,7 @@ local function handleSynPackage(tcpp, senderAddress)
     log.i("tcp/" .. tcpp.destination_port .. " acknowledged")
   else -- syn
     conn.packageBuffer_r[tcpp.seq] = tcpp -- put in rec buffer and acknoledge
-    log.i("tcp/" .. tcpp.destination_port .. " recv new pack seq=" .. tcpp.seq)
-    conn:send(nil, flags(true), tcpp.seq)
-    --libtcp.sendTCPPackage(conn, nil, ack_flags(), tcpp.seq)
+    log.i("tcp/" .. tcpp.destination_port .. " recv new syn pack seq=" .. tcpp.seq)
   end
 end
 
