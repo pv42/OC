@@ -329,6 +329,7 @@ local function sendStep()
               conn.state = C_CLOSED -- too many timeouts
               log.e("connection closed due too many timeouts")
             else
+              if conn.remote_address == nil then print("RA is nil") end
               libip.sendIpPackage(conn.remote_address, TOS_TCP, data.package)
               log.i("sending  try:" .. data.send_try)
               data.send_try = data.send_try + 1 -- might not work
