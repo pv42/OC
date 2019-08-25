@@ -133,7 +133,8 @@ function libtcp.Socket:listen(timeout)
   table.insert(self.connections, conn)
   local package, address = conn:mReceivePackage(timeout, true) -- wait for syn
   if not package then
-    error("could not establish connection")
+    log.e("could not establish connection")
+    return
   end
   conn.remote_port = package.source_port
   conn.remote_address = address
@@ -149,10 +150,10 @@ function libtcp.Socket:listen(timeout)
 end
 
 ---open
----@param target_address number
----@param target_port number
----@param local_port number|nil
----@return table
+---@param target_address "number"
+---@param target_port "number"
+---@param local_port "number"|"nil"
+---@return "table"
 ---@public
 function libtcp.Connection:open(target_address, target_port, local_port)
   checkArg(1, target_address, "number")
@@ -275,8 +276,7 @@ local function handleSynPackage(tcpp, senderAddress)
   end
   if conn == nil then
     log.e("no conn in conns (SYN) port:" .. tcpp.destination_port)
-  end
-  if tcpp.flags.ACK then --syn/ack
+  elseif tcpp.flags.ACK then --syn/ack
     conn.packageBuffer_s[tcpp.ack] = nil -- package acknowleged, must not be send again
     log.i("tcp/" .. tcpp.destination_port .. " acknowledged")
   else -- syn
