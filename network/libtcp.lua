@@ -280,7 +280,6 @@ local function handleSynPackage(tcpp, senderAddress)
     conn.packageBuffer_s[tcpp.ack] = nil -- package acknowleged, must not be send again
     log.i("tcp/" .. tcpp.destination_port .. " acknowledged")
   else -- syn
-    --syn/ack or normal
     conn.packageBuffer_r[tcpp.seq] = tcpp -- put in rec buffer and acknoledge
     log.i("tcp/" .. tcpp.destination_port .. " recv new pack seq=" .. tcpp.seq)
     conn:send(nil, flags(true), tcpp.seq)
@@ -289,8 +288,10 @@ local function handleSynPackage(tcpp, senderAddress)
 end
 
 local function handleTCPPackage(tcpp, senderAddress)
-  if ports[tcpp.destination_port] == nil or not ports[tcpp.destination_port].isOpen then
-    log.e("recived tcpp on closed port " .. tcpp.destination_port)
+  if tcpp.destination_port == nil or tcpp.flags == nil then
+    log.e("received invalid tcppackage")
+  elseif ports[tcpp.destination_port] == nil or not ports[tcpp.destination_port].isOpen then
+    log.e("received tcpp on closed port " .. tcpp.destination_port)
   else
     if tcpp.flags.SYN then
       return handleSynPackage(tcpp, senderAddress)
@@ -309,8 +310,7 @@ local function handleTCPPackage(tcpp, senderAddress)
     if tcpp.flags.ACK then
       conn.packageBuffer_s[tcpp.ack] = nil -- package acknowleged, must not be send again
       log.i("tcp/" .. tcpp.destination_port .. " acknowledged")
-    end
-    if not tcpp.flags.ACK then
+    else
       --syn/ack or normal
       conn.packageBuffer_r[tcpp.seq] = tcpp -- put in rec buffer and acknoledge
       log.i("tcp/" .. tcpp.destination_port .. " recv new pack seq=" .. tcpp.seq)
