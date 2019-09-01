@@ -219,7 +219,7 @@ function libtcp.Connection:mReceivePackage(timeout, isSyn)
     end
     for ack, package in pairs(self.packageBuffer_r) do
       self.ack = ack
-      return package
+      return package.data, package.source
     end
   else
     local i = 0
@@ -231,7 +231,7 @@ function libtcp.Connection:mReceivePackage(timeout, isSyn)
         return
       end
     end
-    return conn.packageBuffer[self.ack + 1]
+    return conn.packageBuffer[self.ack + 1].data
   end
 end
 
@@ -280,7 +280,7 @@ local function handleSynPackage(tcpp, senderAddress)
     conn.packageBuffer_s[tcpp.ack] = nil -- package acknowleged, must not be send again
     log.i("tcp/" .. tcpp.destination_port .. " acknowledged")
   else -- syn
-    conn.packageBuffer_r[tcpp.seq] = tcpp -- put in rec buffer and acknoledge
+    conn.packageBuffer_r[tcpp.seq] = {data=tcpp,source=senderAddress} -- put in rec buffer and acknoledge
     log.i("tcp/" .. tcpp.destination_port .. " recv new syn pack seq=" .. tcpp.seq)
   end
 end
@@ -310,7 +310,7 @@ local function handleTCPPackage(tcpp, senderAddress)
       log.i("tcp/" .. tcpp.destination_port .. " acknowledged")
     else
       --syn/ack or normal
-      conn.packageBuffer_r[tcpp.seq] = tcpp -- put in rec buffer and acknoledge
+      conn.packageBuffer_r[tcpp.seq] = {data=tcpp,source=senderAddress} -- put in rec buffer and acknoledge
       log.i("tcp/" .. tcpp.destination_port .. " recv new pack seq=" .. tcpp.seq)
       conn:send(nil, flags(true), tcpp.seq)
       --libtcp.sendTCPPackage(conn, nil, ack_flags(), tcpp.seq)
