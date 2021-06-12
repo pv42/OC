@@ -20,11 +20,11 @@ local TCP_URGENT_POINTER = 0
 local TCP_ACK_TIMEOUT = 72 -- 1s~72
 local TCP_MAX_SEND_TRIES = 3
 -- connection states
-local C_CLOSED = 0
-local C_LISTEN = 1
-local C_SYN_RCV = 2
-local C_SYN_SENT = 3
-local C_ESTABLISHED = 4
+libtcp.C_CLOSED = 0
+libtcp.C_LISTEN = 1
+libtcp.C_SYN_RCV = 2
+libtcp.C_SYN_SENT = 3
+libtcp.C_ESTABLISHED = 4
 --
 libtcp.TOS_TCP = 6
 --locals
@@ -127,7 +127,7 @@ function libtcp.Socket:listen(timeout)
   end
   local conn = { packageBuffer_r = {}, packageBuffer_s = {}, packageSendTimeStep = {},
                  local_port = self.port, remote_port = nil, remote_address = nil, -- not set yet
-                 seq = random(), ack = 0, state = C_LISTEN }
+                 seq = random(), ack = 0, state = libtcp.C_LISTEN }
   setmetatable(conn, libtcp.Connection)
   local seq0 = conn.seq
   table.insert(self.connections, conn)
@@ -141,7 +141,7 @@ function libtcp.Socket:listen(timeout)
   conn.remote_port = package.source_port
   conn.remote_address = address
   conn:send(nil, syn_flags(true), conn.ack) -- todo add ack num
-  conn.state = C_SYN_RCV
+  conn.state = libtcp.C_SYN_RCV
   local i = 0
   while conn.packageBuffer_s[seq0 + 1] ~= nil and (i < timeout * 20 or timeout == 0) do
     -- wait for ack
@@ -152,7 +152,7 @@ function libtcp.Socket:listen(timeout)
     -- todo remove correct element
     table.remove(self.connections)
   else
-    conn.state = C_ESTABLISHED
+    conn.state = libtcp.C_ESTABLISHED
     print("TCP:established")
     return conn
   end
@@ -176,12 +176,12 @@ function libtcp.Connection:open(target_address, target_port, local_port)
   end
   local conn = { packageBuffer_r = {}, packageBuffer_s = {},
                  local_port = local_port, remote_port = target_port,
-                 remote_address = target_address, seq = random(), ack = 0, state = C_CLOSED }
+                 remote_address = target_address, seq = random(), ack = 0, state = libtcp.C_CLOSED }
   setmetatable(conn, libtcp.Connection)
   ports[local_port] = { port = local_port, connections = { conn }, isOpen = true } -- marks port as used
   -- syn
   conn:send(nil, syn_flags())
-  conn.state = C_SYN_SENT
+  conn.state = libtcp.C_SYN_SENT
   -- wait for syn ack
   tcpp = conn:mReceivePackage(10, true)
   if tcpp == nil then
@@ -189,7 +189,7 @@ function libtcp.Connection:open(target_address, target_port, local_port)
     error("Connection could not be opened: Server did not respond")
   end
   if tcpp.flags.SYN and tcpp.flags.ACK then
-    conn.state = C_ESTABLISHED
+    conn.state = libtcp.C_ESTABLISHED
     print("connection to " .. target_address .. ":" .. target_port .. " opened")
   else
     ports[local_port] = nil
@@ -217,6 +217,7 @@ end
 ---@param isSyn 'boolean' if true waits for a syn package
 ---@private
 function libtcp.Connection:mReceivePackage(timeout, isSyn)
+  if not timeout then timeout = 0 end 
   if isSyn then
     local i = 0
     while tableLength(self.packageBuffer_r) == 0 do
@@ -232,7 +233,6 @@ function libtcp.Connection:mReceivePackage(timeout, isSyn)
     end
   else
     local i = 0
-
     while self.packageBuffer_r[self.ack + 1] == nil do
       os.sleep(0.05)
       i = i + 1
@@ -240,7 +240,10 @@ function libtcp.Connection:mReceivePackage(timeout, isSyn)
         return
       end
     end
-    return conn.packageBuffer[self.ack + 1].data
+    self.ack = self.ack + 1
+    local data = conn.packageBuffer[self.ack + 1].data
+    data = conn.packageBuffer[self.ack + 1] = nil
+    return data
   end
 end
 
@@ -267,9 +270,9 @@ end
 function libtcp.Connection:close()
 
   -- todo teardown
-  ports[self.local_port] = nil
+  --ports[self.local_port] = nil
   --connections.remove(self)
-  self.state = C_CLOSED
+  self.state = libtcp.C_CLOSED
 end
 
 
@@ -279,8 +282,8 @@ local function handleSynPackage(tcpp, senderAddress)
   local conns = ports[tcpp.destination_port].connections
   local conn
   for _, c in pairs(conns) do
-    if (c.remote_address == senderAddress and c.remote_port == tcpp.source_port and c.state == C_SYN_SENT) or -- syn/ack
-        (c.remote_address == nil and c.remote_port == nil and c.state == C_LISTEN and not tcpp.flags.ACK) then -- syn
+    if (c.remote_address == senderAddress and c.remote_port == tcpp.source_port and c.state == libtcp.C_SYN_SENT) or -- syn/ack
+        (c.remote_address == nil and c.remote_port == nil and c.state == libtcp.C_LISTEN and not tcpp.flags.ACK) then -- syn
       conn = c
       break
     end
@@ -310,7 +313,7 @@ local function handleTCPPackage(tcpp, senderAddress)
     local conns = ports[tcpp.destination_port].connections
     local conn
     for _, c in pairs(conns) do
-      if c.remote_address == senderAddress and c.remote_port == tcpp.source_port and (c.state == C_ESTABLISHED or c.state == C_SYN_RCV) then
+      if c.remote_address == senderAddress and c.remote_port == tcpp.source_port and (c.state == libtcp.C_ESTABLISHED or c.state == libtcp.C_SYN_RCV) then
         conn = c
         break
       end
@@ -334,18 +337,21 @@ end
 local function sendStep()
   for port, socket in pairs(ports) do
     for _, conn in pairs(socket.connections) do
-      if conn.state ~= C_CLOSED then
+      if conn.state ~= libtcp.C_CLOSED then
         for seq, data in pairs(conn.packageBuffer_s) do
           if os.time() - data.time > TCP_ACK_TIMEOUT then
             data.time = os.time()
             if data.send_try >= TCP_MAX_SEND_TRIES then
-              conn.state = C_CLOSED -- too many timeouts
+              conn.state = libtcp.C_CLOSED -- too many timeouts
               log.e("connection closed due too many timeouts")
             else
               if conn.remote_address == nil then print("RA is nil") end
               libip.sendIpPackage(conn.remote_address, libtcp.TOS_TCP, data.package)
               log.i("sending  try:" .. data.send_try)
               data.send_try = data.send_try + 1 -- might not work
+            end
+            if data.flags and data.flags.ACK and not data.flags.SYN and not data.flags.FIN then
+               conn.packageBuffer_s[seq] = nil -- dont keep not fin not syn ack 
             end
           end
         end
@@ -363,6 +369,20 @@ function libtcp.run()
   end
 end
 
+--for ifconfig
+function listConnection()
+    list = {}
+    for port, data in pairs(ports) do
+        element = {}
+        element.local_port = port
+        element.remote_port = data.remote_port
+        element.remote_address = data.remote_address
+        element.state = data.state
+        table.insert(list, element)
+    end
+    return list
+end
+    
 libip.addReceiveHandler(libtcp.TOS_TCP, handleTCPPackage)
 
 return libtcp
