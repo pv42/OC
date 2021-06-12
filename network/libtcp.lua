@@ -140,7 +140,7 @@ function libtcp.Socket:listen(timeout)
   end
   conn.remote_port = package.source_port
   conn.remote_address = address
-  conn:send(nil, syn_flags(true)) -- todo add ack num
+  conn:send(nil, syn_flags(true), conn.ack) -- todo add ack num
   conn.state = C_SYN_RCV
   local i = 0
   while conn.packageBuffer_s[seq0 + 1] ~= nil and (i < timeout * 20 or timeout == 0) do
@@ -267,7 +267,7 @@ end
 function libtcp.Connection:close()
 
   -- todo teardown
-  --ports[self.local_port] = nil
+  ports[self.local_port] = nil
   --connections.remove(self)
   self.state = C_CLOSED
 end

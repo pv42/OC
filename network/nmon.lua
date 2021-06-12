@@ -76,7 +76,7 @@ local function print_tcp_flags(flags)
     end
 end
 
-io.write("NMon 1.0.06  (C) 2019 pv42\n")
+io.write("NMon 1.0.08  (C) 2021 pv42\n")
 io.write("Press 'Ctrl-C' to exit\n")
 local suc, pcall_ret = pcall(function()
   repeat
