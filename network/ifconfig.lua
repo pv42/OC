@@ -56,16 +56,15 @@ if libip ~= nil then
 end
 
 if libtcp ~= nil and libip ~= nil then --tcp w/o ip does not make a lot of sense
-    print("")
-    print("TCP (experimental)")
-    print("local remote      state")
-    for _,c in pairs(listConnection) do 
-        io.write(c.local_port)
-        io.write(string.rep(" ", math.max(6 - #tostring(c.local_port), 0)))
-        io.write(c.remote_address .. ":" .. c.remote_port)
-        io.write(string.rep(" ", math.max(19 - #tostring(c.remote_port) - 1 - #libip.IPtoString(c.remote_address), 0)))
-        io.write(c.state)
-    end
+  print("")
+  print("TCP (experimental)")
+  print("local remote      state")
+  for _,c in pairs(listConnection) do 
+    io.write(c.local_port)
+    io.write(string.rep(" ", math.max(6 - #tostring(c.local_port), 0)))
+    io.write(c.remote_address .. ":" .. c.remote_port)
+    io.write(string.rep(" ", math.max(19 - #tostring(c.remote_port) - 1 - #libip.IPtoString(c.remote_address), 0)))
+    io.write(c.state)
   end
 end
 

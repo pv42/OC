@@ -242,7 +242,7 @@ function libtcp.Connection:mReceivePackage(timeout, isSyn)
     end
     self.ack = self.ack + 1
     local data = conn.packageBuffer[self.ack + 1].data
-    data = conn.packageBuffer[self.ack + 1] = nil
+    conn.packageBuffer[self.ack + 1] = nil
     return data
   end
 end
