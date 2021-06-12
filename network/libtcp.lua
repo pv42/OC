@@ -371,17 +371,18 @@ end
 
 --for ifconfig
 function libtcp.listConnection()
-    list = {}
-    for local_port, data in pairs(ports) do
-        for _, conn in pairs(data.connections) do
-            element = {}
-            element.local_port = local_port
-            element.remote_port = conn.remote_port
-            element.remote_address = conn.remote_address
-            element.state = conn.state
-        table.insert(list, element)
+  list = {}
+  for local_port, data in pairs(ports) do
+    for _, conn in pairs(data.connections) do
+      element = {}
+      element.local_port = local_port
+      element.remote_port = conn.remote_port
+      element.remote_address = conn.remote_address
+      element.state = conn.state
+      table.insert(list, element)
     end
-    return list
+  end
+  return list
 end
     
 libip.addReceiveHandler(libtcp.TOS_TCP, handleTCPPackage)
