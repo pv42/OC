@@ -370,14 +370,15 @@ function libtcp.run()
 end
 
 --for ifconfig
-function listConnection()
+function libtcp.listConnection()
     list = {}
-    for port, data in pairs(ports) do
-        element = {}
-        element.local_port = port
-        element.remote_port = data.remote_port
-        element.remote_address = data.remote_address
-        element.state = data.state
+    for local_port, data in pairs(ports) do
+        for _, conn in pairs(data.connections) do
+            element = {}
+            element.local_port = local_port
+            element.remote_port = conn.remote_port
+            element.remote_address = conn.remote_address
+            element.state = conn.state
         table.insert(list, element)
     end
     return list

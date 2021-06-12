@@ -97,7 +97,7 @@ local function sendArpPackage(op, targetmac, targetip)
 end
  
 function libip.IPtoString(tip)
-    if tip == nil then return 0 end
+    if tip == nil then return "" end
     return math.floor(tip/(256*256*256)).."."..(math.floor(tip/(256*256))%256).."."..(math.floor(tip/256)%256).."."..(tip%256)
 end
 
