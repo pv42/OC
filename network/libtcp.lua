@@ -133,6 +133,8 @@ function libtcp.Socket:listen(timeout)
   table.insert(self.connections, conn)
   local package, address = conn:mReceivePackage(timeout, true) -- wait for syn
   if not package then
+    table.remove(self.connections)
+    -- todo remove correct element ^
     log.e("could not establish connection")
     return
   end
@@ -140,13 +142,20 @@ function libtcp.Socket:listen(timeout)
   conn.remote_address = address
   conn:send(nil, syn_flags(true))
   conn.state = C_SYN_RCV
-  while conn.packageBuffer_s[seq0 + 1] ~= nil do
+  local i = 0
+  while conn.packageBuffer_s[seq0 + 1] ~= nil or i >= timeout * 20 do
     -- wait for ack
     os.sleep(0.05)
+    i = i+1
   end
-  conn.state = C_ESTABLISHED
-  print("TCP:established")
-  return conn
+  if i >= timeout * 20 then
+    -- todo remove correct element
+    table.remove(self.connections)
+  else
+    conn.state = C_ESTABLISHED
+    print("TCP:established")
+    return conn
+  end
 end
 
 ---open
