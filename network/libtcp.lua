@@ -26,7 +26,7 @@ local C_SYN_RCV = 2
 local C_SYN_SENT = 3
 local C_ESTABLISHED = 4
 --
-local TOS_TCP = 6
+libtcp.TOS_TCP = 6
 --locals
 local ports = {}
 --[[
@@ -140,15 +140,15 @@ function libtcp.Socket:listen(timeout)
   end
   conn.remote_port = package.source_port
   conn.remote_address = address
-  conn:send(nil, syn_flags(true))
+  conn:send(nil, syn_flags(true)) -- todo add ack num
   conn.state = C_SYN_RCV
   local i = 0
-  while conn.packageBuffer_s[seq0 + 1] ~= nil or i >= timeout * 20 do
+  while conn.packageBuffer_s[seq0 + 1] ~= nil and (i < timeout * 20 or timeout == 0) do
     -- wait for ack
     os.sleep(0.05)
     i = i+1
   end
-  if i >= timeout * 20 then
+  if i >= timeout * 20 and timeout > 0 then
     -- todo remove correct element
     table.remove(self.connections)
   else
@@ -256,7 +256,9 @@ function libtcp.Connection:send(data, _flags, _ack)
     _ack = 0
   end
   local package = { source_port = self.local_port, destination_port = self.remote_port, seq = self:mGetNextSeq(),
-                    ack = _ack, data_offset = TCP_DATA_OFFSET, reserved = TCP_RESERVED, flags = _flags, window = TCP_WINDOW,
+                    ack = _ack, data_offset = TCP_DATA_OFFSET, 
+                    --reserved = TCP_RESERVED,
+                    flags = _flags, window = TCP_WINDOW,
                     checksum = TCP_CHECKSUM, urget_pointer = TCP_URGENT_POINTER, data = data
   }
   self.packageBuffer_s[package.seq] = { package = package, send_try = 0, time = os.time() }
@@ -339,7 +341,7 @@ local function sendStep()
               log.e("connection closed due too many timeouts")
             else
               if conn.remote_address == nil then print("RA is nil") end
-              libip.sendIpPackage(conn.remote_address, TOS_TCP, data.package)
+              libip.sendIpPackage(conn.remote_address, libtcp.TOS_TCP, data.package)
               log.i("sending  try:" .. data.send_try)
               data.send_try = data.send_try + 1 -- might not work
             end
@@ -359,6 +361,6 @@ function libtcp.run()
   end
 end
 
-libip.addReceiveHandler(TOS_TCP, handleTCPPackage)
+libip.addReceiveHandler(libtcp.TOS_TCP, handleTCPPackage)
 
 return libtcp
