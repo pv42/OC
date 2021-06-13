@@ -209,7 +209,12 @@ end
 ---@return 'table' tcp package's received content
 ---@public
 function libtcp.Connection:receive(timeout)
-  return self:mReceivePackage(timeout).data
+  local ret = self:mReceivePackage(timeout)
+  if ret then 
+    return ret.data 
+  else 
+    return nil 
+  end
 end
 
 ---mReceivePackage waits for the receiving of a package and returns it
@@ -257,6 +262,9 @@ function libtcp.Connection:send(data, _flags, _ack)
   end
   if _ack == nil then
     _ack = 0
+  end
+  if self.state == libtcp.C_CLOSED then
+    error("Connection is closed.")
   end
   local package = { source_port = self.local_port, destination_port = self.remote_port, seq = self:mGetNextSeq(),
                     ack = _ack, data_offset = TCP_DATA_OFFSET, 
@@ -342,7 +350,8 @@ local function sendStep()
           if os.time() - data.time > TCP_ACK_TIMEOUT then
             data.time = os.time()
             if data.send_try >= TCP_MAX_SEND_TRIES then
-              conn.state = libtcp.C_CLOSED -- too many timeouts
+              conn:Close()
+              --conn.state = libtcp.C_CLOSED -- too many timeouts
               log.e("connection closed due too many timeouts")
             else
               if conn.remote_address == nil then print("RA is nil") end
@@ -350,7 +359,7 @@ local function sendStep()
               log.i("sending  try:" .. data.send_try)
               data.send_try = data.send_try + 1 -- might not work
             end
-            if data.flags and data.flags.ACK and not data.flags.SYN and not data.flags.FIN then
+            if data.package and data.package.flags and data.package.flags.ACK and not data.package.flags.SYN and not data.package.flags.FIN then
                conn.packageBuffer_s[seq] = nil -- dont keep not fin not syn ack 
             end
           end
